@@ -54,7 +54,7 @@ export const dashboardService = {
 
 export const transferService = {
     requestTransfer: (data: { product_id: number; quantity: number }) => 
-        apiClient.post('/warehouse/transfers/request/', data), // Or custom endpoint
+        apiClient.post('/transfers/request/', data),
     getTransfers: () => apiClient.get('/transfers/'),
 };
 

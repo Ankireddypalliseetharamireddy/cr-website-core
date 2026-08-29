@@ -27,11 +27,13 @@ export default apiClient;
 
 export const authService = {
     login: (credentials: any) => apiClient.post('/auth/login', credentials),
+    register: (data: any) => apiClient.post('/auth/register', data),
     getProfile: () => apiClient.get('/auth/profile/'),
 };
 
 export const catalogService = {
     getProducts: () => apiClient.get('/products/'),
+    getFranchises: () => apiClient.get('/franchises/'),
     getCategories: () => apiClient.get('/categories/'),
     getSubCategories: () => apiClient.get('/subcategories/'),
     getBrands: () => apiClient.get('/brands/'),

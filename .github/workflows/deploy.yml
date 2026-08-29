@@ -1,0 +1,67 @@
+name: Deploy React Store Portal
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-validate:
+    name: Build & Validate Compilation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Node Modules
+        run: npm ci
+
+      - name: Verify TypeScript & Build Bundle
+        run: npm run build
+
+  deploy-to-vps:
+    name: Deploy Static Files to VPS
+    needs: build-and-validate
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Node Modules
+        run: npm ci
+
+      - name: Compile Distribution Bundle
+        run: npm run build
+
+      - name: Copy Distribution to VPS Nginx Directory
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          source: "dist/*"
+          target: "/var/www/cavree-web/"
+          strip_components: 1
+          overwrite: true

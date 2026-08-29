@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Store, DollarSign, Package, Users, ArrowRightLeft, FileText, Check, X } from 'lucide-react';
+import { Store, DollarSign, Package, Users, ArrowRightLeft, FileText, Power, Plus } from 'lucide-react';
 import { dashboardService, catalogService, transferService, employeeService } from '../services/api';
 import '../styles/website.css';
 
@@ -15,6 +15,14 @@ export default function FranchiseDashboard() {
     const [transferQty, setTransferQty] = useState('');
     const [transferSubmitting, setTransferSubmitting] = useState(false);
 
+    // Add Employee Form States
+    const [showAddForm, setShowAddForm] = useState(false);
+    const [empName, setEmpName] = useState('');
+    const [empEmail, setEmpEmail] = useState('');
+    const [empRole, setEmpRole] = useState('CASHIER');
+    const [empPassword, setEmpPassword] = useState('');
+    const [empSubmitting, setEmpSubmitting] = useState(false);
+
     const loadDashboardData = async () => {
         try {
             setLoading(true);
@@ -28,7 +36,6 @@ export default function FranchiseDashboard() {
             setStats(statsRes.data);
             setProducts(prodRes.data);
             setTransfers(transRes.data);
-            // Filter employees to only show those registered to this franchise
             setEmployees(empRes.data);
             
             if (prodRes.data.length > 0) {
@@ -66,14 +73,42 @@ export default function FranchiseDashboard() {
         }
     };
 
-    const handleEmployeeApproval = async (profileId: number, status: 'APPROVED' | 'REJECTED') => {
+    const handleAddEmployeeSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!empName || !empEmail || !empPassword) return;
+        setEmpSubmitting(true);
+
         try {
-            await employeeService.updateEmployeeStatus(profileId, status);
-            alert(`Employee status updated to ${status}!`);
+            const res = await employeeService.createEmployee({
+                name: empName,
+                email: empEmail,
+                role: empRole,
+                password: empPassword
+            });
+
+            alert(`Employee registered successfully! Generated Employee ID is: ${res.data.employee_id}. Awaiting Super Admin approval.`);
+            setEmpName('');
+            setEmpEmail('');
+            setEmpPassword('');
+            setEmpRole('CASHIER');
+            setShowAddForm(false);
             loadDashboardData();
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            alert("Failed to update employee status.");
+            alert(err.response?.data?.error || "Registration failed. Verify inputs.");
+        } finally {
+            setEmpSubmitting(false);
+        }
+    };
+
+    const handleToggleEmployee = async (id: number) => {
+        try {
+            await employeeService.toggleEmployeeActive(id);
+            alert("Employee status toggled!");
+            loadDashboardData();
+        } catch (err: any) {
+            console.error(err);
+            alert(err.response?.data?.error || "Failed to toggle active status.");
         }
     };
 
@@ -144,10 +179,10 @@ export default function FranchiseDashboard() {
                 </div>
             </div>
 
-            {/* Split Panel: Left (Inventory & Approvals), Right (Request Transfers) */}
+            {/* Split Panel: Left (Inventory & Staff Ledger), Right (Request Transfers) */}
             <div style={{ display: 'grid', gridTemplateColumns: '7fr 4fr', gap: '1.5rem' }}>
                 
-                {/* Left Columns: Stock Levels & Cashier Approvals */}
+                {/* Left Columns: Stock Levels & Staff Ledger */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     
                     {/* Inventory Table */}
@@ -167,7 +202,6 @@ export default function FranchiseDashboard() {
                             </thead>
                             <tbody>
                                 {products.map((p) => {
-                                    // Find this franchise's stock level
                                     const franchiseInv = p.franchise_stock.find((f: any) => f.quantity !== undefined) || { quantity: 0 };
                                     const qty = franchiseInv.quantity || 0;
                                     
@@ -206,46 +240,111 @@ export default function FranchiseDashboard() {
                         </table>
                     </div>
 
-                    {/* Cashier Approvals List */}
+                    {/* Franchise Employees Ledger */}
                     <div className="glass-panel">
-                        <h3 className="panel-title">
-                            <Users size={18} style={{ color: 'var(--accent-purple)' }} />
-                            Cashier Approvals (Store Staff)
-                        </h3>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <h3 className="panel-title" style={{ margin: 0 }}>
+                                <Users size={18} style={{ color: 'var(--accent-purple)' }} />
+                                Store Employees Directory
+                            </h3>
+                            <button className="btn btn-secondary btn-sm" onClick={() => setShowAddForm(!showAddForm)}>
+                                <Plus size={14} /> Add Store Staff
+                            </button>
+                        </div>
+
+                        {showAddForm && (
+                            <form onSubmit={handleAddEmployeeSubmit} className="glass-panel" style={{ background: 'rgba(0,0,0,0.15)', padding: '1rem', marginBottom: '1.5rem' }}>
+                                <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', fontWeight: 'bold' }}>Register New Store Employee</h4>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                                    <input 
+                                        type="text" 
+                                        className="form-input" 
+                                        placeholder="Full Name" 
+                                        value={empName} 
+                                        onChange={(e) => setEmpName(e.target.value)} 
+                                        required 
+                                    />
+                                    <input 
+                                        type="email" 
+                                        className="form-input" 
+                                        placeholder="Email Address" 
+                                        value={empEmail} 
+                                        onChange={(e) => setEmpEmail(e.target.value)} 
+                                        required 
+                                    />
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
+                                    <select 
+                                        className="form-input" 
+                                        value={empRole} 
+                                        onChange={(e) => setEmpRole(e.target.value)}
+                                    >
+                                        <option value="CASHIER">Cashier (POS Operator)</option>
+                                        <option value="STORE_MANAGER">Store Manager</option>
+                                        <option value="INVENTORY_MANAGER">Inventory Manager</option>
+                                        <option value="SALES_EXECUTIVE">Sales Executive</option>
+                                        <option value="AUDITOR">Store Auditor</option>
+                                        <option value="DELIVERY_STAFF">Delivery Staff</option>
+                                    </select>
+                                    <input 
+                                        type="password" 
+                                        className="form-input" 
+                                        placeholder="Login Password" 
+                                        value={empPassword} 
+                                        onChange={(e) => setEmpPassword(e.target.value)} 
+                                        required 
+                                    />
+                                </div>
+                                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                                    <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowAddForm(false)}>Cancel</button>
+                                    <button type="submit" className="btn btn-primary btn-sm" disabled={empSubmitting}>
+                                        {empSubmitting ? 'Registering...' : 'Register Employee'}
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+
                         {employees.length > 0 ? (
                             <table className="glass-table">
                                 <thead>
                                     <tr>
-                                        <th>Cashier Details</th>
-                                        <th>Username</th>
-                                        <th>Current Status</th>
-                                        <th style={{ width: '120px' }}>Actions</th>
+                                        <th>Employee ID</th>
+                                        <th>Name / Email</th>
+                                        <th>Role</th>
+                                        <th>Approval Status</th>
+                                        <th>System Access</th>
+                                        <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {employees.map((emp) => (
-                                        <tr key={emp.id}>
+                                        <tr key={emp.id} style={{ opacity: emp.is_active_employee ? 1 : 0.5 }}>
+                                            <td style={{ fontWeight: 'bold', color: 'var(--accent-blue)' }}>{emp.employee_id || 'Generating...'}</td>
                                             <td>
-                                                <div style={{ fontWeight: 'bold' }}>{emp.user.first_name} {emp.user.last_name}</div>
-                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{emp.user.email}</div>
+                                                <div style={{ fontWeight: 'bold' }}>{emp.user.first_name} {emp.user.last_name || ''}</div>
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                                    {emp.user.email} &bull; @{emp.user.username}
+                                                </div>
                                             </td>
-                                            <td style={{ fontFamily: 'monospace' }}>{emp.user.username}</td>
+                                            <td>
+                                                <span className="badge badge-blue">{emp.role.replace('_', ' ')}</span>
+                                            </td>
                                             <td>
                                                 <span className={`badge ${emp.approval_status === 'APPROVED' ? 'badge-success' : emp.approval_status === 'PENDING' ? 'badge-warning' : 'badge-danger'}`}>
                                                     {emp.approval_status}
                                                 </span>
                                             </td>
                                             <td>
-                                                {emp.approval_status === 'PENDING' && (
-                                                    <div style={{ display: 'flex', gap: '0.25rem' }}>
-                                                        <button className="btn btn-primary btn-sm" onClick={() => handleEmployeeApproval(emp.id, 'APPROVED')} title="Approve Cashier">
-                                                            <Check size={12} />
-                                                        </button>
-                                                        <button className="btn btn-danger btn-sm" onClick={() => handleEmployeeApproval(emp.id, 'REJECTED')} title="Reject Cashier">
-                                                            <X size={12} />
-                                                        </button>
-                                                    </div>
-                                                )}
+                                                <span className={`badge ${emp.is_active_employee ? 'badge-success' : 'badge-danger'}`}>
+                                                    {emp.is_active_employee ? 'Active' : 'Terminated'}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                                    <button className="btn btn-secondary btn-sm" onClick={() => handleToggleEmployee(emp.id)} title="Toggle Account Access">
+                                                        <Power size={12} /> {emp.is_active_employee ? 'Disable' : 'Enable'}
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
@@ -253,7 +352,7 @@ export default function FranchiseDashboard() {
                             </table>
                         ) : (
                             <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textAlign: 'center', padding: '1rem' }}>
-                                No cashier registrations found for this store.
+                                No store staff registered yet.
                             </p>
                         )}
                     </div>
@@ -307,7 +406,7 @@ export default function FranchiseDashboard() {
                                         </div>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
                                             <span>Quantity: {t.quantity} units</span>
-                                            <span>{new Date(t.created_at).toLocaleDateString()}</span>
+                                            <span>{new Date(t.transfer_date).toLocaleDateString()}</span>
                                         </div>
                                     </div>
                                 ))

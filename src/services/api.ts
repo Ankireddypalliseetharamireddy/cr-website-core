@@ -61,7 +61,7 @@ export const transferService = {
 };
 
 export const employeeService = {
-    getEmployees: () => apiClient.get('/profiles/'),
-    updateEmployeeStatus: (id: number, approval_status: string) => 
-        apiClient.patch(`/profiles/${id}/`, { approval_status }),
+    getEmployees: (params?: any) => apiClient.get('/employees/', { params }),
+    createEmployee: (data: any) => apiClient.post('/employees/', data),
+    toggleEmployeeActive: (id: number) => apiClient.post(`/employees/${id}/toggle_active/`),
 };

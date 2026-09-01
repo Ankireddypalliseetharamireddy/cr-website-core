@@ -173,15 +173,20 @@ export default function Billing() {
                     if (barcodes && barcodes.length > 0) {
                         const rawValue = barcodes[0].rawValue;
                         if (rawValue) {
-                            handleProductCodeDetected(rawValue);
+                            // 1. Play scan audio beep
                             playBeepSound();
-                            setScanMessage(`✓ Scanned: ${rawValue}`);
-                            // Pause briefly before scanning next item
+
+                            // 2. Trigger mobile phone vibration feedback
+                            if (navigator.vibrate) {
+                                navigator.vibrate([150, 50, 150]);
+                            }
+
+                            // 3. Add product to cart
+                            await handleProductCodeDetected(rawValue);
+
+                            // 4. Auto-close camera scanner immediately
                             active = false;
-                            setTimeout(() => {
-                                active = true;
-                                requestAnimationFrame(scanFrame);
-                            }, 1500);
+                            stopCameraScanner();
                             return;
                         }
                     }

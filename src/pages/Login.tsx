@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Store, User, Lock, ArrowRight, RefreshCw } from 'lucide-react';
+import { Store, User, Lock, ArrowRight, RefreshCw, KeyRound, ShieldCheck } from 'lucide-react';
 import { authService, catalogService } from '../services/api';
 import '../styles/website.css';
 
@@ -7,6 +7,15 @@ interface Franchise {
     id: number;
     name: string;
     location: string;
+}
+
+interface StoreEmployee {
+    id: number;
+    employee_id: string;
+    username: string;
+    full_name: string;
+    role: string;
+    role_name: string;
 }
 
 interface LoginProps {
@@ -18,13 +27,21 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     const [franchises, setFranchises] = useState<Franchise[]>([]);
     const [selectedFranchiseId, setSelectedFranchiseId] = useState('');
     const [selectedFranchiseName, setSelectedFranchiseName] = useState('');
-    const [userId, setUserId] = useState('');
+    
+    // Store Employees List for Dropdown
+    const [employees, setEmployees] = useState<StoreEmployee[]>([]);
+    const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
+    const [loadingEmployees, setLoadingEmployees] = useState(false);
+
+    // Admin Username
+    const [adminUsername, setAdminUsername] = useState('');
+
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [loadingFranchises, setLoadingFranchises] = useState(true);
 
-    // Load dynamic list of franchises for the dropdown
+    // 1. Load dynamic list of franchises for the dropdown on mount
     useEffect(() => {
         const fetchFranchises = async () => {
             setLoadingFranchises(true);
@@ -32,17 +49,48 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                 const res = await catalogService.getFranchises();
                 setFranchises(res.data);
                 if (res.data && res.data.length > 0) {
-                    setSelectedFranchiseId(String(res.data[0].id));
-                    setSelectedFranchiseName(res.data[0].name);
+                    const firstStore = res.data[0];
+                    setSelectedFranchiseId(String(firstStore.id));
+                    setSelectedFranchiseName(firstStore.name);
                 }
             } catch (err) {
-                console.error("Failed to load franchises list for login", err);
+                console.error("Failed to load franchises list", err);
             } finally {
                 setLoadingFranchises(false);
             }
         };
         fetchFranchises();
     }, []);
+
+    // 2. Whenever selected franchise changes, load its active employees
+    useEffect(() => {
+        if (!selectedFranchiseId) {
+            setEmployees([]);
+            setSelectedEmployeeId('');
+            return;
+        }
+
+        const fetchEmployees = async () => {
+            setLoadingEmployees(true);
+            try {
+                const res = await catalogService.getFranchiseEmployees(Number(selectedFranchiseId));
+                setEmployees(res.data);
+                if (res.data && res.data.length > 0) {
+                    // Preselect first employee
+                    setSelectedEmployeeId(res.data[0].employee_id || res.data[0].username);
+                } else {
+                    setSelectedEmployeeId('');
+                }
+            } catch (err) {
+                console.error("Failed to load store employees", err);
+                setEmployees([]);
+            } finally {
+                setLoadingEmployees(false);
+            }
+        };
+
+        fetchEmployees();
+    }, [selectedFranchiseId]);
 
     const handleFranchiseChange = (idStr: string) => {
         setSelectedFranchiseId(idStr);
@@ -55,13 +103,23 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     const handleLoginSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
-        setLoading(true);
 
+        const loginUser = loginType === 'admin' ? adminUsername.trim() : selectedEmployeeId.trim();
+
+        if (!loginUser) {
+            setError(loginType === 'admin' ? 'Please enter Admin username.' : 'Please select an employee from the dropdown.');
+            return;
+        }
+
+        if (!password) {
+            setError('Please enter your password.');
+            return;
+        }
+
+        setLoading(true);
         try {
-            const usernamePayload = userId.trim();
-            
             const res = await authService.login({
-                username: usernamePayload,
+                username: loginUser,
                 password: password.trim()
             });
 
@@ -78,7 +136,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             ];
 
             if (loginType === 'employee' && !STORE_ROLES.includes(role)) {
-                throw new Error("Access denied. Registered username does not belong to a Store Employee.");
+                throw new Error("Access denied. Selected account does not belong to a store staff role.");
             }
 
             const storeIdentifier = selectedFranchiseName || selectedFranchiseId || 'Store';
@@ -101,7 +159,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     return (
         <div className="login-container">
             <div className="glass-panel login-card">
-                <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
                     <div style={{ display: 'inline-flex', padding: '0.75rem', borderRadius: '50%', backgroundColor: 'rgba(59, 130, 246, 0.1)', color: 'var(--accent-blue)', marginBottom: '0.75rem' }}>
                         <Store size={32} />
                     </div>
@@ -125,7 +183,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                             fontSize: '0.8125rem'
                         }}
                     >
-                        Store Employee
+                        Store Staff
                     </button>
                     <button
                         type="button"
@@ -146,16 +204,16 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                 </div>
 
                 {error && (
-                    <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--accent-red)', padding: '0.75rem', borderRadius: '8px', color: '#f87171', fontSize: '0.8125rem', marginBottom: '1rem' }}>
+                    <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--accent-red)', padding: '0.75rem', borderRadius: '8px', color: '#f87171', fontSize: '0.8125rem', marginBottom: '1.25rem' }}>
                         {error}
                     </div>
                 )}
 
                 <form onSubmit={handleLoginSubmit}>
-                    {/* Dynamic Franchise Store Dropdown */}
+                    {/* 1. Franchise Store Dropdown */}
                     <div className="form-group">
                         <label className="form-label">
-                            {loginType === 'admin' ? 'Target Franchise Store' : 'Select Franchise Store *'}
+                            Select Franchise Store *
                         </label>
                         <div style={{ position: 'relative' }}>
                             {loadingFranchises ? (
@@ -171,41 +229,72 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                                     required
                                 >
                                     <option value="" disabled>-- Select Franchise Store --</option>
-                                    {franchises.length > 0 ? (
-                                        franchises.map((f) => (
-                                            <option key={f.id} value={f.id}>
-                                                {f.name} ({f.location})
-                                            </option>
-                                        ))
-                                    ) : (
-                                        <option value="1">Central Store Node</option>
-                                    )}
+                                    {franchises.map((f) => (
+                                        <option key={f.id} value={f.id}>
+                                            {f.name} ({f.location})
+                                        </option>
+                                    ))}
                                 </select>
                             )}
                             <Store size={16} style={{ position: 'absolute', left: '0.75rem', top: '1rem', color: 'var(--text-secondary)' }} />
                         </div>
                     </div>
 
-                    {/* Employee Username / ID / Admin ID Field */}
-                    <div className="form-group">
-                        <label className="form-label">
-                            {loginType === 'admin' ? 'Admin Username or Email *' : 'Employee ID, Username or Email *'}
-                        </label>
-                        <div style={{ position: 'relative' }}>
-                            <input
-                                type="text"
-                                className="form-input"
-                                style={{ paddingLeft: '2.5rem' }}
-                                value={userId}
-                                onChange={(e) => setUserId(e.target.value)}
-                                placeholder={loginType === 'admin' ? 'e.g. BL_1001 or admin@store.com' : 'e.g. BL-CSH-1001 or ramesh@store.com'}
-                                required
-                            />
-                            <User size={16} style={{ position: 'absolute', left: '0.75rem', top: '1rem', color: 'var(--text-secondary)' }} />
+                    {/* 2. Employee Dropdown (for Store Staff) OR Admin ID input */}
+                    {loginType === 'employee' ? (
+                        <div className="form-group">
+                            <label className="form-label">
+                                Select Employee ID / Staff Name *
+                            </label>
+                            <div style={{ position: 'relative' }}>
+                                {loadingEmployees ? (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1rem 0.75rem 2.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid var(--border-color)', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
+                                        <RefreshCw size={14} className="spin" /> Loading staff accounts...
+                                    </div>
+                                ) : employees.length > 0 ? (
+                                    <select
+                                        className="form-input form-select"
+                                        style={{ paddingLeft: '2.5rem' }}
+                                        value={selectedEmployeeId}
+                                        onChange={(e) => setSelectedEmployeeId(e.target.value)}
+                                        required
+                                    >
+                                        <option value="" disabled>-- Select Your Employee ID --</option>
+                                        {employees.map((emp) => (
+                                            <option key={emp.id} value={emp.employee_id || emp.username}>
+                                                {emp.employee_id} — {emp.full_name} ({emp.role_name})
+                                            </option>
+                                        ))}
+                                    </select>
+                                ) : (
+                                    <div style={{ padding: '0.75rem 1rem 0.75rem 2.5rem', background: 'rgba(239, 68, 68, 0.05)', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)', color: 'var(--text-secondary)', fontSize: '0.8125rem' }}>
+                                        No active staff registered for this store. Please register employees in the Super Admin portal.
+                                    </div>
+                                )}
+                                <User size={16} style={{ position: 'absolute', left: '0.75rem', top: '1rem', color: 'var(--text-secondary)' }} />
+                            </div>
                         </div>
-                    </div>
+                    ) : (
+                        <div className="form-group">
+                            <label className="form-label">
+                                Franchise Admin Username or Email *
+                            </label>
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    style={{ paddingLeft: '2.5rem' }}
+                                    value={adminUsername}
+                                    onChange={(e) => setAdminUsername(e.target.value)}
+                                    placeholder="e.g. BL_1001 or admin@store.com"
+                                    required
+                                />
+                                <ShieldCheck size={16} style={{ position: 'absolute', left: '0.75rem', top: '1rem', color: 'var(--text-secondary)' }} />
+                            </div>
+                        </div>
+                    )}
 
-                    {/* Password Field */}
+                    {/* 3. Password Input */}
                     <div className="form-group" style={{ marginBottom: '2rem' }}>
                         <label className="form-label">Password *</label>
                         <div style={{ position: 'relative' }}>
@@ -222,9 +311,15 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                         </div>
                     </div>
 
-                    <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.875rem' }} disabled={loading}>
+                    <button
+                        type="submit"
+                        className="btn btn-primary"
+                        style={{ width: '100%', padding: '0.875rem' }}
+                        disabled={loading || (loginType === 'employee' && employees.length === 0)}
+                    >
                         {loading ? 'Authenticating...' : (
                             <>
+                                <KeyRound size={16} />
                                 <span>Sign In to Portal</span>
                                 <ArrowRight size={16} />
                             </>

@@ -12,26 +12,35 @@ export default function App() {
     const [username, setUsername] = useState<string>('');
     const [role, setRole] = useState<string>('');
     const [franchiseId, setFranchiseId] = useState<string>('');
-    const [activePage, setActivePage] = useState<'home' | 'billing' | 'auditing' | 'history'>('home');
+    const [activePage, setActivePage] = useState<'home' | 'billing' | 'auditing' | 'history'>(() => {
+        return (localStorage.getItem('activePage') as any) || 'home';
+    });
 
     useEffect(() => {
         const storedToken = localStorage.getItem('token');
         const storedUser = localStorage.getItem('username');
         const storedRole = localStorage.getItem('role');
         const storedFranchise = localStorage.getItem('franchiseId');
+        const storedPage = localStorage.getItem('activePage') as any;
 
         if (storedToken) setToken(storedToken);
         if (storedUser) setUsername(storedUser);
         if (storedRole) setRole(storedRole);
         if (storedFranchise) setFranchiseId(storedFranchise);
+        if (storedPage) setActivePage(storedPage);
     }, []);
+
+    const handleNavigate = (page: 'home' | 'billing' | 'auditing' | 'history') => {
+        setActivePage(page);
+        localStorage.setItem('activePage', page);
+    };
 
     const handleLoginSuccess = (userToken: string, userDisplayName: string, userRole: string, userFranchise: string) => {
         setToken(userToken);
         setUsername(userDisplayName);
         setRole(userRole);
         setFranchiseId(userFranchise);
-        setActivePage('home');
+        handleNavigate('home');
     };
 
     const handleLogout = () => {
@@ -39,6 +48,7 @@ export default function App() {
         localStorage.removeItem('username');
         localStorage.removeItem('role');
         localStorage.removeItem('franchiseId');
+        localStorage.removeItem('activePage');
         setToken(null);
         setUsername('');
         setRole('');
@@ -58,7 +68,7 @@ export default function App() {
             {/* Top Navigation Bar */}
             <header className="navbar" style={{ padding: '0.75rem 1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                    <div className="brand" style={{ cursor: 'pointer' }} onClick={() => setActivePage('home')}>
+                    <div className="brand" style={{ cursor: 'pointer' }} onClick={() => handleNavigate('home')}>
                         <Store size={22} style={{ color: 'var(--accent-blue)' }} />
                         <span>CAVREE STORES</span>
                         <span className="badge badge-purple" style={{ fontSize: '0.625rem', padding: '0.15rem 0.35rem', marginLeft: '0.5rem' }}>
@@ -71,7 +81,7 @@ export default function App() {
                         <nav style={{ display: 'flex', gap: '0.35rem' }}>
                             <button
                                 className={`btn btn-sm ${activePage === 'home' ? 'btn-primary' : 'btn-secondary'}`}
-                                onClick={() => setActivePage('home')}
+                                onClick={() => handleNavigate('home')}
                                 style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
                             >
                                 <Home size={14} />
@@ -79,7 +89,7 @@ export default function App() {
                             </button>
                             <button
                                 className={`btn btn-sm ${activePage === 'billing' ? 'btn-primary' : 'btn-secondary'}`}
-                                onClick={() => setActivePage('billing')}
+                                onClick={() => handleNavigate('billing')}
                                 style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
                             >
                                 <ShoppingCart size={14} />
@@ -87,7 +97,7 @@ export default function App() {
                             </button>
                             <button
                                 className={`btn btn-sm ${activePage === 'auditing' ? 'btn-primary' : 'btn-secondary'}`}
-                                onClick={() => setActivePage('auditing')}
+                                onClick={() => handleNavigate('auditing')}
                                 style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
                             >
                                 <ClipboardCheck size={14} />
@@ -95,7 +105,7 @@ export default function App() {
                             </button>
                             <button
                                 className={`btn btn-sm ${activePage === 'history' ? 'btn-primary' : 'btn-secondary'}`}
-                                onClick={() => setActivePage('history')}
+                                onClick={() => handleNavigate('history')}
                                 style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
                             >
                                 <Receipt size={14} />
@@ -137,10 +147,10 @@ export default function App() {
                     <FranchiseDashboard />
                 ) : (
                     <>
-                        {activePage === 'home' && <EmployeeHome onNavigate={(p) => setActivePage(p)} userRole={role} />}
+                        {activePage === 'home' && <EmployeeHome onNavigate={(p) => handleNavigate(p)} userRole={role} />}
                         {activePage === 'billing' && <Billing />}
-                        {activePage === 'auditing' && <Auditing onBack={() => setActivePage('home')} />}
-                        {activePage === 'history' && <EmployeeHome onNavigate={(p) => setActivePage(p)} userRole={role} />}
+                        {activePage === 'auditing' && <Auditing onBack={() => handleNavigate('home')} />}
+                        {activePage === 'history' && <EmployeeHome onNavigate={(p) => handleNavigate(p)} userRole={role} />}
                     </>
                 )}
             </main>

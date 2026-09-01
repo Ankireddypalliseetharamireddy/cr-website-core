@@ -43,7 +43,14 @@ interface CompletedOrder {
 
 export default function Billing() {
     const [products, setProducts] = useState<Product[]>([]);
-    const [cart, setCart] = useState<CartItem[]>([]);
+    const [cart, setCart] = useState<CartItem[]>(() => {
+        try {
+            const saved = localStorage.getItem('activeBillingCart');
+            return saved ? JSON.parse(saved) : [];
+        } catch {
+            return [];
+        }
+    });
     const [searchQuery, setSearchQuery] = useState('');
     const [barcodeScan, setBarcodeScan] = useState('');
 
@@ -107,6 +114,15 @@ export default function Billing() {
 
         return () => clearInterval(focusInterval);
     }, [cameraOpen]);
+
+    // Automatically sync cart items with localStorage so refreshing page keeps items intact
+    useEffect(() => {
+        try {
+            localStorage.setItem('activeBillingCart', JSON.stringify(cart));
+        } catch (e) {
+            console.error("Failed to save cart to localStorage", e);
+        }
+    }, [cart]);
 
     // Play Beep on Barcode Scan
     const playBeepSound = () => {
@@ -516,8 +532,20 @@ export default function Billing() {
                 <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                     <div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                            <h3 className="panel-title" style={{ margin: 0 }}>Active Billing Cart</h3>
-                            <span className="badge badge-blue">{totalQty} Items</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <h3 className="panel-title" style={{ margin: 0 }}>Active Billing Cart</h3>
+                                <span className="badge badge-blue">{totalQty} Items</span>
+                            </div>
+                            {cart.length > 0 && (
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary btn-sm"
+                                    onClick={() => setCart([])}
+                                    style={{ fontSize: '0.6875rem', padding: '0.2rem 0.5rem', color: 'var(--accent-red)' }}
+                                >
+                                    Clear Cart
+                                </button>
+                            )}
                         </div>
                         
                         <div style={{ maxHeight: '280px', overflowY: 'auto', marginBottom: '1.25rem', paddingRight: '0.25rem' }}>

@@ -2,14 +2,17 @@ import { useState, useEffect } from 'react';
 import './styles/website.css';
 import Login from './pages/Login';
 import Billing from './pages/Billing';
+import Auditing from './pages/Auditing';
+import EmployeeHome from './pages/EmployeeHome';
 import FranchiseDashboard from './pages/FranchiseDashboard';
-import { LogOut, User, Store } from 'lucide-react';
+import { LogOut, User, Store, ShoppingCart, ClipboardCheck, Home, Receipt } from 'lucide-react';
 
 export default function App() {
     const [token, setToken] = useState<string | null>(null);
     const [username, setUsername] = useState<string>('');
     const [role, setRole] = useState<string>('');
     const [franchiseId, setFranchiseId] = useState<string>('');
+    const [activePage, setActivePage] = useState<'home' | 'billing' | 'auditing' | 'history'>('home');
 
     useEffect(() => {
         const storedToken = localStorage.getItem('token');
@@ -28,6 +31,7 @@ export default function App() {
         setUsername(userDisplayName);
         setRole(userRole);
         setFranchiseId(userFranchise);
+        setActivePage('home');
     };
 
     const handleLogout = () => {
@@ -39,6 +43,7 @@ export default function App() {
         setUsername('');
         setRole('');
         setFranchiseId('');
+        setActivePage('home');
     };
 
     // If not authenticated, force login screen
@@ -51,28 +56,68 @@ export default function App() {
     return (
         <div className="app-container">
             {/* Top Navigation Bar */}
-            <header className="navbar">
-                <div className="brand">
-                    <Store size={22} style={{ color: 'var(--accent-blue)' }} />
-                    <span>CAVREE STORES</span>
-                    <span className="badge badge-purple" style={{ fontSize: '0.625rem', padding: '0.15rem 0.35rem', marginLeft: '0.5rem' }}>
-                        {isAdmin ? 'ADMIN PORTAL' : 'CASHIER TERMINAL'}
-                    </span>
+            <header className="navbar" style={{ padding: '0.75rem 1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                    <div className="brand" style={{ cursor: 'pointer' }} onClick={() => setActivePage('home')}>
+                        <Store size={22} style={{ color: 'var(--accent-blue)' }} />
+                        <span>CAVREE STORES</span>
+                        <span className="badge badge-purple" style={{ fontSize: '0.625rem', padding: '0.15rem 0.35rem', marginLeft: '0.5rem' }}>
+                            {isAdmin ? 'ADMIN OVERSIGHT' : 'STORE POS TERMINAL'}
+                        </span>
+                    </div>
+
+                    {/* Staff Navigation Tabs */}
+                    {!isAdmin && (
+                        <nav style={{ display: 'flex', gap: '0.35rem' }}>
+                            <button
+                                className={`btn btn-sm ${activePage === 'home' ? 'btn-primary' : 'btn-secondary'}`}
+                                onClick={() => setActivePage('home')}
+                                style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                            >
+                                <Home size={14} />
+                                <span>Hub</span>
+                            </button>
+                            <button
+                                className={`btn btn-sm ${activePage === 'billing' ? 'btn-primary' : 'btn-secondary'}`}
+                                onClick={() => setActivePage('billing')}
+                                style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                            >
+                                <ShoppingCart size={14} />
+                                <span>Billing POS</span>
+                            </button>
+                            <button
+                                className={`btn btn-sm ${activePage === 'auditing' ? 'btn-primary' : 'btn-secondary'}`}
+                                onClick={() => setActivePage('auditing')}
+                                style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                            >
+                                <ClipboardCheck size={14} />
+                                <span>Store Audit</span>
+                            </button>
+                            <button
+                                className={`btn btn-sm ${activePage === 'history' ? 'btn-primary' : 'btn-secondary'}`}
+                                onClick={() => setActivePage('history')}
+                                style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                            >
+                                <Receipt size={14} />
+                                <span>Sales History</span>
+                            </button>
+                        </nav>
+                    )}
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginLeft: 'auto' }}>
                     {/* User Metadata Status */}
-                    <div className="user-badge">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                            <User size={14} style={{ color: 'var(--text-secondary)' }} />
+                    <div className="user-badge" style={{ background: 'rgba(255,255,255,0.04)', padding: '0.35rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <User size={14} style={{ color: 'var(--accent-blue)' }} />
                             <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{username}</span>
                         </div>
                         {franchiseId && (
                             <>
                                 <span style={{ color: 'var(--border-color)' }}>&bull;</span>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--text-secondary)', fontSize: '0.8125rem' }}>
                                     <Store size={12} />
-                                    <span>Store: {franchiseId}</span>
+                                    <span>{franchiseId}</span>
                                 </span>
                             </>
                         )}
@@ -86,12 +131,17 @@ export default function App() {
                 </div>
             </header>
 
-            {/* Main Content Layout based on user role */}
+            {/* Main Content Layout based on user role and active page */}
             <main style={{ flexGrow: 1 }}>
                 {isAdmin ? (
                     <FranchiseDashboard />
                 ) : (
-                    <Billing />
+                    <>
+                        {activePage === 'home' && <EmployeeHome onNavigate={(p) => setActivePage(p)} userRole={role} />}
+                        {activePage === 'billing' && <Billing />}
+                        {activePage === 'auditing' && <Auditing onBack={() => setActivePage('home')} />}
+                        {activePage === 'history' && <EmployeeHome onNavigate={(p) => setActivePage(p)} userRole={role} />}
+                    </>
                 )}
             </main>
         </div>

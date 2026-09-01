@@ -29,6 +29,9 @@ export const authService = {
     login: (credentials: any) => apiClient.post('/auth/login', credentials),
     register: (data: any) => apiClient.post('/auth/register', data),
     getProfile: () => apiClient.get('/auth/profile/'),
+    forgotPassword: (identifier: string) => apiClient.post('/auth/forgot-password/', { identifier }),
+    verifyResetOtp: (identifier: string, otp_code: string) => apiClient.post('/auth/verify-reset-otp/', { identifier, otp_code }),
+    resetPassword: (data: { identifier: string; otp_code: string; new_password: string }) => apiClient.post('/auth/reset-password/', data),
 };
 
 export const catalogService = {

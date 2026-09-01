@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Store, User, Lock, ArrowRight, RefreshCw, KeyRound, ShieldCheck } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Store, User, Lock, ArrowRight, RefreshCw, KeyRound, ShieldCheck, Mail, CheckCircle, X } from 'lucide-react';
 import { authService, catalogService } from '../services/api';
 import '../styles/website.css';
 
@@ -40,6 +40,18 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [loadingFranchises, setLoadingFranchises] = useState(true);
+
+    // Forgot Password Modal States
+    const [showForgotModal, setShowForgotModal] = useState(false);
+    const [forgotStep, setForgotStep] = useState<1 | 2 | 3>(1);
+    const [forgotIdentifier, setForgotIdentifier] = useState('');
+    const [forgotOtp, setForgotOtp] = useState('');
+    const [forgotNewPass, setForgotNewPass] = useState('');
+    const [forgotConfirmPass, setForgotConfirmPass] = useState('');
+    const [forgotMaskedEmail, setForgotMaskedEmail] = useState('');
+    const [forgotLoading, setForgotLoading] = useState(false);
+    const [forgotError, setForgotError] = useState('');
+    const [forgotSuccess, setForgotSuccess] = useState('');
 
     // 1. Load dynamic list of franchises for the dropdown on mount
     useEffect(() => {
@@ -295,7 +307,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                     )}
 
                     {/* 3. Password Input */}
-                    <div className="form-group" style={{ marginBottom: '2rem' }}>
+                    <div className="form-group" style={{ marginBottom: '0.75rem' }}>
                         <label className="form-label">Password *</label>
                         <div style={{ position: 'relative' }}>
                             <input
@@ -309,6 +321,31 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                             />
                             <Lock size={16} style={{ position: 'absolute', left: '0.75rem', top: '1rem', color: 'var(--text-secondary)' }} />
                         </div>
+                    </div>
+
+                    {/* Forgot Password Trigger Link */}
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.5rem' }}>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setShowForgotModal(true);
+                                setForgotStep(1);
+                                setForgotError('');
+                                setForgotSuccess('');
+                                setForgotIdentifier(selectedEmployeeId || adminUsername || '');
+                            }}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                color: 'var(--accent-blue)',
+                                fontSize: '0.8125rem',
+                                cursor: 'pointer',
+                                fontWeight: 600,
+                                padding: 0
+                            }}
+                        >
+                            Forgot Password?
+                        </button>
                     </div>
 
                     <button
@@ -327,6 +364,221 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                     </button>
                 </form>
             </div>
+
+            {/* ============================================================ */}
+            {/* FORGOT PASSWORD MODAL VIA SMTP EMAIL                         */}
+            {/* ============================================================ */}
+            {showForgotModal && (
+                <div className="modal-overlay">
+                    <div className="modal-content" style={{ maxWidth: '440px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                            <h3 className="panel-title" style={{ margin: 0, border: 'none', padding: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <Mail size={18} style={{ color: 'var(--accent-blue)' }} />
+                                Reset Account Password
+                            </h3>
+                            <button
+                                type="button"
+                                className="btn btn-secondary btn-sm"
+                                onClick={() => setShowForgotModal(false)}
+                                style={{ padding: '0.3rem 0.5rem' }}
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
+
+                        {forgotError && (
+                            <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--accent-red)', padding: '0.65rem 0.85rem', borderRadius: '8px', color: '#f87171', fontSize: '0.8125rem', marginBottom: '1rem' }}>
+                                {forgotError}
+                            </div>
+                        )}
+
+                        {forgotSuccess && (
+                            <div style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', border: '1px solid var(--accent-green)', padding: '0.65rem 0.85rem', borderRadius: '8px', color: '#34d399', fontSize: '0.8125rem', marginBottom: '1rem' }}>
+                                {forgotSuccess}
+                            </div>
+                        )}
+
+                        {/* STEP 1: Enter Username / Email */}
+                        {forgotStep === 1 && (
+                            <form onSubmit={async (e) => {
+                                e.preventDefault();
+                                if (!forgotIdentifier.trim()) {
+                                    setForgotError('Please enter your username, email, or employee ID.');
+                                    return;
+                                }
+                                setForgotLoading(true);
+                                setForgotError('');
+                                try {
+                                    const res = await authService.forgotPassword(forgotIdentifier.trim());
+                                    setForgotMaskedEmail(res.data.masked_email || res.data.email || 'your registered email');
+                                    setForgotSuccess(`Verification code sent to ${res.data.masked_email || 'your email'} via SMTP!`);
+                                    setForgotStep(2);
+                                } catch (err: any) {
+                                    setForgotError(err.response?.data?.error || 'Failed to send reset code. Please verify account details.');
+                                } finally {
+                                    setForgotLoading(false);
+                                }
+                            }}>
+                                <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginBottom: '1.25rem', lineHeight: '1.5' }}>
+                                    Enter your Employee ID, Username, or registered Email. We will send a 6-digit verification code to your email.
+                                </p>
+
+                                <div className="form-group">
+                                    <label className="form-label">Employee ID / Email / Username</label>
+                                    <div style={{ position: 'relative' }}>
+                                        <input
+                                            type="text"
+                                            className="form-input"
+                                            style={{ paddingLeft: '2.5rem' }}
+                                            placeholder="e.g. BL_1001 or cashier@store.com"
+                                            value={forgotIdentifier}
+                                            onChange={(e) => setForgotIdentifier(e.target.value)}
+                                            required
+                                        />
+                                        <User size={16} style={{ position: 'absolute', left: '0.75rem', top: '1rem', color: 'var(--text-secondary)' }} />
+                                    </div>
+                                </div>
+
+                                <div className="modal-actions">
+                                    <button
+                                        type="button"
+                                        className="btn btn-secondary"
+                                        onClick={() => setShowForgotModal(false)}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="btn btn-primary"
+                                        disabled={forgotLoading}
+                                    >
+                                        {forgotLoading ? 'Sending Code...' : 'Send Verification Code'}
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+
+                        {/* STEP 2: Enter 6-Digit OTP & New Password */}
+                        {forgotStep === 2 && (
+                            <form onSubmit={async (e) => {
+                                e.preventDefault();
+                                if (!forgotOtp.trim() || forgotOtp.trim().length !== 6) {
+                                    setForgotError('Please enter the 6-digit verification code sent to your email.');
+                                    return;
+                                }
+                                if (forgotNewPass.length < 6) {
+                                    setForgotError('New password must be at least 6 characters.');
+                                    return;
+                                }
+                                if (forgotNewPass !== forgotConfirmPass) {
+                                    setForgotError('Passwords do not match. Please re-enter.');
+                                    return;
+                                }
+                                setForgotLoading(true);
+                                setForgotError('');
+                                try {
+                                    await authService.resetPassword({
+                                        identifier: forgotIdentifier.trim(),
+                                        otp_code: forgotOtp.trim(),
+                                        new_password: forgotNewPass
+                                    });
+                                    setForgotStep(3);
+                                    setForgotSuccess('Password updated successfully!');
+                                } catch (err: any) {
+                                    setForgotError(err.response?.data?.error || 'Invalid or expired verification code.');
+                                } finally {
+                                    setForgotLoading(false);
+                                }
+                            }}>
+                                <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginBottom: '1.25rem', lineHeight: '1.5' }}>
+                                    Enter the 6-digit code sent to <strong style={{ color: 'var(--accent-blue)' }}>{forgotMaskedEmail}</strong> along with your new password.
+                                </p>
+
+                                <div className="form-group">
+                                    <label className="form-label">6-Digit Verification Code *</label>
+                                    <input
+                                        type="text"
+                                        maxLength={6}
+                                        className="form-input"
+                                        style={{ textAlign: 'center', fontSize: '1.5rem', letterSpacing: '6px', fontWeight: 'bold', color: 'var(--accent-blue)' }}
+                                        placeholder="------"
+                                        value={forgotOtp}
+                                        onChange={(e) => setForgotOtp(e.target.value.replace(/[^0-9]/g, ''))}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">New Password *</label>
+                                    <input
+                                        type="password"
+                                        className="form-input"
+                                        placeholder="Minimum 6 characters"
+                                        value={forgotNewPass}
+                                        onChange={(e) => setForgotNewPass(e.target.value)}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Confirm New Password *</label>
+                                    <input
+                                        type="password"
+                                        className="form-input"
+                                        placeholder="Re-enter new password"
+                                        value={forgotConfirmPass}
+                                        onChange={(e) => setForgotConfirmPass(e.target.value)}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="modal-actions">
+                                    <button
+                                        type="button"
+                                        className="btn btn-secondary"
+                                        onClick={() => setForgotStep(1)}
+                                    >
+                                        Back
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="btn btn-primary"
+                                        disabled={forgotLoading}
+                                    >
+                                        {forgotLoading ? 'Updating Password...' : 'Reset Password'}
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+
+                        {/* STEP 3: Success Screen */}
+                        {forgotStep === 3 && (
+                            <div style={{ textAlign: 'center', padding: '1rem 0' }}>
+                                <div style={{ display: 'inline-flex', padding: '1rem', borderRadius: '50%', backgroundColor: 'rgba(16, 185, 129, 0.15)', color: 'var(--accent-green)', marginBottom: '1rem' }}>
+                                    <CheckCircle size={40} />
+                                </div>
+                                <h4 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                                    Password Reset Complete!
+                                </h4>
+                                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
+                                    Your account password has been safely updated. You can now log in to the portal with your new credentials.
+                                </p>
+                                <button
+                                    type="button"
+                                    className="btn btn-primary"
+                                    style={{ width: '100%' }}
+                                    onClick={() => {
+                                        setShowForgotModal(false);
+                                        setPassword('');
+                                    }}
+                                >
+                                    Proceed to Sign In
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

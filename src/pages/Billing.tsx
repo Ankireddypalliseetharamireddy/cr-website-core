@@ -722,19 +722,19 @@ export default function Billing() {
             {/* ========================================== */}
             {cameraOpen && (
                 <div className="modal-overlay">
-                    <div className="modal-content" style={{ maxWidth: '460px', textAlign: 'center' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                            <h3 className="panel-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <Camera size={18} style={{ color: 'var(--accent-blue)' }} />
+                    <div className="modal-content" style={{ maxWidth: '520px', width: '96vw', padding: '1.25rem', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                            <h3 className="panel-title" style={{ margin: 0, border: 'none', padding: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.125rem' }}>
+                                <Camera size={20} style={{ color: 'var(--accent-blue)' }} />
                                 Scan Product QR / Barcode
                             </h3>
-                            <button className="btn btn-secondary btn-sm" onClick={stopCameraScanner} style={{ padding: '0.25rem 0.5rem' }}>
-                                <X size={16} />
+                            <button className="btn btn-secondary btn-sm" onClick={stopCameraScanner} style={{ padding: '0.35rem 0.6rem' }}>
+                                <X size={18} />
                             </button>
                         </div>
 
-                        {/* Camera Video Viewfinder */}
-                        <div style={{ position: 'relative', width: '100%', height: '280px', background: '#000', borderRadius: '12px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
+                        {/* Large Responsive Camera Video Viewfinder */}
+                        <div style={{ position: 'relative', width: '100%', height: 'min(55vh, 350px)', background: '#000', borderRadius: '14px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.875rem' }}>
                             <video
                                 ref={videoRef}
                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
@@ -742,45 +742,41 @@ export default function Billing() {
                                 muted
                             />
                             
-                            {/* Scanning Target Crosshair Frame */}
+                            {/* High-visibility Scanning Target Crosshair Frame */}
                             <div style={{
                                 position: 'absolute',
-                                width: '200px',
-                                height: '200px',
-                                border: '2px solid rgba(59, 130, 246, 0.8)',
-                                borderRadius: '12px',
-                                boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.4)',
+                                width: 'min(65vw, 240px)',
+                                height: 'min(65vw, 240px)',
+                                border: '2.5px solid #3b82f6',
+                                borderRadius: '16px',
+                                boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.45)',
                                 display: 'flex',
                                 alignItems: 'center',
-                                justifyContent: 'center'
+                                justifyContent: 'center',
+                                overflow: 'hidden'
                             }}>
-                                <div style={{
-                                    width: '100%',
-                                    height: '2px',
-                                    backgroundColor: 'var(--accent-blue)',
-                                    boxShadow: '0 0 8px var(--accent-blue)',
-                                    animation: 'pulse 1.5s infinite ease-in-out'
-                                }} />
+                                <div className="laser-line" />
                             </div>
                         </div>
 
-                        <p style={{ fontSize: '0.875rem', color: 'var(--accent-blue)', fontWeight: 600, marginBottom: '1rem' }}>
+                        <p style={{ fontSize: '0.875rem', color: 'var(--accent-blue)', fontWeight: 600, marginBottom: '0.875rem' }}>
                             {scanMessage}
                         </p>
 
-                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '0.75rem' }}>
                             <button
-                                className="btn btn-secondary btn-sm"
+                                className="btn btn-secondary"
+                                style={{ padding: '0.65rem' }}
                                 onClick={() => {
                                     setCameraFacing(prev => prev === 'environment' ? 'user' : 'environment');
                                     stopCameraScanner();
                                     setTimeout(startCameraScanner, 300);
                                 }}
                             >
-                                <RotateCcw size={14} /> Flip Camera
+                                <RotateCcw size={15} /> Flip Camera
                             </button>
-                            <button className="btn btn-primary btn-sm" onClick={stopCameraScanner}>
-                                Done Scanning ({cart.length} items in cart)
+                            <button className="btn btn-primary" style={{ padding: '0.65rem' }} onClick={stopCameraScanner}>
+                                Done ({cart.length} in Cart)
                             </button>
                         </div>
                     </div>

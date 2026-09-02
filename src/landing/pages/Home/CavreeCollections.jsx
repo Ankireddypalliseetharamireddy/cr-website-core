@@ -286,11 +286,20 @@ export const CavreeCollections = () => {
   useEffect(() => {
     if (showFullGallery || selectedLook) {
       document.body.style.overflow = 'hidden';
+      if (window.__lenis) {
+        window.__lenis.stop();
+      }
     } else {
       document.body.style.overflow = 'unset';
+      if (window.__lenis) {
+        window.__lenis.start();
+      }
     }
     return () => {
       document.body.style.overflow = 'unset';
+      if (window.__lenis) {
+        window.__lenis.start();
+      }
     };
   }, [showFullGallery, selectedLook]);
 
@@ -325,11 +334,10 @@ export const CavreeCollections = () => {
                     <button
                       key={cat}
                       onClick={() => handleCategorySelect(cat)}
-                      className={`font-sans text-[clamp(0.68rem,0.76vw,0.75rem)] font-bold tracking-[0.05em] uppercase py-1.5 px-3.5 rounded-full transition-all duration-300 inline-flex items-center justify-center cursor-pointer shrink-0 whitespace-nowrap ${
-                        isActive
+                      className={`font-sans text-[clamp(0.68rem,0.76vw,0.75rem)] font-bold tracking-[0.05em] uppercase py-1.5 px-3.5 rounded-full transition-all duration-300 inline-flex items-center justify-center cursor-pointer shrink-0 whitespace-nowrap ${isActive
                           ? 'bg-[#1C1D21] text-white shadow-[0_2px_6px_rgba(0,0,0,0.15)]'
                           : 'bg-transparent text-[#5A5C64] hover:text-[#1C1D21] hover:bg-black/5'
-                      }`}
+                        }`}
                     >
                       {cat}
                     </button>
@@ -344,11 +352,10 @@ export const CavreeCollections = () => {
                   setGalleryCategory('All Looks');
                   setShowFullGallery(true);
                 }}
-                className={`font-sans text-[clamp(0.7rem,0.78vw,0.76rem)] font-extrabold tracking-[0.06em] uppercase py-2 px-4.5 rounded-full inline-flex items-center gap-2 cursor-pointer transition-all duration-300 shrink-0 whitespace-nowrap ${
-                  showFullGallery
+                className={`font-sans text-[clamp(0.7rem,0.78vw,0.76rem)] font-extrabold tracking-[0.06em] uppercase py-2 px-4.5 rounded-full inline-flex items-center gap-2 cursor-pointer transition-all duration-300 shrink-0 whitespace-nowrap ${showFullGallery
                     ? 'border-[1.5px] border-[#1C1D21] bg-[#1C1D21] text-white'
                     : 'border border-[#1C1D21]/25 bg-white text-[#1C1D21] hover:bg-[#1C1D21] hover:text-white hover:border-[#1C1D21] shadow-sm'
-                }`}
+                  }`}
               >
                 <span>View All Looks</span>
                 <ArrowUpRight size={13} className="text-[#B58C36]" />
@@ -446,9 +453,8 @@ export const CavreeCollections = () => {
             {filteredLooks.map((_, idx) => (
               <span
                 key={idx}
-                className={`h-[7px] rounded-full inline-block transition-all duration-500 ${
-                  currentIndex === idx ? 'w-6 bg-[#B58C36]' : 'w-[7px] bg-[#1C1D21]/20'
-                }`}
+                className={`h-[7px] rounded-full inline-block transition-all duration-500 ${currentIndex === idx ? 'w-6 bg-[#B58C36]' : 'w-[7px] bg-[#1C1D21]/20'
+                  }`}
               />
             ))}
           </div>
@@ -495,7 +501,9 @@ export const CavreeCollections = () => {
       {showFullGallery && (
         <div
           ref={galleryScrollRef}
-          className="full-screen-gallery-container fixed inset-0 w-screen h-screen bg-[#FAF6EE] z-[99999] overflow-y-auto flex flex-col box-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          data-lenis-prevent="true"
+          className="full-screen-gallery-container fixed inset-0 w-full h-full bg-[#FAF6EE] z-[99999] overflow-y-auto overscroll-contain flex flex-col box-border"
+          style={{ WebkitOverflowScrolling: 'touch' }}
         >
 
           <div className="sticky top-0 z-[100] bg-[#FAF6EE]/95 backdrop-blur-md border-b border-[#DEC29D]/40 py-4 sm:py-5 px-[clamp(1rem,4vw,4rem)] flex items-center justify-between gap-4 sm:gap-6 flex-wrap">
@@ -521,11 +529,10 @@ export const CavreeCollections = () => {
                     <button
                       key={cat}
                       onClick={() => handleGalleryCategorySelect(cat)}
-                      className={`gallery-filter-btn font-sans text-[clamp(0.7rem,0.76vw,0.76rem)] font-bold tracking-[0.05em] uppercase py-1.5 sm:py-2 px-3 sm:px-4 rounded-full border transition-all duration-300 inline-flex items-center justify-center cursor-pointer shrink-0 whitespace-nowrap ${
-                        isActive
+                      className={`gallery-filter-btn font-sans text-[clamp(0.7rem,0.76vw,0.76rem)] font-bold tracking-[0.05em] uppercase py-1.5 sm:py-2 px-3 sm:px-4 rounded-full border transition-all duration-300 inline-flex items-center justify-center cursor-pointer shrink-0 whitespace-nowrap ${isActive
                           ? 'border-[1.5px] border-[#1C1D21] bg-[#1C1D21] text-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]'
                           : 'border-[#1C1D21]/15 bg-white text-[#4E5057] hover:border-[#1C1D21] hover:text-[#1C1D21] hover:bg-[#FAF6EE]'
-                      }`}
+                        }`}
                     >
                       {cat}
                     </button>
@@ -613,10 +620,12 @@ export const CavreeCollections = () => {
 
       {selectedLook && (
         <div
+          data-lenis-prevent="true"
           className="fixed inset-0 bg-[#07080C]/90 backdrop-blur-md z-[999999] flex items-center justify-center p-[clamp(0.75rem,2.5vw,2rem)] box-border"
           onClick={() => setSelectedLook(null)}
         >
           <div
+            data-lenis-prevent="true"
             className="modal-container-grid bg-[#0D0E13] border border-[#DEC29D]/35 rounded-2xl max-w-[840px] w-full max-h-[90vh] overflow-hidden grid grid-cols-[44%_56%] max-lg:grid-cols-1 max-lg:max-h-[88vh] text-white relative shadow-[0_20px_60px_rgba(0,0,0,0.7)]"
             onClick={(e) => e.stopPropagation()}
           >

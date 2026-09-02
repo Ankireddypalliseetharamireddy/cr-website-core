@@ -5,21 +5,40 @@ import CavreeLogo from '../brand/CavreeLogo';
 import { navLinks } from '../../constants/navigation';
 
 export const Navbar = ({ onOpenBrochure, onOpenConsultation, onOpenCctv, onOpenLocation }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('about');
+  const isInitialAbout = location.pathname === '/about';
+  const isInitialInvest = location.pathname === '/investment-model';
+  const [activeSection, setActiveSection] = useState(
+    isInitialAbout ? 'about' : isInitialInvest ? 'investment' : 'home'
+  );
   const [hoveredSection, setHoveredSection] = useState(null);
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, opacity: 0 });
   const navListRef = useRef(null);
   const headerRef = useRef(null);
-  const location = useLocation();
-  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (location.pathname === '/about') {
+      setActiveSection('about');
+    } else if (location.pathname === '/investment-model') {
+      if (!location.hash) setActiveSection('investment');
+    } else if (location.pathname === '/') {
+      if (!location.hash) setActiveSection('home');
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     let lastSection = '';
     const handleScroll = () => {
       const scrolled = window.scrollY > 60;
       setIsScrolled((prev) => (prev !== scrolled ? scrolled : prev));
+
+      if (location.pathname === '/about') {
+        setActiveSection('about');
+        return;
+      }
 
       const isInvestmentPage = location.pathname === '/investment-model';
       const sectionIds = isInvestmentPage
@@ -58,8 +77,9 @@ export const Navbar = ({ onOpenBrochure, onOpenConsultation, onOpenCctv, onOpenL
   const isVisibleOnScroll = isScrolled || location.pathname !== '/';
 
   useEffect(() => {
+    const isAboutPage = location.pathname === '/about';
     const isInvestmentPage = location.pathname === '/investment-model';
-    const fallbackId = isInvestmentPage ? 'investment' : 'home';
+    const fallbackId = isAboutPage ? 'about' : isInvestmentPage ? 'investment' : 'home';
     const currentTargetId = hoveredSection || activeSection || fallbackId;
     if (!navListRef.current || !headerRef.current) return;
 
@@ -78,8 +98,9 @@ export const Navbar = ({ onOpenBrochure, onOpenConsultation, onOpenCctv, onOpenL
   useEffect(() => {
     const handleResize = () => {
       if (!navListRef.current || !headerRef.current) return;
+      const isAboutPage = location.pathname === '/about';
       const isInvestmentPage = location.pathname === '/investment-model';
-      const fallbackId = isInvestmentPage ? 'investment' : 'home';
+      const fallbackId = isAboutPage ? 'about' : isInvestmentPage ? 'investment' : 'home';
       const currentTargetId = hoveredSection || activeSection || fallbackId;
       const targetLinkEl = navListRef.current.querySelector(`[data-nav-id="${currentTargetId}"]`);
       if (targetLinkEl) {
@@ -128,6 +149,22 @@ export const Navbar = ({ onOpenBrochure, onOpenConsultation, onOpenCctv, onOpenL
 
     if (targetId === 'home' || targetId === 'top' || link.label === 'Home') {
       handleLogoClick(e);
+      return;
+    }
+
+    if (targetId === 'about' || link.label === 'About Us' || link.path === '/about') {
+      if (location.pathname !== '/about') {
+        navigate('/about');
+      } else {
+        window.history.pushState(null, '', '/about');
+        if (window.__lenis) {
+          window.__lenis.scrollTo(0, { duration: 2.5 });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }
+      setActiveSection('about');
+      setMobileMenuOpen(false);
       return;
     }
 

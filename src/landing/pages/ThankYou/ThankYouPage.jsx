@@ -23,7 +23,12 @@ export const ThankYouPage = () => {
   const stateData = location.state || {};
   const rawName = stateData.name || '';
   const investorName = rawName ? rawName.replace(/([a-z])([A-Z])/g, '$1 $2').trim() : '';
-  const territory = stateData.cityState || 'National Priority Market';
+  const country = stateData.country || '';
+  const territory = stateData.cityState
+    ? (country && !stateData.cityState.toLowerCase().includes(country.toLowerCase())
+        ? `${stateData.cityState}, ${country}`
+        : stateData.cityState)
+    : 'National Priority Market';
   const referenceId = stateData.refId || '782097';
 
   const [copiedEmail, setCopiedEmail] = useState(false);
@@ -48,7 +53,7 @@ export const ThankYouPage = () => {
   }, []);
 
   const handleCopyEmail = () => {
-    navigator.clipboard.writeText('contact@cavree.com');
+    navigator.clipboard.writeText('cavree99@gmail.com');
     setCopiedEmail(true);
     setTimeout(() => setCopiedEmail(false), 2200);
   };
@@ -253,7 +258,7 @@ export const ThankYouPage = () => {
                     Official Investor Desk
                   </span>
                   <span className="font-sans text-xs font-bold text-[#1C1D21] truncate block">
-                    contact@cavree.com
+                    cavree99@gmail.com
                   </span>
                 </div>
               </div>

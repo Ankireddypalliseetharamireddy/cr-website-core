@@ -143,13 +143,13 @@ export const Footer = ({ onOpenBrochure, onOpenConsultation, onOpenLocation }) =
             <div className="flex items-center justify-center lg:justify-start max-sm:flex-col gap-y-2 gap-x-[clamp(0.75rem,1.2vw,1.5rem)] flex-wrap font-sans text-[clamp(0.8rem,0.88vw,0.9rem)] text-[#F8E29B]">
 
               <a
-                href="mailto:contact@cavree.com"
+                href="mailto:cavree99@gmail.com"
                 className="flex items-center gap-2 text-[#F8E29B] hover:text-white no-underline transition-all duration-300 hover:-translate-y-px"
               >
                 <div className="w-6 h-6 rounded-full bg-[#D4AF37]/20 border border-[#D4AF37]/40 flex items-center justify-center">
                   <Mail size={12} color="#F8E29B" />
                 </div>
-                <span>contact@cavree.com</span>
+                <span>cavree99@gmail.com</span>
               </a>
 
               <span className="text-[#D4AF37]/40 hidden sm:inline">|</span>

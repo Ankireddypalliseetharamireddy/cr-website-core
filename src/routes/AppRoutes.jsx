@@ -6,6 +6,7 @@ import InvestmentModelPage from '../landing/pages/InvestmentModel/InvestmentMode
 import NotFoundPage from '../landing/pages/NotFound/NotFoundPage';
 import ThankYouPage from '../landing/pages/ThankYou/ThankYouPage';
 import StorePortal from '../pages/StorePortal';
+import AboutUs from '../landing/pages/Home/About';
 
 const ScrollToTop = () => {
   const { pathname, hash } = useLocation();
@@ -83,9 +84,9 @@ export const AppRoutes = () => {
         <Route path="/" element={<MainLayout />}>
           <Route index element={<HomeOrNotFound />} />
           <Route path="home" element={<Navigate to="/" replace />} />
+          <Route path="about" element={<AboutUs />} />
           <Route path="investment-model" element={<InvestmentOrNotFound />} />
           <Route path="investment" element={<Navigate to="/investment-model" replace />} />
-          <Route path="about" element={<Navigate to="/#about" replace />} />
           <Route path="benefits" element={<Navigate to="/investment-model#benefits" replace />} />
           <Route path="process" element={<Navigate to="/investment-model#process" replace />} />
           <Route path="contact" element={<Navigate to="/investment-model#contact" replace />} />

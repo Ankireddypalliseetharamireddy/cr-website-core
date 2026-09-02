@@ -18,8 +18,10 @@ import {
   ArrowRight,
   RotateCcw,
   FileCheck2,
+  AlertCircle,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { submitContactToGoogleForm } from '../../services/googleFormService';
 
 export const ContactSection = () => {
   const navigate = useNavigate();
@@ -29,14 +31,16 @@ export const ContactSection = () => {
     name: '',
     phone: '',
     email: '',
+    country: 'India',
     cityState: '',
-    budget: '₹50 Lakhs - ₹1 Crore',
+    budget: '₹50 Lakhs - ₹1Crore(FlagShip)',
     storeLocation: '',
     message: '',
   });
 
   const [referenceId, setReferenceId] = useState('');
   const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isBudgetOpen, setIsBudgetOpen] = useState(false);
@@ -51,9 +55,9 @@ export const ContactSection = () => {
   }, [location.hash]);
 
   const budgetOptions = [
-    { value: '₹50 Lakhs - ₹1 Crore', label: '₹50 Lakhs – ₹1 Crore (Flagship)' },
-    { value: '₹1 Crore - ₹2 Crore', label: '₹1 Crore – ₹2 Crore (Prime)' },
-    { value: '₹2 Crore+', label: '₹2 Crore+ (Multi-Store)' },
+    { value: '₹50 Lakhs - ₹1Crore(FlagShip)', label: '₹50 Lakhs – ₹1 Crore (Flagship)' },
+    { value: '₹1Crore -  ₹2Crore(Prime)', label: '₹1 Crore – ₹2 Crore (Prime)' },
+    { value: '₹2Crore+(Multi-Store)', label: '₹2 Crore+ (Multi-Store)' },
   ];
 
   const handlePhoneChange = (e) => {
@@ -77,6 +81,9 @@ export const ContactSection = () => {
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: '' }));
     }
+    if (submitError) {
+      setSubmitError('');
+    }
   };
 
   const validateForm = () => {
@@ -98,6 +105,10 @@ export const ContactSection = () => {
       newErrors.email = 'Please enter a valid lowercase email';
     }
 
+    if (!formData.country.trim()) {
+      newErrors.country = 'Please enter your country';
+    }
+
     if (!formData.cityState.trim()) {
       newErrors.cityState = 'Please enter your city and state';
     }
@@ -106,8 +117,10 @@ export const ContactSection = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    setSubmitError('');
 
     if (!validateForm()) {
       return;
@@ -116,20 +129,65 @@ export const ContactSection = () => {
     setIsSubmitting(true);
     const generatedRef = String(Math.floor(100000 + Math.random() * 900000));
 
-    setTimeout(() => {
+    const formURL =
+      'https://docs.google.com/forms/d/e/1FAIpQLSdIVMLsVPDEjjVLplVusOgW6pFZn3biTbxb-U-Dt3hkAIxgEw/formResponse';
+
+    const budgetValue = formData.budget.includes('50')
+      ? '₹50 Lakhs - ₹1Crore(FlagShip)'
+      : formData.budget.includes('2') && (formData.budget.includes('+') || formData.budget.includes('Multi'))
+      ? '₹2Crore+(Multi-Store)'
+      : '₹1Crore -  ₹2Crore(Prime)';
+
+    const data = new FormData();
+    data.append('entry.2005620554', formData.name.trim());
+    data.append('entry.1166974658', `+91 ${formData.phone.trim()}`);
+    data.append('entry.1045781291', formData.email.trim().toLowerCase());
+    data.append('entry.1065046570', formData.country.trim());
+    data.append('entry.1115387442', formData.cityState.trim());
+    data.append('entry.839337160', budgetValue);
+    data.append('entry.70660907', formData.storeLocation.trim() || 'N/A');
+    data.append('entry.1694447815', formData.message.trim() || 'Website investor enquiry');
+
+    try {
+      await fetch(formURL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: data,
+      });
+
       setIsSubmitting(false);
+
+      const submittedData = { ...formData };
+      // Clear form
+      setFormData({
+        name: '',
+        phone: '',
+        email: '',
+        country: 'India',
+        cityState: '',
+        budget: '₹50 Lakhs - ₹1Crore(FlagShip)',
+        storeLocation: '',
+        message: '',
+      });
+
+      // Redirect to existing Thank You page
       navigate('/thank-you', {
         state: {
-          name: formData.name,
-          phone: formData.phone,
-          email: formData.email,
-          cityState: formData.cityState,
-          budget: formData.budget,
-          storeLocation: formData.storeLocation,
+          name: submittedData.name,
+          phone: submittedData.phone,
+          email: submittedData.email,
+          country: submittedData.country,
+          cityState: submittedData.cityState,
+          budget: submittedData.budget,
+          storeLocation: submittedData.storeLocation,
           refId: generatedRef,
         },
       });
-    }, 1000);
+    } catch (error) {
+      setIsSubmitting(false);
+      console.error('Form submission error:', error);
+      setSubmitError('Unable to submit your application. Please check your connection and try again.');
+    }
   };
 
   return (
@@ -179,9 +237,8 @@ export const ContactSection = () => {
                       placeholder="Enter your name"
                       value={formData.name}
                       onChange={(e) => handleInputChange('name', e.target.value)}
-                      className={`w-full px-3.5 py-2.5 bg-white border ${
-                        errors.name ? 'border-red-500' : 'border-[#DEC29D]/60 focus:border-[#B58C36]'
-                      } rounded text-sm text-[#1C1D21] focus:outline-none transition-colors placeholder:text-gray-400`}
+                      className={`w-full px-3.5 py-2.5 bg-white border ${errors.name ? 'border-red-500' : 'border-[#DEC29D]/60 focus:border-[#B58C36]'
+                        } rounded text-sm text-[#1C1D21] focus:outline-none transition-colors placeholder:text-gray-400`}
                     />
                     {errors.name && (
                       <span className="font-sans text-[0.72rem] text-red-600 mt-1">{errors.name}</span>
@@ -204,9 +261,8 @@ export const ContactSection = () => {
                         maxLength={10}
                         value={formData.phone}
                         onChange={handlePhoneChange}
-                        className={`w-full pl-13 pr-3.5 py-2.5 bg-white border ${
-                          errors.phone ? 'border-red-500' : 'border-[#DEC29D]/60 focus:border-[#B58C36]'
-                        } rounded text-sm text-[#1C1D21] focus:outline-none transition-colors placeholder:text-gray-400 font-sans`}
+                        className={`w-full pl-13 pr-3.5 py-2.5 bg-white border ${errors.phone ? 'border-red-500' : 'border-[#DEC29D]/60 focus:border-[#B58C36]'
+                          } rounded text-sm text-[#1C1D21] focus:outline-none transition-colors placeholder:text-gray-400 font-sans`}
                       />
                     </div>
                     {errors.phone && (
@@ -224,12 +280,29 @@ export const ContactSection = () => {
                       placeholder="Enter your email"
                       value={formData.email}
                       onChange={handleEmailChange}
-                      className={`w-full px-3.5 py-2.5 bg-white border ${
-                        errors.email ? 'border-red-500' : 'border-[#DEC29D]/60 focus:border-[#B58C36]'
-                      } rounded text-sm text-[#1C1D21] focus:outline-none transition-colors placeholder:text-gray-400`}
+                      className={`w-full px-3.5 py-2.5 bg-white border ${errors.email ? 'border-red-500' : 'border-[#DEC29D]/60 focus:border-[#B58C36]'
+                        } rounded text-sm text-[#1C1D21] focus:outline-none transition-colors placeholder:text-gray-400`}
                     />
                     {errors.email && (
                       <span className="font-sans text-[0.72rem] text-red-600 mt-1">{errors.email}</span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col">
+                    <label className="font-sans text-[0.82rem] font-bold text-[#2A2D34] mb-1.5 flex items-center gap-1.5">
+                      <Globe size={14} className="text-[#B58C36]" />
+                      <span>Country *</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Enter your country (e.g. India)"
+                      value={formData.country}
+                      onChange={(e) => handleInputChange('country', e.target.value)}
+                      className={`w-full px-3.5 py-2.5 bg-white border ${errors.country ? 'border-red-500' : 'border-[#DEC29D]/60 focus:border-[#B58C36]'
+                        } rounded text-sm text-[#1C1D21] focus:outline-none transition-colors placeholder:text-gray-400`}
+                    />
+                    {errors.country && (
+                      <span className="font-sans text-[0.72rem] text-red-600 mt-1">{errors.country}</span>
                     )}
                   </div>
 
@@ -243,17 +316,13 @@ export const ContactSection = () => {
                       placeholder="Enter your city & state"
                       value={formData.cityState}
                       onChange={(e) => handleInputChange('cityState', e.target.value)}
-                      className={`w-full px-3.5 py-2.5 bg-white border ${
-                        errors.cityState ? 'border-red-500' : 'border-[#DEC29D]/60 focus:border-[#B58C36]'
-                      } rounded text-sm text-[#1C1D21] focus:outline-none transition-colors placeholder:text-gray-400`}
+                      className={`w-full px-3.5 py-2.5 bg-white border ${errors.cityState ? 'border-red-500' : 'border-[#DEC29D]/60 focus:border-[#B58C36]'
+                        } rounded text-sm text-[#1C1D21] focus:outline-none transition-colors placeholder:text-gray-400`}
                     />
                     {errors.cityState && (
                       <span className="font-sans text-[0.72rem] text-red-600 mt-1">{errors.cityState}</span>
                     )}
                   </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                   <div className="flex flex-col relative">
                     <label className="font-sans text-[0.82rem] font-bold text-[#2A2D34] mb-1.5 flex items-center gap-1.5">
@@ -271,9 +340,8 @@ export const ContactSection = () => {
                         </span>
                         <ChevronDown
                           size={15}
-                          className={`text-[#B58C36] shrink-0 transition-transform duration-200 ${
-                            isBudgetOpen ? 'rotate-180' : ''
-                          }`}
+                          className={`text-[#B58C36] shrink-0 transition-transform duration-200 ${isBudgetOpen ? 'rotate-180' : ''
+                            }`}
                         />
                       </button>
 
@@ -292,11 +360,10 @@ export const ContactSection = () => {
                                   handleInputChange('budget', opt.value);
                                   setIsBudgetOpen(false);
                                 }}
-                                className={`w-full px-3.5 py-2.5 text-left text-xs sm:text-sm font-medium transition-colors flex items-center justify-between cursor-pointer ${
-                                  formData.budget === opt.value
-                                    ? 'bg-[#FAF6EE] text-[#B58C36] font-bold'
-                                    : 'text-[#2A2D34] hover:bg-[#FAF6EE]/70 hover:text-[#1C1D21]'
-                                }`}
+                                className={`w-full px-3.5 py-2.5 text-left text-xs sm:text-sm font-medium transition-colors flex items-center justify-between cursor-pointer ${formData.budget === opt.value
+                                  ? 'bg-[#FAF6EE] text-[#B58C36] font-bold'
+                                  : 'text-[#2A2D34] hover:bg-[#FAF6EE]/70 hover:text-[#1C1D21]'
+                                  }`}
                               >
                                 <span>{opt.label}</span>
                                 {formData.budget === opt.value && (
@@ -310,14 +377,14 @@ export const ContactSection = () => {
                     </div>
                   </div>
 
-                  <div className="flex flex-col">
+                  <div className="flex flex-col sm:col-span-2">
                     <label className="font-sans text-[0.82rem] font-bold text-[#2A2D34] mb-1.5 flex items-center gap-1.5">
                       <Store size={14} className="text-[#B58C36]" />
                       <span>Commercial Space Status</span>
                     </label>
                     <input
                       type="text"
-                      placeholder="Enter space status / location"
+                      placeholder="Enter space status / location (e.g. Owned / Rented / Looking for space)"
                       value={formData.storeLocation}
                       onChange={(e) => handleInputChange('storeLocation', e.target.value)}
                       className="w-full px-3.5 py-2.5 bg-white border border-[#DEC29D]/60 focus:border-[#B58C36] rounded text-sm text-[#1C1D21] focus:outline-none transition-colors placeholder:text-gray-400"
@@ -339,6 +406,13 @@ export const ContactSection = () => {
                   />
                 </div>
 
+                {submitError && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-[7px] text-xs text-red-700 flex items-start gap-2 animate-shake">
+                    <AlertCircle size={15} className="text-red-500 shrink-0 mt-0.5" />
+                    <span>{submitError}</span>
+                  </div>
+                )}
+
                 <button
                   type="submit"
                   disabled={isSubmitting}
@@ -347,7 +421,7 @@ export const ContactSection = () => {
                   {isSubmitting ? (
                     <>
                       <div className="w-4 h-4 border-2 border-[#18191E] border-t-transparent rounded-full animate-spin" />
-                      <span>Verifying Application...</span>
+                      <span>Submitting to Investor Registry...</span>
                     </>
                   ) : (
                     <>
@@ -474,6 +548,7 @@ export const ContactSection = () => {
                         name: '',
                         phone: '',
                         email: '',
+                        country: 'India',
                         cityState: '',
                         budget: '₹50 Lakhs - ₹1 Crore',
                         storeLocation: '',

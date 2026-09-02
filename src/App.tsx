@@ -11,6 +11,16 @@ export function App() {
       if ('scrollRestoration' in window.history) {
         window.history.scrollRestoration = 'manual';
       }
+      try {
+        const navEntries = performance.getEntriesByType('navigation');
+        const isReload =
+          (navEntries.length > 0 && (navEntries[0] as PerformanceNavigationTiming).type === 'reload') ||
+          (performance as any)?.navigation?.type === 1;
+
+        if (isReload && (window.location.pathname !== '/' || window.location.hash)) {
+          window.location.replace('/');
+        }
+      } catch (e) {}
       window.scrollTo(0, 0);
     }
 

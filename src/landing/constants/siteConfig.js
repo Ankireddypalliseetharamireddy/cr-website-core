@@ -11,7 +11,7 @@ export const siteConfig = {
   ],
   contact: {
     phone: '+1 (800) 845-CAVREE',
-    email: 'contact@cavree.com',
+    email: 'cavree99@gmail.com',
     hq: '450 Avenue Montaigne, 75008 Paris, France',
     advisoryOffice: '740 Madison Avenue, New York, NY 10065',
     hours: 'Monday – Friday: 08:00 – 20:00 CET',

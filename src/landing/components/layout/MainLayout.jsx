@@ -14,6 +14,27 @@ const LayoutContent = () => {
   const is404 = isInvalidHash || !isKnownRoute;
   const isThankYouPage = location.pathname === '/thank-you' || location.pathname === '/thankyou';
 
+  React.useEffect(() => {
+    if (location.hash) {
+      const id = location.hash.replace('#', '');
+      const timer = setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          const navOffset = 80;
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - navOffset;
+          window.scrollTo({
+            top: Math.max(0, offsetPosition),
+            behavior: 'smooth'
+          });
+        }
+      }, 150);
+      return () => clearTimeout(timer);
+    } else {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }, [location.pathname, location.hash]);
+
   if (is404) {
     return (
       <div className="cavree-404-shell w-full min-h-screen bg-[#FAF6EE] text-[#1C1D21] flex flex-col">

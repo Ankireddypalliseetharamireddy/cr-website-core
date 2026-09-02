@@ -1,74 +1,74 @@
-:root {
-    --bg-primary: #0a0b10;
-    --bg-surface: rgba(20, 22, 37, 0.75);
-    --bg-surface-elevated: rgba(28, 31, 53, 0.85);
-    --border-color: rgba(255, 255, 255, 0.1);
-    --text-primary: #f3f4f6;
-    --text-secondary: #9ca3af;
-    --accent-blue: #3b82f6;
-    --accent-green: #10b981;
-    --accent-orange: #f59e0b;
-    --accent-red: #ef4444;
-    --accent-purple: #8b5cf6;
-}
+/* ================================================================ */
+/* STORE STAFF POS & FRANCHISE PORTAL STYLES (SCOPED)              */
+/* ================================================================ */
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
+.store-portal-root {
+    --pos-bg-primary: #0a0b10;
+    --pos-bg-surface: rgba(20, 22, 37, 0.85);
+    --pos-border-color: rgba(255, 255, 255, 0.1);
+    --pos-text-primary: #f3f4f6;
+    --pos-text-secondary: #9ca3af;
+    --pos-accent-blue: #3b82f6;
+    --pos-accent-green: #10b981;
+    --pos-accent-orange: #f59e0b;
+    --pos-accent-red: #ef4444;
+    --pos-accent-purple: #8b5cf6;
 
-body {
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
+    background-color: var(--pos-bg-primary);
+    color: var(--pos-text-primary);
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    overflow-x: hidden;
-    min-width: 320px;
-}
-
-/* App Container Layout */
-.app-container {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
 }
 
+.store-portal-root * {
+    box-sizing: border-box;
+}
+
+/* App Container Layout */
+.store-portal-root .app-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--pos-bg-primary);
+}
+
 /* Header Navbar */
-.navbar {
+.store-portal-root .navbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0.875rem 1.5rem;
-    background: var(--bg-surface);
+    background: var(--pos-bg-surface);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--pos-border-color);
     position: sticky;
     top: 0;
     z-index: 100;
 }
 
-.brand {
+.store-portal-root .brand {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     font-weight: bold;
     font-size: 1.125rem;
-    color: var(--text-primary);
+    color: var(--pos-text-primary);
     user-select: none;
 }
 
-.user-badge {
+.store-portal-root .user-badge {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     font-size: 0.8125rem;
-    color: var(--text-secondary);
+    color: var(--pos-text-secondary);
 }
 
-/* Main Dashboard Wrapper */
-.main-content {
+/* Main Content Wrapper */
+.store-portal-root .main-content {
     flex-grow: 1;
     padding: 1.5rem;
     max-width: 1320px;
@@ -77,15 +77,15 @@ body {
 }
 
 /* Grid Layouts */
-.grid-responsive {
+.store-portal-root .grid-responsive {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 1.25rem;
     margin-bottom: 2rem;
 }
 
-/* POS Layout: 2 Columns on Laptop/Desktop, 1 Column on Tablet/Mobile */
-.pos-layout {
+/* POS Layout: 2 Columns on Laptop, 1 Column on Tablet/Mobile */
+.store-portal-root .pos-layout {
     display: grid;
     grid-template-columns: 1.35fr 1fr;
     gap: 1.5rem;
@@ -93,23 +93,23 @@ body {
 }
 
 /* Cards & Panels */
-.glass-panel {
-    background: var(--bg-surface);
+.store-portal-root .glass-panel {
+    background: var(--pos-bg-surface);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--pos-border-color);
     border-radius: 14px;
     padding: 1.5rem;
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
     transition: border-color 0.2s, transform 0.2s;
 }
 
-.panel-title {
+.store-portal-root .panel-title {
     font-size: 1.125rem;
     font-weight: bold;
     margin-bottom: 1rem;
-    color: var(--text-primary);
-    border-bottom: 1px solid var(--border-color);
+    color: var(--pos-text-primary);
+    border-bottom: 1px solid var(--pos-border-color);
     padding-bottom: 0.5rem;
     display: flex;
     align-items: center;
@@ -117,39 +117,39 @@ body {
 }
 
 /* Form Styles */
-.form-group {
+.store-portal-root .form-group {
     margin-bottom: 1.125rem;
     display: flex;
     flex-direction: column;
     gap: 0.375rem;
 }
 
-.form-label {
+.store-portal-root .form-label {
     font-size: 0.75rem;
     font-weight: 700;
-    color: var(--text-secondary);
+    color: var(--pos-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
-.form-input {
+.store-portal-root .form-input {
     width: 100%;
     background: rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--pos-border-color);
     border-radius: 8px;
     padding: 0.75rem 1rem;
-    color: var(--text-primary);
+    color: var(--pos-text-primary);
     font-size: 0.9375rem;
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.form-input:focus {
-    border-color: var(--accent-blue);
+.store-portal-root .form-input:focus {
+    border-color: var(--pos-accent-blue);
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
 }
 
-.form-select {
+.store-portal-root .form-select {
     appearance: none;
     cursor: pointer;
     background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
@@ -157,8 +157,8 @@ body {
     background-position: right 0.75rem center;
 }
 
-/* Buttons */
-.btn {
+/* Portal Buttons */
+.store-portal-root .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -174,53 +174,59 @@ body {
     touch-action: manipulation;
 }
 
-.btn:active {
+.store-portal-root .btn:active {
     transform: scale(0.97);
 }
 
-.btn:disabled {
+.store-portal-root .btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
-.btn-primary {
-    background: var(--accent-blue);
+.store-portal-root .btn-primary {
+    background: var(--pos-accent-blue);
     color: #fff;
+    box-shadow: none;
+    text-transform: none;
+    letter-spacing: normal;
 }
 
-.btn-primary:hover:not(:disabled) {
+.store-portal-root .btn-primary:hover:not(:disabled) {
     background: #2563eb;
 }
 
-.btn-secondary {
+.store-portal-root .btn-secondary {
     background: rgba(255, 255, 255, 0.08);
-    color: var(--text-primary);
-    border: 1px solid var(--border-color);
+    color: var(--pos-text-primary);
+    border: 1px solid var(--pos-border-color);
+    box-shadow: none;
+    text-transform: none;
+    letter-spacing: normal;
 }
 
-.btn-secondary:hover:not(:disabled) {
+.store-portal-root .btn-secondary:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.14);
 }
 
-.btn-danger {
-    background: var(--accent-red);
+.store-portal-root .btn-danger {
+    background: var(--pos-accent-red);
     color: #fff;
 }
 
-.btn-sm {
+.store-portal-root .btn-sm {
     padding: 0.4rem 0.75rem;
     font-size: 0.8125rem;
     border-radius: 6px;
 }
 
 /* Tables */
-.table-responsive {
+.store-portal-root .table-responsive {
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
 }
 
-.glass-table {
+.store-portal-root .glass-table {
     width: 100%;
     border-collapse: collapse;
     text-align: left;
@@ -228,14 +234,15 @@ body {
     min-width: 580px;
 }
 
-.glass-table th, .glass-table td {
+.store-portal-root .glass-table th, 
+.store-portal-root .glass-table td {
     padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--pos-border-color);
 }
 
-.glass-table th {
+.store-portal-root .glass-table th {
     font-weight: 700;
-    color: var(--text-secondary);
+    color: var(--pos-text-secondary);
     text-transform: uppercase;
     font-size: 0.6875rem;
     letter-spacing: 0.05em;
@@ -243,7 +250,7 @@ body {
 }
 
 /* Badges */
-.badge {
+.store-portal-root .badge {
     display: inline-flex;
     align-items: center;
     padding: 0.25rem 0.5rem;
@@ -254,46 +261,46 @@ body {
     letter-spacing: 0.04em;
 }
 
-.badge-blue { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
-.badge-success { background: rgba(16, 185, 129, 0.2); color: #34d399; }
-.badge-warning { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
-.badge-danger { background: rgba(239, 68, 68, 0.2); color: #f87171; }
-.badge-purple { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+.store-portal-root .badge-blue { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+.store-portal-root .badge-success { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+.store-portal-root .badge-warning { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+.store-portal-root .badge-danger { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+.store-portal-root .badge-purple { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
 
 /* Login Container */
-.login-container {
-    min-height: 100vh;
+.store-portal-root .login-container {
+    min-height: calc(100vh - 60px);
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 1.25rem;
 }
 
-.login-card {
+.store-portal-root .login-card {
     width: 100%;
     max-width: 440px;
 }
 
 /* Cart Specific Styles */
-.cart-item {
+.store-portal-root .cart-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0.75rem 0;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--pos-border-color);
 }
 
-.qty-control {
+.store-portal-root .qty-control {
     display: flex;
     align-items: center;
     gap: 0.4rem;
 }
 
-.qty-btn {
+.store-portal-root .qty-btn {
     min-width: 32px;
     min-height: 32px;
     border-radius: 6px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--pos-border-color);
     background: rgba(255, 255, 255, 0.08);
     color: white;
     cursor: pointer;
@@ -305,12 +312,12 @@ body {
     touch-action: manipulation;
 }
 
-.qty-btn:active {
+.store-portal-root .qty-btn:active {
     background: rgba(255, 255, 255, 0.2);
 }
 
-/* Modals */
-.modal-overlay {
+/* Modals inside portal */
+.store-portal-root .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -326,9 +333,9 @@ body {
     padding: 1rem;
 }
 
-.modal-content {
+.store-portal-root .modal-content {
     background: #0f111a;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--pos-border-color);
     border-radius: 16px;
     padding: 1.75rem;
     width: 100%;
@@ -338,7 +345,7 @@ body {
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
 }
 
-.modal-actions {
+.store-portal-root .modal-actions {
     display: flex;
     justify-content: flex-end;
     gap: 0.75rem;
@@ -352,7 +359,7 @@ body {
     100% { top: 10%; opacity: 0.8; }
 }
 
-.laser-line {
+.store-portal-root .laser-line {
     position: absolute;
     width: 100%;
     height: 3px;
@@ -361,39 +368,34 @@ body {
     animation: laserSweep 2s infinite ease-in-out;
 }
 
-/* ============================================================ */
-/* RESPONSIVE MEDIA QUERIES: LAPTOP, TABLET & MOBILE BREAKPOINTS */
-/* ============================================================ */
-
-/* 1. TABLET SCREENS (<= 1024px) */
+/* Responsive Media Queries for Store Portal */
 @media (max-width: 1024px) {
-    .pos-layout {
+    .store-portal-root .pos-layout {
         grid-template-columns: 1fr;
         gap: 1.25rem;
     }
 
-    .main-content {
+    .store-portal-root .main-content {
         padding: 1.25rem;
     }
 }
 
-/* 2. MOBILE LANDSCAPE & PHONES (<= 768px) */
 @media (max-width: 768px) {
-    .navbar {
+    .store-portal-root .navbar {
         padding: 0.75rem 1rem;
         flex-direction: column;
         align-items: stretch;
         gap: 0.75rem;
     }
 
-    .navbar-header-row {
+    .store-portal-root .navbar-header-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
         width: 100%;
     }
 
-    .navbar-tabs-row {
+    .store-portal-root .navbar-tabs-row {
         display: flex;
         overflow-x: auto;
         padding-bottom: 0.25rem;
@@ -401,94 +403,44 @@ body {
         gap: 0.35rem;
     }
 
-    .navbar-tabs-row::-webkit-scrollbar {
+    .store-portal-root .navbar-tabs-row::-webkit-scrollbar {
         display: none;
     }
 
-    .main-content {
+    .store-portal-root .main-content {
         padding: 1rem 0.75rem;
     }
 
-    .glass-panel {
+    .store-portal-root .glass-panel {
         padding: 1rem;
         border-radius: 12px;
     }
 
-    .panel-title {
+    .store-portal-root .panel-title {
         font-size: 1rem;
     }
 
-    /* Modal adjustments on mobile */
-    .modal-content {
+    .store-portal-root .modal-content {
         padding: 1.25rem 1rem;
         max-width: 96vw;
         border-radius: 14px;
     }
 
-    .modal-actions {
+    .store-portal-root .modal-actions {
         flex-direction: column;
     }
 
-    .modal-actions .btn {
+    .store-portal-root .modal-actions .btn {
         width: 100%;
     }
 
-    /* Form and Button Tap Targets */
-    .btn {
+    .store-portal-root .btn {
         padding: 0.75rem 1rem;
         font-size: 0.875rem;
     }
 
-    .form-input {
+    .store-portal-root .form-input {
         padding: 0.65rem 0.875rem;
         font-size: 0.875rem;
-    }
-}
-
-/* 3. SMALL PHONES (<= 480px) */
-@media (max-width: 480px) {
-    .brand {
-        font-size: 1rem;
-    }
-
-    .main-content {
-        padding: 0.75rem 0.5rem;
-    }
-
-    .cart-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-    }
-
-    .cart-item-actions {
-        display: flex;
-        justify-content: space-between;
-        width: 100%;
-        align-items: center;
-    }
-
-    .qty-btn {
-        min-width: 36px;
-        min-height: 36px;
-    }
-}
-
-/* Print Invoice Layout */
-@media print {
-    body * {
-        visibility: hidden;
-    }
-    .print-area, .print-area * {
-        visibility: visible;
-    }
-    .print-area {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        color: black !important;
-        background: white !important;
-        padding: 10mm;
     }
 }

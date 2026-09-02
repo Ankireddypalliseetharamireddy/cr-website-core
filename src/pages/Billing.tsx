@@ -353,11 +353,14 @@ export default function Billing({ onBack }: BillingProps) {
         window.print();
     };
 
-    const searchedProducts = products.filter(p =>
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (p.barcode && p.barcode.includes(searchQuery))
-    );
+    const hasSearch = searchQuery.trim().length > 0;
+    const searchedProducts = hasSearch
+        ? products.filter(p =>
+            p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            p.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (p.barcode && p.barcode.includes(searchQuery))
+        )
+        : [];
 
     const tenderedVal = parseFloat(cashTendered) || 0;
     const changeDue = tenderedVal > totalPrice ? tenderedVal - totalPrice : 0;
@@ -410,7 +413,7 @@ export default function Billing({ onBack }: BillingProps) {
                                     Products Catalog
                                 </h3>
                                 <span className="badge badge-gold" style={{ fontSize: '0.65rem' }}>
-                                    {searchedProducts.length} Items
+                                    {hasSearch ? `${searchedProducts.length} Results` : `${products.length} In Catalog`}
                                 </span>
                             </div>
 
@@ -445,7 +448,7 @@ export default function Billing({ onBack }: BillingProps) {
                                         }
                                     }
                                 }}
-                                style={{ position: 'relative', marginBottom: '1rem' }}
+                                style={{ position: 'relative', marginBottom: '1.25rem' }}
                             >
                                 <input
                                     ref={scanInputRef}
@@ -454,7 +457,7 @@ export default function Billing({ onBack }: BillingProps) {
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="Scan barcode / SKU or type product name & press Enter..."
-                                    style={{ paddingLeft: '2.5rem', paddingRight: searchQuery ? '2.5rem' : '1rem', fontSize: '0.9rem' }}
+                                    style={{ paddingLeft: '2.5rem', paddingRight: searchQuery ? '2.5rem' : '1rem', fontSize: '0.9rem', height: '44px' }}
                                     autoFocus
                                 />
                                 <Search size={16} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--pos-gold-primary)' }} />
@@ -469,9 +472,22 @@ export default function Billing({ onBack }: BillingProps) {
                                 )}
                             </form>
 
-                            <div className="product-grid">
-                                {searchedProducts.length > 0 ? (
-                                    searchedProducts.map(p => (
+                            {/* Show products ONLY when searching / entering */}
+                            {!hasSearch ? (
+                                <div style={{ padding: '3.5rem 1.5rem', textAlign: 'center', color: 'var(--pos-text-secondary)', background: 'rgba(0,0,0,0.25)', borderRadius: '12px', border: '1px dashed var(--pos-border-gold)' }}>
+                                    <div style={{ display: 'inline-flex', padding: '0.85rem', borderRadius: '50%', background: 'rgba(212, 175, 55, 0.1)', color: 'var(--pos-gold-primary)', marginBottom: '0.75rem' }}>
+                                        <Search size={26} />
+                                    </div>
+                                    <h4 style={{ color: 'var(--pos-gold-light)', margin: '0 0 0.35rem 0', fontSize: '1.05rem', fontWeight: 600 }}>
+                                        Scan Barcode or Type to Search
+                                    </h4>
+                                    <p style={{ fontSize: '0.8125rem', color: 'var(--pos-text-secondary)', margin: 0, maxWidth: '360px', marginInline: 'auto', lineHeight: '1.4' }}>
+                                        Use your laser barcode scanner or enter product name / SKU above to display items and add to cart.
+                                    </p>
+                                </div>
+                            ) : searchedProducts.length > 0 ? (
+                                <div className="product-grid">
+                                    {searchedProducts.map(p => (
                                         <div 
                                             key={p.id} 
                                             className="product-card"
@@ -507,14 +523,15 @@ export default function Billing({ onBack }: BillingProps) {
                                                 </button>
                                             </div>
                                         </div>
-                                    ))
-                                ) : (
-                                    <div style={{ gridColumn: '1 / -1', padding: '2rem', textAlign: 'center', color: 'var(--pos-text-secondary)' }}>
-                                        <Package size={28} style={{ opacity: 0.3, marginBottom: '0.5rem' }} />
-                                        <p style={{ fontSize: '0.8125rem' }}>No products match your search.</p>
-                                    </div>
-                                )}
-                            </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div style={{ padding: '3rem 1.5rem', textAlign: 'center', color: 'var(--pos-text-secondary)', background: 'rgba(0,0,0,0.25)', borderRadius: '12px' }}>
+                                    <Package size={30} style={{ opacity: 0.35, marginBottom: '0.5rem', color: 'var(--pos-gold-primary)' }} />
+                                    <h4 style={{ color: 'var(--pos-text-primary)', margin: '0 0 0.25rem 0', fontSize: '0.95rem' }}>No products found</h4>
+                                    <p style={{ fontSize: '0.8125rem', color: 'var(--pos-text-secondary)', margin: 0 }}>No items match "{searchQuery}". Verify SKU or try barcode scan.</p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Active Cart Summary Panel */}

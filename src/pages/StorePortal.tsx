@@ -111,15 +111,15 @@ export default function StorePortal() {
                     <div className="navbar-header-row">
                         <div className="brand" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.65rem' }} onClick={() => handleNavigate('home')}>
                             <img src="/cavree-emblem-gold.png" alt="Cavree Logo" style={{ height: '28px', width: 'auto', objectFit: 'contain' }} />
-                            <span style={{ fontFamily: 'Cinzel, serif', fontWeight: 700, letterSpacing: '0.08em', fontSize: '1.2rem' }}>CAVREE</span>
-                            <span className="badge badge-gold" style={{ fontSize: '0.625rem', padding: '0.15rem 0.45rem' }}>
+                            <span style={{ fontFamily: 'Cinzel, serif', fontWeight: 700, letterSpacing: '0.08em', fontSize: '1.2rem', color: '#D4AF37' }}>CAVREE</span>
+                            <span className="badge badge-gold desktop-only" style={{ fontSize: '0.625rem', padding: '0.15rem 0.45rem' }}>
                                 {franchiseId || 'Store'}
                             </span>
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                             {/* Desktop Quick Role Status */}
-                            <div className="user-badge hidden md:flex" style={{ background: 'rgba(255,255,255,0.04)', padding: '0.35rem 0.75rem', borderRadius: '8px', border: '1px solid var(--pos-border-gold)' }}>
+                            <div className="user-badge desktop-only" style={{ background: 'rgba(255,255,255,0.04)', padding: '0.35rem 0.75rem', borderRadius: '8px', border: '1px solid var(--pos-border-gold)' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                     <User size={14} style={{ color: 'var(--pos-gold-primary)' }} />
                                     <span style={{ fontWeight: 600, color: 'var(--pos-text-primary)', fontSize: '0.8125rem' }}>{username}</span>
@@ -141,7 +141,7 @@ export default function StorePortal() {
                     </div>
 
                     {/* Desktop Horizontal Nav Bar (Hidden on Mobile) */}
-                    <nav className="navbar-tabs-row hidden md:flex" style={{ marginTop: '0.5rem' }}>
+                    <nav className="navbar-tabs-row desktop-only" style={{ marginTop: '0.5rem' }}>
                         <button
                             className={`btn btn-sm ${activePage === 'home' ? 'btn-primary' : 'btn-secondary'}`}
                             onClick={() => handleNavigate('home')}

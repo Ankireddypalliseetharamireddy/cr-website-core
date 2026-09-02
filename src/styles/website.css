@@ -103,10 +103,21 @@
     border: 1px solid var(--pos-border-gold);
 }
 
-.store-portal-root .navbar-tabs-row {
+.store-portal-root .desktop-only {
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
+}
+
+.store-portal-root .mobile-only {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .store-portal-root .desktop-only {
+        display: none !important;
+    }
+    .store-portal-root .mobile-only {
+        display: flex !important;
+    }
 }
 
 /* ========================================================================== */

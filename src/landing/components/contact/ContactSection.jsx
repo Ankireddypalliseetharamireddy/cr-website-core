@@ -33,7 +33,7 @@ export const ContactSection = () => {
     email: '',
     country: 'India',
     cityState: '',
-    budget: '₹50 Lakhs - ₹1Crore(FlagShip)',
+    budget: '₹50 lakhs - ₹1crore (Flagship)',
     storeLocation: '',
     message: '',
   });
@@ -55,9 +55,9 @@ export const ContactSection = () => {
   }, [location.hash]);
 
   const budgetOptions = [
-    { value: '₹50 Lakhs - ₹1Crore(FlagShip)', label: '₹50 Lakhs – ₹1 Crore (Flagship)' },
-    { value: '₹1Crore -  ₹2Crore(Prime)', label: '₹1 Crore – ₹2 Crore (Prime)' },
-    { value: '₹2Crore+(Multi-Store)', label: '₹2 Crore+ (Multi-Store)' },
+    { value: '₹50 lakhs - ₹1crore (Flagship)', label: '₹50 Lakhs – ₹1 Crore (Flagship)' },
+    { value: '₹1crore - ₹2crore (Prime)', label: '₹1 Crore – ₹2 Crore (Prime)' },
+    { value: '₹2crore + (Multi-store)', label: '₹2 Crore+ (Multi-Store)' },
   ];
 
   const handlePhoneChange = (e) => {
@@ -130,23 +130,23 @@ export const ContactSection = () => {
     const generatedRef = String(Math.floor(100000 + Math.random() * 900000));
 
     const formURL =
-      'https://docs.google.com/forms/d/e/1FAIpQLSdIVMLsVPDEjjVLplVusOgW6pFZn3biTbxb-U-Dt3hkAIxgEw/formResponse';
+      'https://docs.google.com/forms/d/e/1FAIpQLScPditMWTVrcSEsJpqEBlNJU58beCpE5CkXAg4GcqdPrjf7Sw/formResponse';
 
     const budgetValue = formData.budget.includes('50')
-      ? '₹50 Lakhs - ₹1Crore(FlagShip)'
-      : formData.budget.includes('2') && (formData.budget.includes('+') || formData.budget.includes('Multi'))
-      ? '₹2Crore+(Multi-Store)'
-      : '₹1Crore -  ₹2Crore(Prime)';
+      ? '₹50 lakhs - ₹1crore (Flagship)'
+      : formData.budget.includes('2') && (formData.budget.includes('+') || formData.budget.includes('Multi') || formData.budget.includes('multi'))
+      ? '₹2crore + (Multi-store)'
+      : '₹1crore - ₹2crore (Prime)';
 
     const data = new FormData();
     data.append('entry.2005620554', formData.name.trim());
     data.append('entry.1166974658', `+91 ${formData.phone.trim()}`);
     data.append('entry.1045781291', formData.email.trim().toLowerCase());
-    data.append('entry.1065046570', formData.country.trim());
-    data.append('entry.1115387442', formData.cityState.trim());
-    data.append('entry.839337160', budgetValue);
-    data.append('entry.70660907', formData.storeLocation.trim() || 'N/A');
-    data.append('entry.1694447815', formData.message.trim() || 'Website investor enquiry');
+    data.append('entry.606323434', formData.cityState.trim());
+    data.append('entry.1059695746', formData.country.trim());
+    data.append('entry.741973709', budgetValue);
+    data.append('entry.1320393607', formData.storeLocation.trim() || 'N/A');
+    data.append('entry.1065046570', formData.message.trim() || 'Website investor enquiry');
 
     try {
       await fetch(formURL, {
@@ -165,7 +165,7 @@ export const ContactSection = () => {
         email: '',
         country: 'India',
         cityState: '',
-        budget: '₹50 Lakhs - ₹1Crore(FlagShip)',
+        budget: '₹50 lakhs - ₹1crore (Flagship)',
         storeLocation: '',
         message: '',
       });

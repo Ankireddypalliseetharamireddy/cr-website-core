@@ -125,6 +125,17 @@ export default function FranchiseDashboard() {
         }
     };
 
+    const handleReceiveTransfer = async (transferId: number) => {
+        try {
+            await transferService.updateTransferStatus(transferId, 'RECEIVED');
+            alert("Consignment marked as RECEIVED! Store shelf stock has been updated.");
+            loadDashboardData();
+        } catch (err: any) {
+            console.error("Receive transfer error", err);
+            alert(err.response?.data?.error || "Failed to receive consignment.");
+        }
+    };
+
     // Filter Products
     const filteredProducts = products.filter(p => {
         const matchesSearch = p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
@@ -381,6 +392,7 @@ export default function FranchiseDashboard() {
                                                 <th>Product</th>
                                                 <th>Qty</th>
                                                 <th>Status</th>
+                                                <th style={{ textAlign: 'center' }}>Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -393,6 +405,22 @@ export default function FranchiseDashboard() {
                                                         <span className={`badge ${t.status === 'RECEIVED' ? 'badge-success' : (t.status === 'IN_TRANSIT' ? 'badge-primary' : 'badge-warning')}`}>
                                                             {t.status.replace(/_/g, ' ')}
                                                         </span>
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>
+                                                        {t.status === 'IN_TRANSIT' ? (
+                                                            <button
+                                                                className="btn btn-primary btn-sm"
+                                                                onClick={() => handleReceiveTransfer(t.id)}
+                                                                style={{ padding: '0.25rem 0.65rem', fontSize: '0.75rem' }}
+                                                                title="Confirm delivery and add stock to store inventory"
+                                                            >
+                                                                📥 Receive Stock
+                                                            </button>
+                                                        ) : (
+                                                            <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>
+                                                                {t.status === 'RECEIVED' ? '✓ Stocked' : 'Awaiting Dispatch'}
+                                                            </span>
+                                                        )}
                                                     </td>
                                                 </tr>
                                             ))}

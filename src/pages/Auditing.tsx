@@ -116,12 +116,13 @@ export default function Auditing({ onBack }: AuditingProps) {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.75rem', flexWrap: 'wrap', gap: '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <button
-                        className="btn btn-secondary"
+                        className="btn btn-secondary btn-sm"
                         onClick={onBack}
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.65rem 1rem' }}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.45rem 0.65rem', borderRadius: '10px' }}
+                        aria-label="Back"
+                        title="Back"
                     >
-                        <ArrowLeft size={16} />
-                        <span>Back to Hub</span>
+                        <ArrowLeft size={18} />
                     </button>
                     <div>
                         <h1 className="page-title" style={{ fontSize: '1.65rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

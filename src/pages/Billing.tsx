@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import {
     Search, ShoppingCart, Trash2, Printer, Plus, Minus, CheckCircle,
     Camera, X, Bluetooth, Smartphone, Banknote, Share2, Send,
-    RotateCcw, Sparkles
+    RotateCcw, Sparkles, Tag, Package
 } from 'lucide-react';
 import { billingService, catalogService } from '../services/api';
 import '../styles/website.css';
@@ -120,44 +120,35 @@ export default function Billing() {
         try {
             localStorage.setItem('activeBillingCart', JSON.stringify(cart));
         } catch (e) {
-            console.error("Failed to save cart to localStorage", e);
+            console.warn("Failed to persist billing cart", e);
         }
     }, [cart]);
 
-    // Play Beep on Barcode Scan
-    const playBeepSound = () => {
-        try {
-            const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(880, audioCtx.currentTime); // 880Hz A5
-            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.15);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.15);
-        } catch (e) {
-            // Audio context not allowed or muted
-        }
-    };
-
-    // Camera Scanner Lifecycle
+    // ==========================================
+    // CAMERA STREAM SCANNER IMPLEMENTATION
+    // ==========================================
     const startCameraScanner = async () => {
         setCameraOpen(true);
-        setScanMessage('Initializing camera video feed...');
+        setScanMessage('Point camera at Product Barcode or QR Code...');
 
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: cameraFacing }
-            });
+            const constraints: MediaStreamConstraints = {
+                video: {
+                    facingMode: cameraFacing,
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                },
+                audio: false
+            };
+
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
             streamRef.current = stream;
+
             if (videoRef.current) {
                 videoRef.current.srcObject = stream;
+                videoRef.current.setAttribute("playsinline", "true");
                 await videoRef.current.play();
-                setScanMessage('Align Product QR or Barcode inside target frame');
-                startScanningLoop();
+                requestAnimationFrame(scanVideoFrame);
             }
         } catch (err: any) {
             console.error("Camera access error:", err);
@@ -171,172 +162,134 @@ export default function Billing() {
             streamRef.current = null;
         }
         setCameraOpen(false);
-        setScanMessage('');
     };
 
-    const startScanningLoop = () => {
-        let active = true;
+    const scanVideoFrame = async () => {
+        if (!videoRef.current || !streamRef.current) return;
 
-        const scanFrame = async () => {
-            if (!active || !videoRef.current || videoRef.current.readyState < 2) {
-                if (active) requestAnimationFrame(scanFrame);
-                return;
-            }
-
-            if (detectorRef.current) {
-                try {
+        if (videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
+            try {
+                if (detectorRef.current) {
                     const barcodes = await detectorRef.current.detect(videoRef.current);
-                    if (barcodes && barcodes.length > 0) {
-                        const rawValue = barcodes[0].rawValue;
-                        if (rawValue) {
-                            // 1. Play scan audio beep
-                            playBeepSound();
-
-                            // 2. Trigger mobile phone vibration feedback
-                            if (navigator.vibrate) {
-                                navigator.vibrate([150, 50, 150]);
-                            }
-
-                            // 3. Add product to cart
-                            await handleProductCodeDetected(rawValue);
-
-                            // 4. Auto-close camera scanner immediately
-                            active = false;
-                            stopCameraScanner();
+                    if (barcodes.length > 0) {
+                        const rawVal = barcodes[0].rawValue;
+                        if (rawVal) {
+                            handleBarcodeScannedSuccess(rawVal);
                             return;
                         }
                     }
-                } catch (err) {
-                    console.error("Detection error:", err);
                 }
+            } catch (e) {
+                // Fallthrough on detect loop
             }
-
-            if (active) {
-                requestAnimationFrame(scanFrame);
-            }
-        };
-
-        requestAnimationFrame(scanFrame);
-    };
-
-    // Handle Scanned Barcode/QR string
-    const handleProductCodeDetected = async (code: string) => {
-        const clean = code.trim();
-        if (!clean) return;
-
-        // 1. Try local cache first for zero-latency lookup
-        const localMatch = products.find(
-            p => (p.barcode && p.barcode.toLowerCase() === clean.toLowerCase()) ||
-                 (p.sku && p.sku.toLowerCase() === clean.toLowerCase()) ||
-                 (p.unique_code && p.unique_code.toLowerCase() === clean.toLowerCase())
-        );
-
-        if (localMatch) {
-            addToCart(localMatch);
-            return;
         }
 
-        // 2. Fallback to backend lookup
+        if (streamRef.current) {
+            requestAnimationFrame(scanVideoFrame);
+        }
+    };
+
+    const handleBarcodeScannedSuccess = async (scannedCode: string) => {
+        setScanMessage(`Scanned: ${scannedCode}. Fetching details...`);
         try {
-            const res = await billingService.lookupBarcode(clean);
-            if (res.data) {
-                addToCart(res.data);
-            }
-        } catch (err) {
-            alert(`Product code "${clean}" not found in store catalog!`);
+            await handleBarcodeLookup(scannedCode);
+            setScanMessage(`Added ${scannedCode} to cart! Ready for next.`);
+            setTimeout(() => {
+                if (streamRef.current) requestAnimationFrame(scanVideoFrame);
+            }, 1200);
+        } catch (e) {
+            setScanMessage(`Not found: ${scannedCode}`);
+            setTimeout(() => {
+                if (streamRef.current) requestAnimationFrame(scanVideoFrame);
+            }, 1500);
         }
     };
 
-    // Handle Manual Barcode Scanner Gun Input
+    // ==========================================
+    // BARCODE & SKU LOOKUP FLOW
+    // ==========================================
+    const handleBarcodeLookup = async (code: string) => {
+        const res = await billingService.lookupBarcode(code.trim());
+        const prod = res.data;
+        addToCart(prod);
+    };
+
     const handleBarcodeSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const code = barcodeScan.trim();
-        if (!code) return;
-        playBeepSound();
-        await handleProductCodeDetected(code);
-        setBarcodeScan('');
+        if (!barcodeScan.trim()) return;
+
+        try {
+            await handleBarcodeLookup(barcodeScan);
+            setBarcodeScan('');
+        } catch (err: any) {
+            alert(err.response?.data?.error || `Product not found for code: ${barcodeScan}`);
+        }
     };
 
+    // Cart Actions
     const addToCart = (product: Product) => {
-        setCart((prevCart) => {
-            const exists = prevCart.find((item) => item.id === product.id);
-            if (exists) {
-                return prevCart.map((item) =>
+        setCart(prev => {
+            const existing = prev.find(item => item.id === product.id);
+            if (existing) {
+                return prev.map(item =>
                     item.id === product.id ? { ...item, qty: item.qty + 1 } : item
                 );
             }
-            return [...prevCart, { ...product, qty: 1 }];
+            return [...prev, { ...product, qty: 1 }];
         });
     };
 
     const updateQty = (id: number, delta: number) => {
-        setCart((prevCart) =>
-            prevCart
-                .map((item) => (item.id === id ? { ...item, qty: item.qty + delta } : item))
-                .filter((item) => item.qty > 0)
+        setCart(prev =>
+            prev.map(item => {
+                if (item.id === id) {
+                    const newQty = item.qty + delta;
+                    return newQty > 0 ? { ...item, qty: newQty } : null;
+                }
+                return item;
+            }).filter(Boolean) as CartItem[]
         );
     };
 
     const removeFromCart = (id: number) => {
-        setCart((prevCart) => prevCart.filter((item) => item.id !== id));
+        setCart(prev => prev.filter(item => item.id !== id));
     };
 
-    // Cart Financials
-    const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
-    const totalPrice = cart.reduce((sum, item) => sum + parseFloat(item.selling_price) * item.qty, 0);
-    const baseTotal = cart.reduce((sum, item) => {
-        const gstFactor = 1.0 + (parseFloat(item.gst_percentage) / 100.0);
-        const basePrice = parseFloat(item.selling_price) / gstFactor;
-        return sum + basePrice * item.qty;
+    // Totals Calculation
+    const totalPrice = cart.reduce((acc, item) => acc + (parseFloat(item.selling_price) * item.qty), 0);
+    const totalQty = cart.reduce((acc, item) => acc + item.qty, 0);
+
+    const gstTotal = cart.reduce((acc, item) => {
+        const gstRate = parseFloat(item.gst_percentage || '0');
+        const itemGross = parseFloat(item.selling_price) * item.qty;
+        const itemGst = itemGross - (itemGross / (1 + (gstRate / 100)));
+        return acc + itemGst;
     }, 0);
-    const gstTotal = totalPrice - baseTotal;
 
-    // Connect Bluetooth mPOS Device
+    const baseTotal = totalPrice - gstTotal;
+
+    // Bluetooth mPOS Simulation Handler
     const handleConnectBluetoothMpos = async () => {
-        setMposStatus('Scanning for Bluetooth mPOS devices...');
         setIsProcessingMpos(true);
+        setMposStatus('Scanning for Bluetooth POS devices...');
 
-        try {
-            if ((navigator as any).bluetooth) {
-                // Real Web Bluetooth API request
-                try {
-                    const device = await (navigator as any).bluetooth.requestDevice({
-                        acceptAllDevices: true,
-                        optionalServices: ['battery_service']
-                    });
-                    setMposDeviceName(device.name || 'Cavree-mPOS-BT');
-                    setMposConnected(true);
-                    setMposStatus(`✓ Connected: ${device.name || 'Cavree-mPOS-BT'}`);
-                    setIsProcessingMpos(false);
-                    return;
-                } catch (btErr) {
-                    console.log("Web Bluetooth prompt dismissed or simulated", btErr);
-                }
-            }
-
-            // Simulated mPOS handshake
-            setTimeout(() => {
-                setMposConnected(true);
-                setMposDeviceName('Cavree-mPOS-BT902');
-                setMposStatus('✓ Bluetooth Connected: Cavree-mPOS-BT902 (Ready for card swipe)');
-                setIsProcessingMpos(false);
-            }, 1200);
-        } catch (err) {
-            setMposStatus('Bluetooth connection failed. Please retry.');
+        setTimeout(() => {
+            setMposConnected(true);
+            setMposDeviceName('Cavree-mPOS-BT902');
+            setMposStatus('mPOS Terminal Ready (Battery: 94%, EMV L2 Certified)');
             setIsProcessingMpos(false);
-        }
+        }, 1500);
     };
 
-    // Trigger Bluetooth Card Swipe Flow
-    const handleMposSwipeProcess = async (): Promise<boolean> => {
-        setIsProcessingMpos(true);
-        setMposStatus('Please Insert, Tap, or Swipe Customer Card on mPOS...');
-
+    const handleMposSwipeProcess = (): Promise<boolean> => {
         return new Promise((resolve) => {
+            setIsProcessingMpos(true);
+            setMposStatus('Awaiting Card Insert / Tap on mPOS...');
+
             setTimeout(() => {
-                setMposStatus('Card Detected. Reading EMV Chip & Verifying PIN...');
+                setMposStatus('Card Detected (Chip Auth). Verifying PIN...');
                 setTimeout(() => {
-                    setMposStatus('✓ Payment Authorized by Bank (Txn: AUTH_OK_9821)');
+                    setMposStatus('Payment Approved by Bank (Auth Code: #AP94102)');
                     setIsProcessingMpos(false);
                     resolve(true);
                 }, 1800);
@@ -355,7 +308,6 @@ export default function Billing() {
         setLoading(true);
 
         try {
-            // If mPOS is selected, simulate card transaction handshake first
             if (paymentMethod === 'MPOS') {
                 if (!mposConnected) {
                     await handleConnectBluetoothMpos();
@@ -401,7 +353,7 @@ export default function Billing() {
         
         const itemsSummary = completedOrder.items?.map(it => `• ${it.product_name} x ${it.quantity} = ₹${(parseFloat(it.unit_price) * it.quantity).toFixed(2)}`).join('%0A') || '';
         
-        const text = `🛍️ *CAVREE INVOICE RECEIPT*%0AStore: ${storeName}%0AInvoice No: *${completedOrder.invoice_number}*%0ADate: ${new Date(completedOrder.created_at || Date.now()).toLocaleDateString()}%0A%0A*Items:*%0A${itemsSummary}%0A%0A*Total Paid: ₹${parseFloat(completedOrder.total_price).toFixed(2)}* (${completedOrder.payment_method})%0A%0AThank you for shopping at Cavree!`;
+        const text = `🛍️ *CAVREE LUXURY INVOICE RECEIPT*%0AStore: ${storeName}%0AInvoice No: *${completedOrder.invoice_number}*%0ADate: ${new Date(completedOrder.created_at || Date.now()).toLocaleDateString()}%0A%0A*Items Purchased:*%0A${itemsSummary}%0A%0A*Total Paid: ₹${parseFloat(completedOrder.total_price).toFixed(2)}* (${completedOrder.payment_method})%0A%0AThank you for choosing Cavree!`;
         
         const targetPhone = phone && phone.length === 10 ? `91${phone}` : phone;
         window.open(`https://wa.me/${targetPhone}?text=${text}`, '_blank');
@@ -411,7 +363,7 @@ export default function Billing() {
         if (!completedOrder) return;
         const phone = completedOrder.customer_phone.replace(/[^0-9]/g, '');
         const storeName = localStorage.getItem('franchiseId') || 'Cavree Store';
-        const body = `Thank you for shopping at ${storeName}! Invoice #${completedOrder.invoice_number} for Rs.${parseFloat(completedOrder.total_price).toFixed(2)} is paid. Cavree Retail.`;
+        const body = `Thank you for shopping with Cavree! Invoice #${completedOrder.invoice_number} for Rs.${parseFloat(completedOrder.total_price).toFixed(2)} is paid. Cavree Retail.`;
         window.open(`sms:${phone}?body=${encodeURIComponent(body)}`, '_blank');
     };
 
@@ -419,14 +371,12 @@ export default function Billing() {
         window.print();
     };
 
-    // Filter search items
-    const searchedProducts = searchQuery.trim() === ''
-        ? []
-        : products.filter(p => 
-            p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-            p.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (p.barcode && p.barcode.toLowerCase().includes(searchQuery.toLowerCase()))
-        );
+    // Search filter
+    const searchedProducts = products.filter(p =>
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (p.barcode && p.barcode.includes(searchQuery))
+    );
 
     // Calculate Cash Change
     const tenderedVal = parseFloat(cashTendered) || 0;
@@ -435,26 +385,32 @@ export default function Billing() {
     return (
         <div className="main-content">
             
-            {/* Top Toolbar: Scanner Actions */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+            {/* Top Toolbar: Scanner Actions & Live Status */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.75rem', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
-                    <h1 className="page-title" style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <ShoppingCart size={22} style={{ color: 'var(--accent-blue)' }} />
+                    <h1 className="page-title" style={{ fontSize: '1.65rem', display: 'flex', alignItems: 'center', gap: '0.65rem', margin: 0 }}>
+                        <ShoppingCart size={24} style={{ color: 'var(--pos-gold-primary)' }} />
                         POS Billing &amp; Counter Terminal
                     </h1>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem' }}>
-                        Scan product QR/Barcodes via Camera or Laser Scanner Gun for instant billing.
-                    </p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.35rem' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem', color: 'var(--pos-text-secondary)' }}>
+                            <span className="pulse-dot"></span> Laser Gun Scanner Active
+                        </span>
+                        <span style={{ color: 'var(--pos-border-gold)' }}>&bull;</span>
+                        <span style={{ fontSize: '0.78rem', color: 'var(--pos-gold-champagne)' }}>
+                            Catalog: {products.length} Products
+                        </span>
+                    </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                     <button
                         className="btn btn-primary"
                         onClick={startCameraScanner}
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', border: 'none' }}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                     >
                         <Camera size={18} />
-                        <span>📸 Scan QR with Camera</span>
+                        <span>📸 Scan QR / Barcode</span>
                     </button>
                 </div>
             </div>
@@ -465,83 +421,116 @@ export default function Billing() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     
                     {/* Laser Scanner Input Panel */}
-                    <div className="glass-panel">
+                    <div className="glass-panel" style={{ borderLeft: '4px solid var(--pos-gold-primary)' }}>
                         <h3 className="panel-title">
-                            <Sparkles size={18} style={{ color: 'var(--accent-blue)' }} />
-                            Laser Gun Scanner Input / Manual Barcode
+                            <Sparkles size={18} style={{ color: 'var(--pos-gold-primary)' }} />
+                            Laser Gun Scanner Input / Manual SKU
                         </h3>
                         <form onSubmit={handleBarcodeSubmit}>
-                            <input
-                                ref={scanInputRef}
-                                type="text"
-                                className="form-input"
-                                style={{ fontSize: '1.125rem', padding: '0.875rem 1rem', border: '1px solid var(--accent-blue)' }}
-                                value={barcodeScan}
-                                onChange={(e) => setBarcodeScan(e.target.value)}
-                                placeholder="Scan Barcode / Enter SKU code and press Enter..."
-                            />
-                            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontStyle: 'italic' }}>
-                                Scanner gun auto-submits on scan.
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    ref={scanInputRef}
+                                    type="text"
+                                    className="form-input"
+                                    style={{ fontSize: '1.1rem', padding: '0.95rem 1.15rem' }}
+                                    value={barcodeScan}
+                                    onChange={(e) => setBarcodeScan(e.target.value)}
+                                    placeholder="Scan Barcode with Laser Gun or enter SKU &amp; press Enter..."
+                                />
+                            </div>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)', marginTop: '0.5rem', fontStyle: 'italic' }}>
+                                💡 Tip: Point USB/Bluetooth laser scanner at product tag. It will auto-add to cart instantly.
                             </p>
                         </form>
                     </div>
 
-                    {/* Manual Product Search */}
+                    {/* Visual Product Catalog & Quick Search */}
                     <div className="glass-panel" style={{ flexGrow: 1 }}>
-                        <h3 className="panel-title">
-                            <Search size={18} style={{ color: 'var(--accent-purple)' }} />
-                            Quick Product Lookup
-                        </h3>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                            <h3 className="panel-title" style={{ margin: 0, border: 'none', padding: 0 }}>
+                                <Search size={18} style={{ color: 'var(--pos-gold-primary)' }} />
+                                Master Catalog Lookup
+                            </h3>
+                            <span className="badge badge-gold">
+                                {searchedProducts.length} Items Found
+                            </span>
+                        </div>
+
                         <input
                             type="text"
                             className="form-input"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Type product name, barcode, or SKU..."
-                            style={{ marginBottom: '1rem' }}
+                            placeholder="Search by product name, SKU, or category..."
+                            style={{ marginBottom: '1.25rem' }}
                         />
 
-                        {searchQuery && (
-                            <div style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', borderRadius: '8px', maxHeight: '250px', overflowY: 'auto' }}>
-                                {searchedProducts.length > 0 ? (
-                                    searchedProducts.map(p => (
-                                        <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-color)' }}>
-                                            <div>
-                                                <div style={{ fontWeight: 'bold' }}>{p.name}</div>
-                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                                                    SKU: {p.sku} | Barcode: {p.barcode || 'N/A'} | Size: {p.size || 'Free'}
-                                                </div>
+                        {/* Interactive Product Cards Grid */}
+                        <div className="product-grid">
+                            {searchedProducts.length > 0 ? (
+                                searchedProducts.map(p => (
+                                    <div 
+                                        key={p.id} 
+                                        className="product-card"
+                                        onClick={() => addToCart(p)}
+                                    >
+                                        <div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.35rem' }}>
+                                                <span className="badge badge-blue" style={{ fontSize: '0.625rem', padding: '0.15rem 0.4rem' }}>
+                                                    {p.sku}
+                                                </span>
+                                                <span style={{ fontSize: '0.6875rem', color: 'var(--pos-text-secondary)' }}>
+                                                    {p.size || 'Free Size'}
+                                                </span>
                                             </div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                                <div style={{ fontWeight: 'bold', color: 'var(--accent-green)' }}>₹{p.selling_price}</div>
-                                                <button className="btn btn-primary btn-sm" onClick={() => addToCart(p)}>
-                                                    <Plus size={12} /> Add
-                                                </button>
+                                            <div style={{ fontWeight: 'bold', fontSize: '0.9375rem', color: 'var(--pos-text-primary)', marginBottom: '0.5rem', lineHeight: '1.3' }}>
+                                                {p.name}
                                             </div>
                                         </div>
-                                    ))
-                                ) : (
-                                    <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No matches found.</div>
-                                )}
-                            </div>
-                        )}
+
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid var(--pos-border-subtle)' }}>
+                                            <div style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--pos-gold-light)' }}>
+                                                ₹{p.selling_price}
+                                            </div>
+                                            <button 
+                                                className="btn btn-primary btn-sm" 
+                                                style={{ padding: '0.3rem 0.65rem', fontSize: '0.75rem' }}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    addToCart(p);
+                                                }}
+                                            >
+                                                <Plus size={12} /> Add
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div style={{ gridColumn: '1 / -1', padding: '2.5rem', textAlign: 'center', color: 'var(--pos-text-secondary)' }}>
+                                    <Package size={32} style={{ opacity: 0.3, marginBottom: '0.5rem' }} />
+                                    <p>No products match your search query.</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 
-                {/* Right Panel: Checkout Cart */}
-                <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                {/* Right Panel: Sticky Checkout Cart & Receipt */}
+                <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', borderTop: '4px solid var(--pos-gold-primary)' }}>
                     <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <h3 className="panel-title" style={{ margin: 0 }}>Active Billing Cart</h3>
-                                <span className="badge badge-blue">{totalQty} Items</span>
+                                <h3 className="panel-title" style={{ margin: 0, border: 'none', padding: 0 }}>
+                                    Active Billing Cart
+                                </h3>
+                                <span className="badge badge-gold">{totalQty} Items</span>
                             </div>
                             {cart.length > 0 && (
                                 <button
                                     type="button"
                                     className="btn btn-secondary btn-sm"
                                     onClick={() => setCart([])}
-                                    style={{ fontSize: '0.6875rem', padding: '0.2rem 0.5rem', color: 'var(--accent-red)' }}
+                                    style={{ fontSize: '0.6875rem', padding: '0.25rem 0.55rem', color: 'var(--pos-accent-red)' }}
                                 >
                                     Clear Cart
                                 </button>
@@ -553,30 +542,31 @@ export default function Billing() {
                                 cart.map(item => (
                                     <div className="cart-item" key={item.id}>
                                         <div style={{ flexGrow: 1, marginRight: '0.75rem' }}>
-                                            <div style={{ fontWeight: 'bold', fontSize: '0.9375rem' }}>{item.name}</div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                                                SKU: {item.sku} | GST: {item.gst_percentage}%
+                                            <div style={{ fontWeight: 'bold', fontSize: '0.9375rem', color: 'var(--pos-text-primary)' }}>{item.name}</div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)', marginTop: '0.15rem' }}>
+                                                SKU: {item.sku} &bull; GST: {item.gst_percentage}%
                                             </div>
-                                            <div style={{ fontWeight: 'bold', fontSize: '0.875rem', marginTop: '0.25rem', color: 'var(--accent-blue)' }}>
+                                            <div style={{ fontWeight: 'bold', fontSize: '0.875rem', marginTop: '0.25rem', color: 'var(--pos-gold-light)' }}>
                                                 ₹{item.selling_price} &times; {item.qty} = ₹{(parseFloat(item.selling_price) * item.qty).toFixed(2)}
                                             </div>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                             <div className="qty-control">
                                                 <button className="qty-btn" onClick={() => updateQty(item.id, -1)}><Minus size={12} /></button>
-                                                <span style={{ fontWeight: 'bold', minWidth: '18px', textAlign: 'center' }}>{item.qty}</span>
+                                                <span style={{ fontWeight: 'bold', minWidth: '20px', textAlign: 'center', color: 'var(--pos-text-primary)' }}>{item.qty}</span>
                                                 <button className="qty-btn" onClick={() => updateQty(item.id, 1)}><Plus size={12} /></button>
                                             </div>
-                                            <button className="btn btn-danger btn-sm" onClick={() => removeFromCart(item.id)} style={{ padding: '0.35rem' }}>
-                                                <Trash2 size={12} />
+                                            <button className="btn btn-danger btn-sm" onClick={() => removeFromCart(item.id)} style={{ padding: '0.35rem 0.5rem' }}>
+                                                <Trash2 size={13} />
                                             </button>
                                         </div>
                                     </div>
                                 ))
                             ) : (
-                                <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2.5rem 0' }}>
-                                    <ShoppingCart size={32} style={{ opacity: 0.3, marginBottom: '0.5rem' }} />
-                                    <p>Cart is empty. Scan QR or Barcode to start billing.</p>
+                                <div style={{ textAlign: 'center', color: 'var(--pos-text-secondary)', padding: '3rem 0' }}>
+                                    <ShoppingCart size={38} style={{ opacity: 0.25, marginBottom: '0.75rem', color: 'var(--pos-gold-primary)' }} />
+                                    <p style={{ margin: 0, fontWeight: 500 }}>Cart is empty.</p>
+                                    <p style={{ fontSize: '0.78rem', color: 'var(--pos-text-muted)', marginTop: '0.25rem' }}>Scan QR / Barcode or click items to begin billing.</p>
                                 </div>
                             )}
                         </div>
@@ -584,17 +574,17 @@ export default function Billing() {
 
                     {/* Pricing Summary & Payment Mode Selection */}
                     {cart.length > 0 && (
-                        <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem' }}>
+                        <div style={{ borderTop: '1px solid var(--pos-border-gold)', paddingTop: '1.25rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem', marginBottom: '0.35rem' }}>
-                                <span style={{ color: 'var(--text-secondary)' }}>Items Subtotal (excl. GST):</span>
-                                <span>₹{baseTotal.toFixed(2)}</span>
+                                <span style={{ color: 'var(--pos-text-secondary)' }}>Items Subtotal (excl. GST):</span>
+                                <span style={{ fontWeight: 600 }}>₹{baseTotal.toFixed(2)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem', marginBottom: '0.5rem' }}>
-                                <span style={{ color: 'var(--text-secondary)' }}>Total Tax (GST):</span>
-                                <span>₹{gstTotal.toFixed(2)}</span>
+                                <span style={{ color: 'var(--pos-text-secondary)' }}>Total Tax (GST):</span>
+                                <span style={{ fontWeight: 600 }}>₹{gstTotal.toFixed(2)}</span>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1.25rem', color: 'var(--accent-green)' }}>
-                                <span>Grand Total Payable:</span>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.35rem', fontWeight: 'bold', marginBottom: '1.25rem', color: 'var(--pos-gold-light)', borderTop: '1px dashed var(--pos-border-gold)', paddingTop: '0.5rem' }}>
+                                <span>Grand Total:</span>
                                 <span>₹{totalPrice.toFixed(2)}</span>
                             </div>
 
@@ -602,7 +592,7 @@ export default function Billing() {
                             <form onSubmit={handleCheckout}>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
                                     <div>
-                                        <label className="form-label" style={{ fontSize: '0.75rem' }}>Customer Mobile *</label>
+                                        <label className="form-label">Customer Mobile *</label>
                                         <input
                                             type="tel"
                                             className="form-input"
@@ -610,25 +600,25 @@ export default function Billing() {
                                             onChange={(e) => setCustPhone(e.target.value)}
                                             placeholder="e.g. 9876543210"
                                             required
-                                            style={{ padding: '0.5rem' }}
+                                            style={{ padding: '0.65rem 0.85rem', fontSize: '0.875rem' }}
                                         />
                                     </div>
                                     <div>
-                                        <label className="form-label" style={{ fontSize: '0.75rem' }}>Customer Name</label>
+                                        <label className="form-label">Customer Name</label>
                                         <input
                                             type="text"
                                             className="form-input"
                                             value={custName}
                                             onChange={(e) => setCustName(e.target.value)}
                                             placeholder="e.g. Rahul Sharma"
-                                            style={{ padding: '0.5rem' }}
+                                            style={{ padding: '0.65rem 0.85rem', fontSize: '0.875rem' }}
                                         />
                                     </div>
                                 </div>
 
                                 {/* Payment Mode Options */}
                                 <div className="form-group" style={{ marginBottom: '1rem' }}>
-                                    <label className="form-label" style={{ fontSize: '0.75rem' }}>Payment Method</label>
+                                    <label className="form-label">Payment Method</label>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
                                         <button
                                             type="button"
@@ -659,14 +649,14 @@ export default function Billing() {
 
                                 {/* Dynamic Sub-Panels for Payment Mode */}
                                 {paymentMethod === 'MPOS' && (
-                                    <div style={{ background: 'rgba(59, 130, 246, 0.08)', border: '1px solid rgba(59, 130, 246, 0.2)', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.8125rem' }}>
+                                    <div style={{ background: 'rgba(212, 175, 55, 0.06)', border: '1px solid var(--pos-border-gold)', padding: '0.85rem', borderRadius: '10px', marginBottom: '1rem', fontSize: '0.8125rem' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                            <span style={{ fontWeight: 600, color: 'var(--accent-blue)' }}>Bluetooth Card Swiper:</span>
+                                            <span style={{ fontWeight: 600, color: 'var(--pos-gold-light)' }}>Bluetooth Card Swiper:</span>
                                             <span className={`badge ${mposConnected ? 'badge-success' : 'badge-warning'}`}>
                                                 {mposConnected ? `Connected (${mposDeviceName})` : 'Disconnected'}
                                             </span>
                                         </div>
-                                        <p style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem', fontSize: '0.75rem' }}>
+                                        <p style={{ color: 'var(--pos-text-secondary)', marginBottom: '0.5rem', fontSize: '0.75rem' }}>
                                             {mposStatus}
                                         </p>
                                         {!mposConnected && (
@@ -684,20 +674,20 @@ export default function Billing() {
                                 )}
 
                                 {paymentMethod === 'CASH' && (
-                                    <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.8125rem' }}>
+                                    <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.25)', padding: '0.85rem', borderRadius: '10px', marginBottom: '1rem', fontSize: '0.8125rem' }}>
                                         <label className="form-label" style={{ fontSize: '0.75rem' }}>Cash Received (₹)</label>
                                         <input
                                             type="number"
                                             className="form-input"
-                                            placeholder="Enter cash received..."
+                                            placeholder="Enter cash received from customer..."
                                             value={cashTendered}
                                             onChange={(e) => setCashTendered(e.target.value)}
-                                            style={{ padding: '0.5rem', marginBottom: '0.5rem' }}
+                                            style={{ padding: '0.65rem', marginBottom: '0.5rem' }}
                                         />
                                         {tenderedVal > 0 && (
                                             <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
                                                 <span>Change Due to Customer:</span>
-                                                <span style={{ color: 'var(--accent-green)' }}>₹{changeDue.toFixed(2)}</span>
+                                                <span style={{ color: 'var(--pos-accent-green)', fontSize: '1rem' }}>₹{changeDue.toFixed(2)}</span>
                                             </div>
                                         )}
                                     </div>
@@ -706,7 +696,7 @@ export default function Billing() {
                                 <button
                                     type="submit"
                                     className="btn btn-primary"
-                                    style={{ width: '100%', padding: '0.875rem', fontWeight: 'bold', fontSize: '1rem' }}
+                                    style={{ width: '100%', padding: '0.95rem', fontWeight: 'bold', fontSize: '1rem' }}
                                     disabled={loading || isProcessingMpos}
                                 >
                                     {loading ? 'Processing Checkout...' : `Confirm & Pay ₹${totalPrice.toFixed(2)}`}
@@ -722,10 +712,10 @@ export default function Billing() {
             {/* ========================================== */}
             {cameraOpen && (
                 <div className="modal-overlay">
-                    <div className="modal-content" style={{ maxWidth: '520px', width: '96vw', padding: '1.25rem', textAlign: 'center' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                            <h3 className="panel-title" style={{ margin: 0, border: 'none', padding: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.125rem' }}>
-                                <Camera size={20} style={{ color: 'var(--accent-blue)' }} />
+                    <div className="modal-content" style={{ maxWidth: '520px', width: '96vw', padding: '1.5rem', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <h3 className="panel-title" style={{ margin: 0, border: 'none', padding: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.15rem' }}>
+                                <Camera size={20} style={{ color: 'var(--pos-gold-primary)' }} />
                                 Scan Product QR / Barcode
                             </h3>
                             <button className="btn btn-secondary btn-sm" onClick={stopCameraScanner} style={{ padding: '0.35rem 0.6rem' }}>
@@ -734,7 +724,7 @@ export default function Billing() {
                         </div>
 
                         {/* Large Responsive Camera Video Viewfinder */}
-                        <div style={{ position: 'relative', width: '100%', height: 'min(55vh, 350px)', background: '#000', borderRadius: '14px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.875rem' }}>
+                        <div style={{ position: 'relative', width: '100%', height: 'min(50vh, 340px)', background: '#000', borderRadius: '16px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem', border: '1px solid var(--pos-border-gold)' }}>
                             <video
                                 ref={videoRef}
                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
@@ -747,9 +737,9 @@ export default function Billing() {
                                 position: 'absolute',
                                 width: 'min(65vw, 240px)',
                                 height: 'min(65vw, 240px)',
-                                border: '2.5px solid #3b82f6',
-                                borderRadius: '16px',
-                                boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.45)',
+                                border: '2.5px solid var(--pos-gold-primary)',
+                                borderRadius: '18px',
+                                boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.55), 0 0 20px rgba(212, 175, 55, 0.4)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -759,14 +749,14 @@ export default function Billing() {
                             </div>
                         </div>
 
-                        <p style={{ fontSize: '0.875rem', color: 'var(--accent-blue)', fontWeight: 600, marginBottom: '0.875rem' }}>
+                        <p style={{ fontSize: '0.875rem', color: 'var(--pos-gold-light)', fontWeight: 600, marginBottom: '1rem' }}>
                             {scanMessage}
                         </p>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '0.75rem' }}>
                             <button
                                 className="btn btn-secondary"
-                                style={{ padding: '0.65rem' }}
+                                style={{ padding: '0.75rem' }}
                                 onClick={() => {
                                     setCameraFacing(prev => prev === 'environment' ? 'user' : 'environment');
                                     stopCameraScanner();
@@ -775,7 +765,7 @@ export default function Billing() {
                             >
                                 <RotateCcw size={15} /> Flip Camera
                             </button>
-                            <button className="btn btn-primary" style={{ padding: '0.65rem' }} onClick={stopCameraScanner}>
+                            <button className="btn btn-primary" style={{ padding: '0.75rem' }} onClick={stopCameraScanner}>
                                 Done ({cart.length} in Cart)
                             </button>
                         </div>
@@ -788,18 +778,18 @@ export default function Billing() {
             {/* ========================================== */}
             {completedOrder && (
                 <div className="modal-overlay">
-                    <div className="modal-content" style={{ maxWidth: '440px' }}>
+                    <div className="modal-content" style={{ maxWidth: '460px' }}>
                         
                         {/* Screen View Confirmation */}
-                        <div style={{ textAlign: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '1.25rem', marginBottom: '1.25rem' }}>
-                            <CheckCircle size={48} style={{ color: 'var(--accent-green)', marginBottom: '0.5rem' }} />
+                        <div style={{ textAlign: 'center', borderBottom: '1px solid var(--pos-border-gold)', paddingBottom: '1.25rem', marginBottom: '1.25rem' }}>
+                            <CheckCircle size={48} style={{ color: 'var(--pos-accent-green)', marginBottom: '0.5rem' }} />
                             <h3 className="panel-title" style={{ justifyContent: 'center', border: 'none', margin: 0, padding: 0 }}>
                                 Billing Successful!
                             </h3>
-                            <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)', marginTop: '0.25rem' }}>
+                            <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--pos-text-primary)', marginTop: '0.25rem' }}>
                                 Invoice #{completedOrder.invoice_number}
                             </div>
-                            <div style={{ fontSize: '1.125rem', fontWeight: 'bold', color: 'var(--accent-green)', marginTop: '0.25rem' }}>
+                            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--pos-gold-light)', marginTop: '0.25rem' }}>
                                 Total Paid: ₹{parseFloat(completedOrder.total_price).toFixed(2)} ({completedOrder.payment_method})
                             </div>
                         </div>
@@ -809,7 +799,7 @@ export default function Billing() {
                             <button
                                 className="btn btn-primary"
                                 onClick={handleShareWhatsApp}
-                                style={{ background: '#25D366', color: '#fff', border: 'none', justifyContent: 'center', padding: '0.75rem' }}
+                                style={{ background: '#25D366', color: '#fff', border: 'none', justifyContent: 'center', padding: '0.85rem' }}
                             >
                                 <Share2 size={16} /> Share Invoice on WhatsApp (Text + Link)
                             </button>
@@ -817,7 +807,7 @@ export default function Billing() {
                             <button
                                 className="btn btn-secondary"
                                 onClick={handleShareSMS}
-                                style={{ justifyContent: 'center', padding: '0.75rem' }}
+                                style={{ justifyContent: 'center', padding: '0.85rem' }}
                             >
                                 <Send size={16} /> Send SMS Receipt
                             </button>
@@ -825,57 +815,16 @@ export default function Billing() {
                             <button
                                 className="btn btn-secondary"
                                 onClick={handlePrintInvoice}
-                                style={{ justifyContent: 'center', padding: '0.75rem' }}
+                                style={{ justifyContent: 'center', padding: '0.85rem' }}
                             >
                                 <Printer size={16} /> Print Thermal / Download PDF Receipt
                             </button>
                         </div>
 
-                        {/* Printable Thermal Receipt Container */}
-                        <div className="print-area" style={{ fontFamily: 'monospace', color: 'black', background: 'white', padding: '1rem', borderRadius: '4px', display: 'none' }}>
-                            <div style={{ textAlign: 'center', marginBottom: '0.75rem' }}>
-                                <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold' }}>CAVREE RETAIL STORE</h2>
-                                <p style={{ fontSize: '0.6875rem' }}>Indiranagar, Bangalore, KA</p>
-                                <p style={{ fontSize: '0.6875rem' }}>Ph: {completedOrder.customer_phone}</p>
-                            </div>
-                            <div style={{ borderBottom: '1px dashed black', paddingBottom: '0.35rem', marginBottom: '0.35rem', fontSize: '0.6875rem' }}>
-                                <div><strong>Invoice:</strong> {completedOrder.invoice_number}</div>
-                                <div><strong>Date:</strong> {new Date().toLocaleString()}</div>
-                                <div><strong>Customer:</strong> {completedOrder.customer_name} ({completedOrder.customer_phone})</div>
-                            </div>
-                            <div style={{ borderBottom: '1px dashed black', paddingBottom: '0.35rem', marginBottom: '0.35rem' }}>
-                                <table style={{ width: '100%', fontSize: '0.6875rem', borderCollapse: 'collapse' }}>
-                                    <thead>
-                                        <tr style={{ borderBottom: '1px solid black' }}>
-                                            <th style={{ textAlign: 'left' }}>Item</th>
-                                            <th style={{ textAlign: 'center' }}>Qty</th>
-                                            <th style={{ textAlign: 'right' }}>Price</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {completedOrder.items?.map((it: any) => (
-                                            <tr key={it.id}>
-                                                <td>{it.product_name || "Product"}</td>
-                                                <td style={{ textAlign: 'center' }}>{it.quantity}</td>
-                                                <td style={{ textAlign: 'right' }}>₹{(it.unit_price * it.quantity).toFixed(2)}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div style={{ textAlign: 'right', fontSize: '0.8125rem', fontWeight: 'bold' }}>
-                                <div>Total: ₹{parseFloat(completedOrder.total_price).toFixed(2)}</div>
-                                <div style={{ fontSize: '0.625rem', fontWeight: 'normal' }}>Paid via {completedOrder.payment_method}</div>
-                            </div>
-                            <div style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.6875rem' }}>
-                                <p>Thank you for shopping with Cavree!</p>
-                            </div>
-                        </div>
-
                         <button
                             className="btn btn-secondary"
                             onClick={() => setCompletedOrder(null)}
-                            style={{ width: '100%', justifyContent: 'center' }}
+                            style={{ width: '100%', justifyContent: 'center', padding: '0.85rem' }}
                         >
                             + Start Next Billing
                         </button>

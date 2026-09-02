@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
-import MainLayout from '../components/layout/MainLayout';
-import HomePage from '../pages/Home/HomePage';
-import InvestmentModelPage from '../pages/InvestmentModel/InvestmentModelPage';
-import NotFoundPage from '../pages/NotFound/NotFoundPage';
-import ThankYouPage from '../pages/ThankYou/ThankYouPage';
+import MainLayout from '../landing/components/layout/MainLayout';
+import HomePage from '../landing/pages/Home/HomePage';
+import InvestmentModelPage from '../landing/pages/InvestmentModel/InvestmentModelPage';
+import NotFoundPage from '../landing/pages/NotFound/NotFoundPage';
+import ThankYouPage from '../landing/pages/ThankYou/ThankYouPage';
 import StorePortal from '../pages/StorePortal';
 
 const ScrollToTop = () => {

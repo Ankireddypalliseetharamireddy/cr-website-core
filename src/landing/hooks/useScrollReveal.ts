@@ -19,8 +19,8 @@ export interface UseScrollRevealOptions {
 
 export function useScrollReveal(options: UseScrollRevealOptions = {}) {
   const {
-    threshold = 0.12,
-    rootMargin = '0px 0px -40px 0px',
+    threshold,
+    rootMargin,
     triggerOnce = true,
     delay = 0,
   } = options;
@@ -32,42 +32,73 @@ export function useScrollReveal(options: UseScrollRevealOptions = {}) {
     const target = ref.current;
     if (!target) return;
 
-    // Check if IntersectionObserver is available
-    if (!('IntersectionObserver' in window)) {
+    // Accessibility: instantly reveal without motion if reduced-motion requested
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (!('IntersectionObserver' in window) || prefersReducedMotion) {
       setIsRevealed(true);
       return;
     }
 
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    const isTablet = typeof window !== 'undefined' && window.innerWidth >= 768 && window.innerWidth < 1024;
+
+    // Adaptive viewport intersection triggers based on screen dimensions
+    const computedThreshold =
+      threshold !== undefined
+        ? threshold
+        : isMobile
+        ? 0.04
+        : isTablet
+        ? 0.08
+        : 0.12;
+
+    const computedRootMargin =
+      rootMargin !== undefined
+        ? rootMargin
+        : isMobile
+        ? '0px 0px -3% 0px'
+        : isTablet
+        ? '0px 0px -6% 0px'
+        : '0px 0px -10% 0px';
+
+    // Compress delays on mobile so users never wait for stacked items
+    const effectiveDelay = isMobile ? Math.round(delay * 0.5) : delay;
+
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          if (delay > 0) {
-            const timer = setTimeout(() => {
+          if (effectiveDelay > 0) {
+            timer = setTimeout(() => {
               setIsRevealed(true);
-            }, delay);
-            if (triggerOnce) {
-              observer.unobserve(target);
-            }
-            return () => clearTimeout(timer);
+            }, effectiveDelay);
           } else {
             setIsRevealed(true);
-            if (triggerOnce) {
-              observer.unobserve(target);
-            }
+          }
+
+          if (triggerOnce) {
+            observer.unobserve(target);
           }
         } else if (!triggerOnce) {
+          if (timer) clearTimeout(timer);
           setIsRevealed(false);
         }
       },
       {
-        threshold,
-        rootMargin,
+        threshold: computedThreshold,
+        rootMargin: computedRootMargin,
       }
     );
 
     observer.observe(target);
 
     return () => {
+      if (timer) clearTimeout(timer);
       observer.disconnect();
     };
   }, [threshold, rootMargin, triggerOnce, delay]);
@@ -77,9 +108,13 @@ export function useScrollReveal(options: UseScrollRevealOptions = {}) {
 
 export function useStaggerChildren(count: number, baseDelay = 80) {
   const getDelayStyle = useCallback(
-    (index: number) => ({
-      transitionDelay: `${index * baseDelay}ms`,
-    }),
+    (index: number) => {
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+      const delay = isMobile ? Math.round(baseDelay * 0.5) : baseDelay;
+      return {
+        transitionDelay: `${index * delay}ms`,
+      };
+    },
     [baseDelay]
   );
 

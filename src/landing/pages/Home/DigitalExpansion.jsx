@@ -83,8 +83,8 @@ export const DigitalExpansion = () => {
             <ScrollReveal
               key={idx}
               variant="scale-up"
-              delay={380 + idx * 80}
-              duration={1000}
+              delay={340 + idx * 60}
+              duration={950}
               className={`bg-white border border-[#E8DFCF] rounded-[10px] py-4 sm:py-5 px-2 text-center shadow-[0_6px_18px_rgba(181,140,54,0.07),0_2px_6px_rgba(0,0,0,0.03)] transition-all duration-300 hover:border-[#B58C36]/50 hover:-translate-y-1 ${
                 idx === 4 ? 'max-sm:col-span-2 max-sm:max-w-[220px] max-sm:mx-auto max-sm:w-full' : ''
               }`}
@@ -103,7 +103,7 @@ export const DigitalExpansion = () => {
         </div>
 
         {/* Status Pill Banner */}
-        <ScrollReveal variant="fade-up" delay={780} duration={1100} className="bg-[#EAE0CE] border border-[#B58C36]/25 rounded-lg py-[0.85rem] px-[1.2rem] flex items-center gap-[0.85rem] flex-wrap sm:flex-nowrap">
+        <ScrollReveal variant="fade-up" delay={640} duration={1000} className="bg-[#EAE0CE] border border-[#B58C36]/25 rounded-lg py-[0.85rem] px-[1.2rem] flex items-center gap-[0.85rem] flex-wrap sm:flex-nowrap">
           <span className="font-sans text-[0.76rem] font-extrabold tracking-[0.1em] uppercase text-[#8A6D2C] bg-[#B58C36]/15 py-[0.2rem] px-[0.55rem] rounded shrink-0">
             Status
           </span>

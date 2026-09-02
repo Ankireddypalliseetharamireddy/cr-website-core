@@ -24,14 +24,16 @@ export function App() {
       window.scrollTo(0, 0);
     }
 
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
     const lenis = new Lenis({
-      duration: 2.1,
+      duration: isMobile ? 1.0 : 1.35,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: 'vertical',
       gestureOrientation: 'vertical',
       smoothWheel: true,
-      wheelMultiplier: 0.88,
-      touchMultiplier: 1.35,
+      wheelMultiplier: 0.95,
+      touchMultiplier: 1.2,
       infinite: false,
     });
 

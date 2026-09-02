@@ -19,9 +19,9 @@ export const ScrollReveal = ({
   children,
   variant = 'fade-up',
   delay = 0,
-  duration = 1100,
-  threshold = 0.12,
-  rootMargin = '0px 0px -40px 0px',
+  duration,
+  threshold,
+  rootMargin,
   className = '',
   as: Component = 'div',
   style = {},
@@ -54,8 +54,8 @@ export const ScrollReveal = ({
 
   const dynamicStyle = {
     ...style,
-    transitionDuration: `${duration}ms`,
-    transitionDelay: delay > 0 ? `${delay}ms` : undefined,
+    ...(duration !== undefined ? { transitionDuration: `${duration}ms` } : {}),
+    ...(delay > 0 ? { transitionDelay: `${delay}ms` } : {}),
   };
 
   return (

@@ -1,23 +1,14 @@
-/**
- * Google Form & Google Sheet Integration Service
- * 
- * Maps website Contact / Investor Enquiry Form fields to new Google Form entry IDs
- * and dispatches submissions directly to Google Forms & linked Google Sheet.
- */
-
-// Production Google Form Entry ID Mappings (Updated)
 export const GOOGLE_FORM_FIELD_MAP = {
-  name: 'entry.2005620554',          // Full Name
-  phone: 'entry.1166974658',         // Phone number
-  email: 'entry.1045781291',         // Email
-  cityState: 'entry.606323434',      // City & State
-  country: 'entry.1059695746',       // Country
-  budget: 'entry.741973709',         // Investment Budget
-  storeLocation: 'entry.1320393607', // Commercial Space Status
-  message: 'entry.1065046570',       // Specific Query or Comments
+  name: 'entry.2005620554',
+  phone: 'entry.1166974658',
+  email: 'entry.1045781291',
+  cityState: 'entry.606323434',
+  country: 'entry.1059695746',
+  budget: 'entry.741973709',
+  storeLocation: 'entry.1320393607',
+  message: 'entry.1065046570',
 };
 
-// Default Google Form Action URL (New formResponse endpoint)
 export const DEFAULT_GOOGLE_FORM_URL =
   'https://docs.google.com/forms/d/e/1FAIpQLScPditMWTVrcSEsJpqEBlNJU58beCpE5CkXAg4GcqdPrjf7Sw/formResponse';
 
@@ -35,12 +26,6 @@ function normalizeBudget(budget) {
   return '₹50 lakhs - ₹1crore (Flagship)';
 }
 
-/**
- * Submits form data to Google Forms using FormData and fetch (no-cors mode)
- * 
- * @param {Object} formData Form data from ContactSection
- * @returns {Promise<{ success: boolean }>}
- */
 export async function submitContactToGoogleForm(formData) {
   const formActionUrl =
     (typeof import.meta !== 'undefined' &&

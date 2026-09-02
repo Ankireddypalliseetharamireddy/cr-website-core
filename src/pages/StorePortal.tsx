@@ -129,13 +129,13 @@ export default function StorePortal() {
 
                             {/* 3-Lines Hamburger Menu Button */}
                             <button
-                                className="btn btn-secondary btn-sm"
+                                className="btn btn-primary btn-sm"
                                 onClick={() => setMenuOpen(!menuOpen)}
-                                style={{ padding: '0.45rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.35rem', border: '1px solid var(--pos-border-gold-bright)' }}
+                                style={{ padding: '0.45rem 0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', borderRadius: '8px', fontWeight: 700 }}
                                 aria-label="Toggle Navigation Menu"
                             >
                                 {menuOpen ? <X size={18} /> : <Menu size={18} />}
-                                <span style={{ fontSize: '0.8125rem', fontWeight: 600 }}>Menu</span>
+                                <span style={{ fontSize: '0.8125rem', fontWeight: 700, letterSpacing: '0.05em' }}>MENU</span>
                             </button>
                         </div>
                     </div>

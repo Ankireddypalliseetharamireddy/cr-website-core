@@ -175,7 +175,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                     <div style={{ display: 'inline-flex', padding: '0.85rem', borderRadius: '50%', backgroundColor: 'rgba(212, 175, 55, 0.12)', border: '1px solid var(--pos-border-gold)', color: 'var(--pos-gold-primary)', marginBottom: '0.75rem', boxShadow: '0 0 25px rgba(212, 175, 55, 0.2)' }}>
                         <Store size={32} />
                     </div>
-                    <h2 style={{ fontFamily: 'Cinzel, serif', fontSize: '1.6rem', fontWeight: 'bold', marginBottom: '0.25rem', letterSpacing: '0.04em' }}>
+                    <h2 style={{ fontSize: '1.6rem', fontWeight: 'bold', marginBottom: '0.25rem', letterSpacing: '0.02em' }}>
                         <span style={{ background: 'var(--pos-gold-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                             CAVREE PORTAL
                         </span>

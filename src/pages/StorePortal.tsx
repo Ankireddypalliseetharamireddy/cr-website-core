@@ -79,7 +79,7 @@ export default function StorePortal() {
                 <div style={{ padding: '0.85rem 1.5rem', background: '#0a0b10', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
                         <img src="/cavree-emblem-gold.png" alt="Cavree" style={{ height: '24px', width: 'auto' }} />
-                        <span style={{ fontFamily: 'Cinzel, serif', fontWeight: 700, color: '#D4AF37', letterSpacing: '0.08em' }}>CAVREE</span>
+                        <span style={{ fontWeight: 700, color: '#D4AF37', letterSpacing: '0.05em' }}>CAVREE</span>
                     </div>
                     <button
                         onClick={() => navigate('/')}
@@ -112,7 +112,7 @@ export default function StorePortal() {
                     <div className="navbar-header-row">
                         <div className="brand" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.65rem' }} onClick={() => handleNavigate('home')}>
                             <img src="/cavree-emblem-gold.png" alt="Cavree Logo" style={{ height: '28px', width: 'auto', objectFit: 'contain' }} />
-                            <span style={{ fontFamily: 'Cinzel, serif', fontWeight: 700, letterSpacing: '0.08em', fontSize: '1.2rem', color: '#D4AF37' }}>CAVREE</span>
+                            <span style={{ fontWeight: 700, letterSpacing: '0.05em', fontSize: '1.2rem', color: '#D4AF37' }}>CAVREE</span>
                             <span className="badge badge-gold desktop-only" style={{ fontSize: '0.625rem', padding: '0.15rem 0.45rem' }}>
                                 {franchiseId || 'Store'}
                             </span>
@@ -228,7 +228,7 @@ export default function StorePortal() {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '0.65rem', borderBottom: '1px solid var(--pos-border-gold)', marginBottom: '0.75rem' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                                         <img src="/cavree-emblem-gold.png" alt="Cavree" style={{ height: '22px', width: 'auto' }} />
-                                        <span style={{ fontFamily: 'Cinzel, serif', fontWeight: 700, fontSize: '1rem', color: 'var(--pos-gold-light)', letterSpacing: '0.05em' }}>
+                                        <span style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--pos-gold-light)', letterSpacing: '0.05em' }}>
                                             CAVREE STORE
                                         </span>
                                     </div>

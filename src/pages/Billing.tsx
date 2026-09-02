@@ -379,7 +379,7 @@ export default function Billing({ onBack }: BillingProps) {
                                 </button>
                             )}
                             <div>
-                                <h1 style={{ fontSize: '1.5rem', fontFamily: 'Cinzel, serif', fontWeight: 700, margin: 0, color: 'var(--pos-gold-light)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0, color: 'var(--pos-gold-light)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <ShoppingCart size={22} style={{ color: 'var(--pos-gold-primary)' }} />
                                     Cavree POS Billing
                                 </h1>
@@ -399,21 +399,6 @@ export default function Billing({ onBack }: BillingProps) {
                         </button>
                     </div>
 
-                    {/* Barcode Laser Input */}
-                    <div className="glass-panel" style={{ padding: '1rem 1.25rem', marginBottom: '1.25rem', borderLeft: '4px solid var(--pos-gold-primary)' }}>
-                        <form onSubmit={handleBarcodeSubmit}>
-                            <input
-                                ref={scanInputRef}
-                                type="text"
-                                className="form-input"
-                                style={{ fontSize: '1rem', padding: '0.75rem 1rem' }}
-                                value={barcodeScan}
-                                onChange={(e) => setBarcodeScan(e.target.value)}
-                                placeholder="Scan Barcode or enter SKU &amp; press Enter..."
-                            />
-                        </form>
-                    </div>
-
                     {/* 2-Column Desktop Grid or Stacked Mobile View */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.25rem', marginBottom: '5rem' }}>
                         
@@ -429,14 +414,60 @@ export default function Billing({ onBack }: BillingProps) {
                                 </span>
                             </div>
 
-                            <input
-                                type="text"
-                                className="form-input"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Search by name, SKU, or size..."
-                                style={{ marginBottom: '1rem', padding: '0.65rem 0.9rem', fontSize: '0.85rem' }}
-                            />
+                            {/* Unified Search & Barcode Scan Input */}
+                            <form
+                                onSubmit={async (e) => {
+                                    e.preventDefault();
+                                    const trimmed = searchQuery.trim();
+                                    if (!trimmed) return;
+
+                                    // 1. Direct SKU or barcode match in local products
+                                    const directMatch = products.find(p =>
+                                        p.sku.toLowerCase() === trimmed.toLowerCase() ||
+                                        (p.barcode && p.barcode.toLowerCase() === trimmed.toLowerCase())
+                                    );
+                                    if (directMatch) {
+                                        addToCart(directMatch);
+                                        setSearchQuery('');
+                                        return;
+                                    }
+
+                                    // 2. Try backend barcode lookup
+                                    try {
+                                        await handleBarcodeLookup(trimmed);
+                                        setSearchQuery('');
+                                    } catch (err: any) {
+                                        if (searchedProducts.length === 1) {
+                                            addToCart(searchedProducts[0]);
+                                            setSearchQuery('');
+                                        } else {
+                                            alert(err.response?.data?.error || `Product not found for: ${trimmed}`);
+                                        }
+                                    }
+                                }}
+                                style={{ position: 'relative', marginBottom: '1rem' }}
+                            >
+                                <input
+                                    ref={scanInputRef}
+                                    type="text"
+                                    className="form-input"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder="Scan barcode / SKU or type product name & press Enter..."
+                                    style={{ paddingLeft: '2.5rem', paddingRight: searchQuery ? '2.5rem' : '1rem', fontSize: '0.9rem' }}
+                                    autoFocus
+                                />
+                                <Search size={16} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--pos-gold-primary)' }} />
+                                {searchQuery && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setSearchQuery('')}
+                                        style={{ position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: 'var(--pos-text-secondary)', cursor: 'pointer', fontSize: '1rem' }}
+                                    >
+                                        ✕
+                                    </button>
+                                )}
+                            </form>
 
                             <div className="product-grid">
                                 {searchedProducts.length > 0 ? (
@@ -615,7 +646,7 @@ export default function Billing({ onBack }: BillingProps) {
                             <ArrowLeft size={18} />
                         </button>
 
-                        <h2 style={{ fontSize: '1.25rem', fontFamily: 'Cinzel, serif', fontWeight: 700, margin: 0, color: 'var(--pos-gold-light)' }}>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: 'var(--pos-gold-light)' }}>
                             Checkout &amp; Payment
                         </h2>
                     </div>

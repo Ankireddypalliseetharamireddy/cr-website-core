@@ -417,7 +417,7 @@ export default function Auditing({ onBack }: AuditingProps) {
                             <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.15)', border: '2px solid var(--pos-accent-green)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem auto', color: 'var(--pos-accent-green)' }}>
                                 <CheckCircle size={32} />
                             </div>
-                            <h2 style={{ fontFamily: 'Cinzel, serif', fontSize: '1.45rem', margin: 0, color: 'var(--pos-gold-light)' }}>
+                            <h2 style={{ fontSize: '1.45rem', fontWeight: 'bold', margin: 0, color: 'var(--pos-gold-light)' }}>
                                 Audit Report Submitted
                             </h2>
                             <span style={{ fontSize: '0.8125rem', color: 'var(--pos-text-secondary)' }}>

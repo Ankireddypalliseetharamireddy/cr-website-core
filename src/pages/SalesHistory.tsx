@@ -443,7 +443,7 @@ export default function SalesHistory({ onBack }: SalesHistoryProps) {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', borderBottom: '1px solid var(--pos-border-subtle)', paddingBottom: '0.75rem' }}>
                             <div>
                                 <span className="badge badge-gold" style={{ marginBottom: '0.35rem' }}>{selectedOrder.invoice_number}</span>
-                                <h2 style={{ fontSize: '1.25rem', fontFamily: 'Cinzel, serif', margin: 0, color: 'var(--pos-gold-light)' }}>
+                                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', margin: 0, color: 'var(--pos-gold-light)' }}>
                                     Invoice Details
                                 </h2>
                                 <span style={{ fontSize: '0.78rem', color: 'var(--pos-text-secondary)' }}>
@@ -500,7 +500,7 @@ export default function SalesHistory({ onBack }: SalesHistoryProps) {
                         {/* Total Footer */}
                         <div style={{ borderTop: '1px solid var(--pos-border-subtle)', paddingTop: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                             <span style={{ fontSize: '1rem', fontWeight: 'bold' }}>Total Paid:</span>
-                            <span style={{ fontSize: '1.35rem', fontWeight: 'bold', color: 'var(--pos-gold-light)', fontFamily: 'Cinzel, serif' }}>
+                            <span style={{ fontSize: '1.35rem', fontWeight: 'bold', color: 'var(--pos-gold-light)' }}>
                                 ₹{parseFloat(selectedOrder.total_price).toFixed(2)}
                             </span>
                         </div>

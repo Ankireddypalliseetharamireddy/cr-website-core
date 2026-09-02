@@ -151,7 +151,7 @@ export default function EmployeeHome({ onNavigate, userRole }: EmployeeHomeProps
                             {formatRole(userRole)}
                         </span>
                     </div>
-                    <h1 style={{ fontSize: '1.75rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: '0.25rem 0', color: 'var(--pos-text-primary)' }}>
+                    <h1 style={{ fontSize: '1.75rem', fontWeight: 'bold', margin: '0.25rem 0', color: 'var(--pos-text-primary)' }}>
                         Welcome, <span style={{ background: 'var(--pos-gold-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{staffName}</span>
                     </h1>
                 </div>
@@ -183,7 +183,7 @@ export default function EmployeeHome({ onNavigate, userRole }: EmployeeHomeProps
                             <ShoppingCart size={22} />
                         </div>
                         <div>
-                            <h3 style={{ fontSize: '1.15rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: 0, color: 'var(--pos-gold-light)' }}>
+                            <h3 style={{ fontSize: '1.15rem', fontWeight: 'bold', margin: 0, color: 'var(--pos-gold-light)' }}>
                                 Counter Billing &amp; POS
                             </h3>
                             <span style={{ fontSize: '0.72rem', color: 'var(--pos-text-secondary)' }}>Laser Gun &bull; Camera QR &bull; mPOS</span>
@@ -209,7 +209,7 @@ export default function EmployeeHome({ onNavigate, userRole }: EmployeeHomeProps
                             <ClipboardCheck size={22} />
                         </div>
                         <div>
-                            <h3 style={{ fontSize: '1.15rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: 0, color: '#6ee7b7' }}>
+                            <h3 style={{ fontSize: '1.15rem', fontWeight: 'bold', margin: 0, color: '#6ee7b7' }}>
                                 Store Auditing
                             </h3>
                             <span style={{ fontSize: '0.72rem', color: 'var(--pos-text-secondary)' }}>Physical Count &bull; Discrepancy Log</span>
@@ -235,7 +235,7 @@ export default function EmployeeHome({ onNavigate, userRole }: EmployeeHomeProps
                             <Receipt size={22} />
                         </div>
                         <div>
-                            <h3 style={{ fontSize: '1.15rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: 0, color: 'var(--pos-gold-champagne)' }}>
+                            <h3 style={{ fontSize: '1.15rem', fontWeight: 'bold', margin: 0, color: 'var(--pos-gold-champagne)' }}>
                                 Sales &amp; Invoices
                             </h3>
                             <span style={{ fontSize: '0.72rem', color: 'var(--pos-text-secondary)' }}>Receipts &bull; WhatsApp Share</span>
@@ -256,7 +256,7 @@ export default function EmployeeHome({ onNavigate, userRole }: EmployeeHomeProps
             {/* ========================================== */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
-                    <h2 style={{ fontSize: '1.35rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--pos-gold-light)' }}>
+                    <h2 style={{ fontSize: '1.35rem', fontWeight: 'bold', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--pos-gold-light)' }}>
                         <TrendingUp size={20} style={{ color: 'var(--pos-gold-primary)' }} />
                         Store Sales Performance
                     </h2>

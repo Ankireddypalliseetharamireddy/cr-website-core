@@ -2,7 +2,7 @@
 /* CAVREE STORE STAFF POS & FRANCHISE PORTAL - LUXURY OBSIDIAN & GOLD SYSTEM */
 /* ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
 .store-portal-root {
     --pos-bg-primary: #07080B;
@@ -39,7 +39,7 @@
 
     background-color: var(--pos-bg-primary);
     color: var(--pos-text-primary);
-    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -80,10 +80,10 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    font-family: 'Cinzel', serif;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-weight: 700;
     font-size: 1.15rem;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.05em;
     color: var(--pos-gold-light);
     user-select: none;
 }
@@ -179,7 +179,7 @@
 .store-portal-root .kpi-card .kpi-val {
     font-size: 1.65rem;
     font-weight: bold;
-    font-family: 'Cinzel', serif;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     margin: 0.35rem 0;
 }
 
@@ -251,10 +251,10 @@
 }
 
 .store-portal-root .panel-title {
-    font-family: 'Cinzel', serif;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: 1.1rem;
     font-weight: 700;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.02em;
     margin-bottom: 1.25rem;
     color: var(--pos-gold-light);
     border-bottom: 1px solid var(--pos-border-gold);
@@ -444,9 +444,9 @@
     color: var(--pos-gold-champagne);
     text-transform: uppercase;
     font-size: 0.72rem;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.05em;
     background: rgba(0, 0, 0, 0.5);
-    font-family: 'Cinzel', serif;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .store-portal-root .glass-table tr:hover td {

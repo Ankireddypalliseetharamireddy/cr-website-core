@@ -257,7 +257,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                         </span>
                     </div>
 
-                    <h1 style={{ fontSize: '2rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: '0.25rem 0', color: 'var(--pos-text-primary)' }}>
+                    <h1 style={{ fontSize: '2rem', fontWeight: 'bold', margin: '0.25rem 0', color: 'var(--pos-text-primary)' }}>
                         Welcome, <span style={{ background: 'var(--pos-gold-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{adminName}</span>
                     </h1>
                     <p style={{ color: 'var(--pos-text-secondary)', fontSize: '0.875rem', margin: '0.35rem 0 0 0', maxWidth: '650px', lineHeight: '1.5' }}>
@@ -440,7 +440,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                     <ShoppingCart size={22} />
                                 </div>
                                 <div>
-                                    <h3 style={{ fontSize: '1.1rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: 0, color: 'var(--pos-gold-light)' }}>
+                                    <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: 0, color: 'var(--pos-gold-light)' }}>
                                         Counter POS Billing
                                     </h3>
                                     <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>QR Scanner &bull; Laser &bull; mPOS</span>
@@ -468,7 +468,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                     <Users size={22} />
                                 </div>
                                 <div>
-                                    <h3 style={{ fontSize: '1.1rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: 0, color: 'var(--pos-gold-champagne)' }}>
+                                    <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: 0, color: 'var(--pos-gold-champagne)' }}>
                                         Store Staff Directory
                                     </h3>
                                     <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>{employees.length} Staff Members</span>
@@ -496,7 +496,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                     <Package size={22} />
                                 </div>
                                 <div>
-                                    <h3 style={{ fontSize: '1.1rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: 0, color: '#6ee7b7' }}>
+                                    <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: 0, color: '#6ee7b7' }}>
                                         Shelf Inventory
                                     </h3>
                                     <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>{stats?.active_stock_count || 0} Units in Stock</span>
@@ -524,7 +524,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                     <Wallet size={22} />
                                 </div>
                                 <div>
-                                    <h3 style={{ fontSize: '1.1rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: 0, color: 'var(--pos-gold-light)' }}>
+                                    <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: 0, color: 'var(--pos-gold-light)' }}>
                                         Commission Ledger
                                     </h3>
                                     <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>{commissionPercent}% Net Share</span>
@@ -685,7 +685,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                 <div className="glass-panel">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                         <div>
-                            <h2 style={{ fontSize: '1.35rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: 0, color: 'var(--pos-gold-light)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <h2 style={{ fontSize: '1.35rem', fontWeight: 'bold', margin: 0, color: 'var(--pos-gold-light)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <Users size={20} style={{ color: 'var(--pos-gold-primary)' }} />
                                 Store Employees Directory ({filteredEmployees.length})
                             </h2>
@@ -850,7 +850,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                 <div className="glass-panel">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                         <div>
-                            <h2 style={{ fontSize: '1.35rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: 0, color: 'var(--pos-gold-light)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <h2 style={{ fontSize: '1.35rem', fontWeight: 'bold', margin: 0, color: 'var(--pos-gold-light)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <Package size={20} style={{ color: 'var(--pos-gold-primary)' }} />
                                 Store Products &amp; Shelf Inventory ({filteredProducts.length})
                             </h2>
@@ -986,7 +986,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                     <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--pos-text-secondary)', fontWeight: 700 }}>
                                         Current Wallet Balance
                                     </span>
-                                    <h2 style={{ fontSize: '2rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: '0.35rem 0 0 0', color: 'var(--pos-gold-light)' }}>
+                                    <h2 style={{ fontSize: '2rem', fontWeight: 'bold', margin: '0.35rem 0 0 0', color: 'var(--pos-gold-light)' }}>
                                         ₹{parseFloat(stats?.wallet_balance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                     </h2>
                                 </div>
@@ -1006,7 +1006,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                     <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--pos-text-secondary)', fontWeight: 700 }}>
                                         Franchise Commission Rate
                                     </span>
-                                    <h2 style={{ fontSize: '2rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: '0.35rem 0 0 0', color: '#6ee7b7' }}>
+                                    <h2 style={{ fontSize: '2rem', fontWeight: 'bold', margin: '0.35rem 0 0 0', color: '#6ee7b7' }}>
                                         {commissionPercent}%
                                     </h2>
                                 </div>
@@ -1023,7 +1023,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                     <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--pos-text-secondary)', fontWeight: 700 }}>
                                         Registered Capital Structure
                                     </span>
-                                    <h2 style={{ fontSize: '2rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: '0.35rem 0 0 0', color: 'var(--pos-gold-champagne)' }}>
+                                    <h2 style={{ fontSize: '2rem', fontWeight: 'bold', margin: '0.35rem 0 0 0', color: 'var(--pos-gold-champagne)' }}>
                                         ₹{parseFloat(stats?.investment_amount || 0).toLocaleString('en-IN')}
                                     </h2>
                                 </div>
@@ -1212,7 +1212,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                             <form onSubmit={handlePayoutSubmit}>
                                 <div className="form-group">
                                     <label className="form-label">Available Wallet Balance</label>
-                                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--pos-gold-light)', fontFamily: 'Cinzel, serif', padding: '0.5rem 0' }}>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--pos-gold-light)', padding: '0.5rem 0' }}>
                                         ₹{parseFloat(stats?.wallet_balance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                     </div>
                                 </div>

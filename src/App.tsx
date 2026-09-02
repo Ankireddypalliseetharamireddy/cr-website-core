@@ -24,17 +24,20 @@ export function App() {
       window.scrollTo(0, 0);
     }
 
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    const isReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
 
+    // Refined premium luxury Lenis smooth-scroll configuration
     const lenis = new Lenis({
-      duration: isMobile ? 1.0 : 1.35,
+      duration: isReducedMotion ? 0 : (isMobile ? 0.95 : 1.15),
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: 'vertical',
       gestureOrientation: 'vertical',
-      smoothWheel: true,
-      wheelMultiplier: 0.95,
-      touchMultiplier: 1.2,
+      smoothWheel: !isReducedMotion,
+      wheelMultiplier: 1.0,
+      touchMultiplier: 1.0,
       infinite: false,
+      autoRaf: false,
     });
 
     (window as any).__lenis = lenis;

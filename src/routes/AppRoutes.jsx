@@ -18,13 +18,13 @@ const ScrollToTop = () => {
         const element = document.getElementById(targetId);
         if (element) {
           if (window.__lenis) {
-            window.__lenis.scrollTo(element, { offset: -70, duration: 3.2 });
+            window.__lenis.scrollTo(element, { offset: -70, duration: 1.1 });
           } else {
             const topOffset = element.getBoundingClientRect().top + window.pageYOffset - 70;
             window.scrollTo({ top: topOffset, behavior: 'smooth' });
           }
         }
-      }, 120);
+      }, 80);
 
       return () => clearTimeout(timer);
     } else {

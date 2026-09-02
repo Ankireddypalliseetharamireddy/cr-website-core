@@ -75,7 +75,7 @@ export const HowItWorksSection = () => {
     >
       <div className="container max-w-[1534px] w-full mx-auto px-[clamp(1rem,1.8vw,1.75rem)]">
 
-        <ScrollReveal variant="fade-up" delay={50} duration={1000} className="flex items-center justify-center gap-5 mb-6">
+        <ScrollReveal variant="fade-up" delay={40} duration={850} className="flex items-center justify-center gap-5 mb-6">
           <div className="flex-1 h-[1.5px] bg-gradient-to-r from-transparent to-[#b8860b]/50 max-w-[280px]" />
           <h2 className="font-serif text-[clamp(1.15rem,1.8vw,1.6rem)] font-bold tracking-[0.08em] uppercase text-center m-0 text-[#1A1D20]">
             How It Works
@@ -83,7 +83,7 @@ export const HowItWorksSection = () => {
           <div className="flex-1 h-[1.5px] bg-gradient-to-l from-transparent to-[#b8860b]/50 max-w-[280px]" />
         </ScrollReveal>
 
-        <ScrollReveal variant="fade-up" delay={150} duration={1150} className="how-it-works-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-[1.5px] border-[#b8860b]/45 rounded-[10px] bg-[#FDFBF7] shadow-[0_4px_20px_rgba(0,0,0,0.03)] overflow-hidden">
+        <ScrollReveal variant="fade-up" delay={120} duration={950} className="how-it-works-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-[1.5px] border-[#b8860b]/45 rounded-[10px] bg-[#FDFBF7] shadow-[0_4px_20px_rgba(0,0,0,0.03)] overflow-hidden">
           {steps.map((step, idx) => (
             <div
               key={idx}

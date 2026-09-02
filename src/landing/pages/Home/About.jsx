@@ -176,13 +176,17 @@ export default function AboutUs() {
     if (e) e.preventDefault();
     const el = document.getElementById('our-story');
     if (el) {
-      const navOffset = 64;
-      const elementPosition = el.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - navOffset;
-      window.scrollTo({
-        top: Math.max(0, offsetPosition),
-        behavior: 'smooth'
-      });
+      if (window.__lenis) {
+        window.__lenis.scrollTo(el, { offset: -64, duration: 1.1 });
+      } else {
+        const navOffset = 64;
+        const elementPosition = el.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - navOffset;
+        window.scrollTo({
+          top: Math.max(0, offsetPosition),
+          behavior: 'smooth'
+        });
+      }
     }
   };
 

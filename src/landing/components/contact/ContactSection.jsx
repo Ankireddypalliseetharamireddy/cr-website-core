@@ -198,7 +198,7 @@ export const ContactSection = () => {
     >
       <div className="max-w-[1360px] mx-auto w-full relative z-10">
 
-        <ScrollReveal variant="fade-up" delay={50} duration={1000} className="mb-8 sm:mb-10 lg:mb-12">
+        <ScrollReveal variant="fade-up" delay={40} duration={850} className="mb-8 sm:mb-10 lg:mb-12">
 
           <h2 className="font-serif text-[clamp(1.65rem,3.2vw,3.2rem)] font-extrabold text-[#1C1D21] tracking-tight uppercase leading-tight m-0 mb-3">
             CONTACT & INVESTOR ENQUIRY
@@ -213,7 +213,7 @@ export const ContactSection = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-[1.38fr_0.82fr] gap-8 lg:gap-12 items-start">
 
-          <ScrollReveal variant="fade-right" delay={150} duration={1100} className="bg-white rounded-md p-[clamp(1.15rem,2.8vw,2.5rem)] border border-[#DEC29D]/45 shadow-none relative">
+          <ScrollReveal variant="fade-right" delay={100} duration={950} className="bg-white rounded-md p-[clamp(1.15rem,2.8vw,2.5rem)] border border-[#DEC29D]/45 shadow-none relative">
             {!submitted ? (
               <form onSubmit={handleSubmit} className="flex flex-col gap-4.5">
 
@@ -566,7 +566,7 @@ export const ContactSection = () => {
             )}
           </ScrollReveal>
 
-          <ScrollReveal variant="fade-left" delay={250} duration={1150} className="flex flex-col justify-between h-full space-y-6">
+          <ScrollReveal variant="fade-left" delay={180} duration={950} className="flex flex-col justify-between h-full space-y-6">
 
             <div className="bg-white rounded-md p-[clamp(1.5rem,2.8vw,2.5rem)] border border-[#DEC29D]/45 shadow-none">
               <h3 className="font-serif text-[1.45rem] font-bold text-[#1C1D21] m-0 mb-6 tracking-tight text-center lg:text-left">

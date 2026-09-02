@@ -232,7 +232,7 @@ export const CavreeCollections = () => {
     const filterBarEl = document.querySelector('.collections-filter-bar') || document.querySelector('.cavree-collections-section');
     if (filterBarEl) {
       if (window.__lenis) {
-        window.__lenis.scrollTo(filterBarEl, { offset: -85, duration: 2.8 });
+        window.__lenis.scrollTo(filterBarEl, { offset: -85, duration: 0.9 });
       } else {
         const topOffset = filterBarEl.getBoundingClientRect().top + window.pageYOffset - 85;
         window.scrollTo({ top: topOffset, behavior: 'smooth' });
@@ -310,26 +310,26 @@ export const CavreeCollections = () => {
 
         <div className="flex flex-col items-center text-center mb-8 sm:mb-10">
 
-          <ScrollReveal variant="fade-down" delay={50} duration={1000} className="inline-flex items-center gap-2 bg-[#B58C36]/10 border border-[#B58C36]/25 py-1.5 px-4 rounded-full mb-3">
+          <ScrollReveal variant="fade-down" delay={40} duration={850} className="inline-flex items-center gap-2 bg-[#B58C36]/10 border border-[#B58C36]/25 py-1.5 px-4 rounded-full mb-3">
             <Sparkles size={13} color="#9E7E38" />
             <span className="font-sans text-[0.72rem] font-bold tracking-[0.14em] uppercase text-[#9E7E38]">
               Curated Haute Couture Lookbook
             </span>
           </ScrollReveal>
 
-          <ScrollReveal variant="fade-up" delay={120} duration={1050}>
+          <ScrollReveal variant="fade-up" delay={90} duration={900}>
             <h2 className="font-serif text-[clamp(1.8rem,3.8vw,3.8rem)] font-extrabold tracking-[0.01em] uppercase text-[#1C1D21] leading-[1.08] m-0 mb-2.5">
               Fashion That <span className="text-[#B58C36] italic">Defines</span> You
             </h2>
           </ScrollReveal>
 
-          <ScrollReveal variant="fade-up" delay={200} duration={1100}>
+          <ScrollReveal variant="fade-up" delay={150} duration={950}>
             <p className="font-sans text-[clamp(0.88rem,1vw,1.05rem)] text-[#65676E] max-w-[620px] leading-[1.6] m-0 mb-7 font-normal">
               Handcrafted silhouettes weaving classical Indian textiles, intricate embroidery, and modern tailored luxury.
             </p>
           </ScrollReveal>
 
-          <ScrollReveal variant="fade-up" delay={280} duration={1150} className="collections-filter-bar flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-3.5 mb-1">
+          <ScrollReveal variant="fade-up" delay={210} duration={950} className="collections-filter-bar flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-3.5 mb-1">
 
             <div className="w-full sm:w-auto overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden py-0.5 shrink min-w-0">
               <div className="inline-flex items-center gap-1 p-1 bg-white/90 border border-[#1C1D21]/15 rounded-full shadow-[0_2px_12px_rgba(0,0,0,0.03)] backdrop-blur-sm">

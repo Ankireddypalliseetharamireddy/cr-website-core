@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import CavreeLogo from '../../components/brand/CavreeLogo';
 import modelImg from '../../assets/images/img-7.jpeg';
 import ScrollReveal from '../../components/common/ScrollReveal';
+import useScrollParallax from '../../hooks/useScrollParallax';
 
 export const GrowthExpansion = () => {
   const navigate = useNavigate();
+  const parallaxRef = useScrollParallax({ speed: 0.05, maxOffset: 24, direction: 'up' });
 
   const stats = [
     { value: '2027', label: 'ONLINE BUSINESS' },
@@ -33,14 +35,14 @@ export const GrowthExpansion = () => {
 
         <div className="growth-content-col flex flex-col justify-center max-lg:pt-[clamp(10.5rem,32vh,18rem)] max-lg:pb-12 z-[2]">
 
-          <ScrollReveal variant="fade-down" delay={50} duration={1000} className="mb-5 mt-0 w-full flex items-center justify-center lg:justify-start lg:ml-[clamp(1.5rem,3vw,3.8rem)]">
+          <ScrollReveal variant="fade-down" delay={40} duration={850} className="mb-5 mt-0 w-full flex items-center justify-center lg:justify-start lg:ml-[clamp(1.5rem,3vw,3.8rem)]">
             <a
               href="#top"
               onClick={(e) => {
                 e.preventDefault();
                 window.history.pushState(null, '', '/');
                 if (window.__lenis) {
-                  window.__lenis.scrollTo(0, { duration: 2.5 });
+                  window.__lenis.scrollTo(0, { duration: 1.1 });
                 } else {
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
@@ -52,13 +54,13 @@ export const GrowthExpansion = () => {
             </a>
           </ScrollReveal>
 
-          <ScrollReveal variant="fade-up" delay={120} duration={1050} className="w-full flex items-center justify-center lg:justify-start mb-3">
+          <ScrollReveal variant="fade-up" delay={100} duration={900} className="w-full flex items-center justify-center lg:justify-start mb-3">
             <span className="font-sans text-[clamp(0.74rem,0.85vw,0.88rem)] font-semibold tracking-[0.14em] uppercase text-[#D4AF37] text-center lg:text-left">
               Cavree Growth & Expansion
             </span>
           </ScrollReveal>
 
-          <ScrollReveal variant="fade-up" delay={200} duration={1100} className="mb-4 text-center lg:text-left w-full">
+          <ScrollReveal variant="fade-up" delay={160} duration={950} className="mb-4 text-center lg:text-left w-full">
             <p className="font-sans text-[clamp(0.85rem,1vw,1.1rem)] font-semibold tracking-[0.12em] uppercase text-white/85 m-0 mb-1.5">
               Building a
             </p>
@@ -70,13 +72,13 @@ export const GrowthExpansion = () => {
             </h1>
           </ScrollReveal>
 
-          <ScrollReveal variant="fade-up" delay={280} duration={1150}>
+          <ScrollReveal variant="fade-up" delay={230} duration={1000}>
             <p className="font-sans text-[clamp(0.85rem,0.95vw,1rem)] leading-[1.72] text-white/75 max-w-[540px] mb-6 font-normal text-justify [text-justify:inter-word] [hyphens:auto]">
               From expanding our retail presence across India to entering international markets, Cavree is building a strong fashion ecosystem with an ambitious vision for 2027 and beyond.
             </p>
           </ScrollReveal>
 
-          <ScrollReveal variant="fade-up" delay={360} duration={1150} className="grid grid-cols-2 sm:flex sm:items-center gap-2.5 sm:gap-3.5 mb-6 max-w-[560px] w-full">
+          <ScrollReveal variant="fade-up" delay={300} duration={1000} className="grid grid-cols-2 sm:flex sm:items-center gap-2.5 sm:gap-3.5 mb-6 max-w-[560px] w-full">
             <button
               type="button"
               onClick={() => navigate('/investment-model')}
@@ -91,7 +93,7 @@ export const GrowthExpansion = () => {
                 const el = document.getElementById('nationwide');
                 if (el) {
                   if (window.__lenis) {
-                    window.__lenis.scrollTo(el, { offset: -70, duration: 3.2 });
+                    window.__lenis.scrollTo(el, { offset: -70, duration: 1.1 });
                   } else {
                     const topOffset = el.getBoundingClientRect().top + window.pageYOffset - 70;
                     window.scrollTo({ top: topOffset, behavior: 'smooth' });
@@ -109,8 +111,8 @@ export const GrowthExpansion = () => {
               <ScrollReveal
                 key={idx}
                 variant="scale-up"
-                delay={420 + idx * 90}
-                duration={1050}
+                delay={350 + idx * 70}
+                duration={900}
                 className="bg-[#121318]/90 backdrop-blur-sm border border-[#D4AF37]/25 rounded-[6px] px-2 py-[0.9rem] text-center transition-all duration-300 hover:border-[#D4AF37]/60"
               >
                 <h3 className="font-sans text-[clamp(1.4rem,1.9vw,2.1rem)] font-bold text-[#dec29d] mb-[0.35rem] leading-none tracking-[0.02em]">
@@ -125,8 +127,11 @@ export const GrowthExpansion = () => {
         </div>
 
         <div className="growth-image-col hidden lg:flex items-center justify-center w-full">
-          <ScrollReveal variant="fade-left" delay={250} duration={1300} className="w-full max-w-[560px]">
-            <div className="w-full h-[clamp(480px,78vh,720px)] rounded-[16px] overflow-hidden relative bg-[#15161C] shadow-[0_20px_60px_rgba(0,0,0,0.7),0_0_40px_rgba(212,175,55,0.08)] border border-white/5">
+          <ScrollReveal variant="fade-left" delay={200} duration={1100} className="w-full max-w-[560px]">
+            <div
+              ref={parallaxRef}
+              className="w-full h-[clamp(480px,78vh,720px)] rounded-[16px] overflow-hidden relative bg-[#15161C] shadow-[0_20px_60px_rgba(0,0,0,0.7),0_0_40px_rgba(212,175,55,0.08)] border border-white/5 will-change-transform"
+            >
               <img
                 src={modelImg}
                 alt="Cavree Luxury Haute Couture Model"

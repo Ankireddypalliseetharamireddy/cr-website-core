@@ -22,97 +22,80 @@ export function useScrollReveal(options: UseScrollRevealOptions = {}) {
     threshold,
     rootMargin,
     triggerOnce = true,
-    delay = 0,
   } = options;
 
   const ref = useRef<HTMLDivElement | null>(null);
   const [isRevealed, setIsRevealed] = useState(false);
 
   useEffect(() => {
-    const target = ref.current;
-    if (!target) return;
-
-    // Accessibility: instantly reveal without motion if reduced-motion requested
-    const prefersReducedMotion =
-      typeof window !== 'undefined' &&
-      window.matchMedia &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    if (!('IntersectionObserver' in window) || prefersReducedMotion) {
+    // Accessibility check: prefers-reduced-motion
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setIsRevealed(true);
       return;
     }
 
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-    const isTablet = typeof window !== 'undefined' && window.innerWidth >= 768 && window.innerWidth < 1024;
+    const target = ref.current;
+    if (!target) return;
 
-    // Adaptive viewport intersection triggers based on screen dimensions
-    const computedThreshold =
-      threshold !== undefined
-        ? threshold
-        : isMobile
-        ? 0.04
-        : isTablet
-        ? 0.08
-        : 0.12;
+    if (!('IntersectionObserver' in window)) {
+      setIsRevealed(true);
+      return;
+    }
 
-    const computedRootMargin =
-      rootMargin !== undefined
-        ? rootMargin
-        : isMobile
-        ? '0px 0px -3% 0px'
-        : isTablet
-        ? '0px 0px -6% 0px'
-        : '0px 0px -10% 0px';
+    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+    // Responsive root margin and threshold defaults:
+    // Desktop: begins 15%-25% before reaching center of viewport
+    // Mobile: begins slightly earlier (10%-20% before main viewing area)
+    const effectiveThreshold = threshold !== undefined 
+      ? threshold 
+      : (isMobile ? 0.04 : 0.08);
 
-    // Compress delays on mobile so users never wait for stacked items
-    const effectiveDelay = isMobile ? Math.round(delay * 0.5) : delay;
+    const effectiveRootMargin = rootMargin !== undefined 
+      ? rootMargin 
+      : (isMobile ? '0px 0px -5% 0px' : '0px 0px -10% 0px');
 
-    let timer: ReturnType<typeof setTimeout> | null = null;
+    // Quick initial check if element is already in viewport
+    const rect = target.getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom > 0) {
+      // Element is in the viewport on mount
+      setIsRevealed(true);
+      if (triggerOnce) return;
+    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          if (effectiveDelay > 0) {
-            timer = setTimeout(() => {
-              setIsRevealed(true);
-            }, effectiveDelay);
-          } else {
-            setIsRevealed(true);
-          }
-
+          setIsRevealed(true);
           if (triggerOnce) {
             observer.unobserve(target);
           }
         } else if (!triggerOnce) {
-          if (timer) clearTimeout(timer);
           setIsRevealed(false);
         }
       },
       {
-        threshold: computedThreshold,
-        rootMargin: computedRootMargin,
+        threshold: effectiveThreshold,
+        rootMargin: effectiveRootMargin,
       }
     );
 
     observer.observe(target);
 
     return () => {
-      if (timer) clearTimeout(timer);
       observer.disconnect();
     };
-  }, [threshold, rootMargin, triggerOnce, delay]);
+  }, [threshold, rootMargin, triggerOnce]);
 
   return { ref, isRevealed };
 }
 
-export function useStaggerChildren(count: number, baseDelay = 80) {
+export function useStaggerChildren(baseDelay = 60) {
   const getDelayStyle = useCallback(
     (index: number) => {
-      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-      const delay = isMobile ? Math.round(baseDelay * 0.5) : baseDelay;
+      const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+      const actualDelay = isMobile ? Math.round(baseDelay * 0.6) : baseDelay;
       return {
-        transitionDelay: `${index * delay}ms`,
+        transitionDelay: `${index * actualDelay}ms`,
       };
     },
     [baseDelay]

@@ -14,14 +14,14 @@ export const Footer = ({ onOpenBrochure, onOpenConsultation, onOpenLocation }) =
       navigate('/');
       setTimeout(() => {
         if (window.__lenis) {
-          window.__lenis.scrollTo(0, { duration: 3.2 });
+          window.__lenis.scrollTo(0, { duration: 1.1 });
         } else {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-      }, 100);
+      }, 60);
     } else {
       if (window.__lenis) {
-        window.__lenis.scrollTo(0, { duration: 3.2 });
+        window.__lenis.scrollTo(0, { duration: 1.1 });
       } else {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
@@ -37,7 +37,7 @@ export const Footer = ({ onOpenBrochure, onOpenConsultation, onOpenLocation }) =
       const el = document.getElementById('contact');
       if (el) {
         if (window.__lenis) {
-          window.__lenis.scrollTo(el, { offset: -70, duration: 3.2 });
+          window.__lenis.scrollTo(el, { offset: -70, duration: 1.1 });
         } else {
           const topOffset = el.getBoundingClientRect().top + window.pageYOffset - 70;
           window.scrollTo({ top: topOffset, behavior: 'smooth' });

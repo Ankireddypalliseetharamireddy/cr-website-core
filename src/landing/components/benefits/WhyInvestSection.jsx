@@ -128,7 +128,7 @@ export const WhyInvestSection = () => {
     >
       <div className="container max-w-[1534px] w-full mx-auto px-[clamp(1rem,1.8vw,1.75rem)]">
 
-        <ScrollReveal variant="fade-up" delay={50} duration={1000} className="flex items-center justify-center gap-5 mb-[1.4rem]">
+        <ScrollReveal variant="fade-up" delay={40} duration={850} className="flex items-center justify-center gap-5 mb-[1.4rem]">
           <div className="flex-1 h-[1.5px] bg-gradient-to-r from-transparent to-[#b8860b]/50 max-w-[280px]" />
           <h2 className="font-serif text-[clamp(1.15rem,1.8vw,1.6rem)] font-bold tracking-[0.08em] uppercase text-center m-0 text-[#1A1D20]">
             Why Invest in Cavree / Key Benefits
@@ -141,8 +141,8 @@ export const WhyInvestSection = () => {
             <ScrollReveal
               key={idx}
               variant="scale-up"
-              delay={120 + idx * 70}
-              duration={950}
+              delay={80 + idx * 50}
+              duration={850}
               className={`why-invest-strip-item flex flex-col items-center text-center px-[clamp(0.4rem,0.8vw,0.85rem)] py-[0.35rem] max-lg:border-b-[1.5px] max-lg:border-dashed max-lg:border-[#b8860b]/45 ${
                 idx !== topHighlights.length - 1 ? 'lg:border-r-[1.5px] lg:border-dashed lg:border-[#b8860b]/45' : ''
               } ${
@@ -161,7 +161,7 @@ export const WhyInvestSection = () => {
           ))}
         </div>
 
-        <ScrollReveal variant="fade-up" delay={320} duration={1150} className="why-invest-main-grid grid grid-cols-1 lg:grid-cols-[58%_42%] border-[1.5px] border-[#b8860b]/45 rounded-md bg-[#FDFBF7] shadow-[0_4px_24px_rgba(0,0,0,0.03)] overflow-hidden">
+        <ScrollReveal variant="fade-up" delay={220} duration={950} className="why-invest-main-grid grid grid-cols-1 lg:grid-cols-[58%_42%] border-[1.5px] border-[#b8860b]/45 rounded-md bg-[#FDFBF7] shadow-[0_4px_24px_rgba(0,0,0,0.03)] overflow-hidden">
 
           <div className="why-invest-left-subgrid grid grid-cols-1 sm:grid-cols-2 max-lg:border-b-[1.5px] max-lg:border-[#b8860b]/45 lg:border-r-[1.5px] lg:border-[#b8860b]/45">
 

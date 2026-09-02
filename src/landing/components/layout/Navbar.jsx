@@ -133,7 +133,7 @@ export const Navbar = ({ onOpenBrochure, onOpenConsultation, onOpenCctv, onOpenL
       navigate('/');
       setTimeout(() => {
         if (window.__lenis) {
-          window.__lenis.scrollTo(0, { duration: 2.5 });
+          window.__lenis.scrollTo(0, { duration: 1.1 });
         } else {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -141,7 +141,7 @@ export const Navbar = ({ onOpenBrochure, onOpenConsultation, onOpenCctv, onOpenL
     } else {
       window.history.pushState(null, '', '/');
       if (window.__lenis) {
-        window.__lenis.scrollTo(0, { duration: 2.5 });
+        window.__lenis.scrollTo(0, { duration: 1.1 });
       } else {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
@@ -163,7 +163,7 @@ export const Navbar = ({ onOpenBrochure, onOpenConsultation, onOpenCctv, onOpenL
       } else {
         window.history.pushState(null, '', '/about');
         if (window.__lenis) {
-          window.__lenis.scrollTo(0, { duration: 2.5 });
+          window.__lenis.scrollTo(0, { duration: 1.1 });
         } else {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -179,7 +179,7 @@ export const Navbar = ({ onOpenBrochure, onOpenConsultation, onOpenCctv, onOpenL
       } else {
         window.history.pushState(null, '', '/investment-model');
         if (window.__lenis) {
-          window.__lenis.scrollTo(0, { duration: 3.2 });
+          window.__lenis.scrollTo(0, { duration: 1.1 });
         } else {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -199,7 +199,7 @@ export const Navbar = ({ onOpenBrochure, onOpenConsultation, onOpenCctv, onOpenL
           if (window.__lenis) {
             window.__lenis.scrollTo(element, {
               offset: -70,
-              duration: 3.2,
+              duration: 1.1,
             });
           } else {
             const topOffset = element.getBoundingClientRect().top + window.pageYOffset - 70;
@@ -225,7 +225,7 @@ export const Navbar = ({ onOpenBrochure, onOpenConsultation, onOpenCctv, onOpenL
           if (window.__lenis) {
             window.__lenis.scrollTo(element, {
               offset: -70,
-              duration: 3.2,
+              duration: 1.1,
             });
           } else {
             const topOffset = element.getBoundingClientRect().top + window.pageYOffset - 70;

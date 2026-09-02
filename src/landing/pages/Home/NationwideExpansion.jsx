@@ -3,8 +3,12 @@ import leftImg from '../../assets/images/img-6.jpeg';
 import rightImg from '../../assets/images/img-12.jpeg';
 import { ArrowRight } from 'lucide-react';
 import ScrollReveal from '../../components/common/ScrollReveal';
+import useScrollParallax from '../../hooks/useScrollParallax';
 
 export const NationwideExpansion = () => {
+  const leftParallaxRef = useScrollParallax({ speed: 0.04, maxOffset: 20, direction: 'up' });
+  const rightParallaxRef = useScrollParallax({ speed: 0.04, maxOffset: 20, direction: 'up' });
+
   return (
     <section id="nationwide" className="nationwide-expansion-section w-full min-h-screen bg-[#0d0d0d] text-white relative grid grid-cols-1 lg:grid-cols-[27%_46%_27%] items-stretch box-border overflow-hidden">
 
@@ -18,12 +22,14 @@ export const NationwideExpansion = () => {
       </div>
 
       <div className="nationwide-left-image hidden lg:block relative w-full h-full lg:min-h-screen overflow-hidden">
-        <ScrollReveal variant="fade-right" duration={1250} className="w-full h-full">
-          <img
-            src={leftImg}
-            alt="Cavree Olive Green Model - Nationwide Expansion"
-            className="w-full h-full object-cover object-[center_top] block transform hover:scale-[1.03] transition-transform duration-700 ease-out"
-          />
+        <ScrollReveal variant="fade-right" duration={1050} className="w-full h-full">
+          <div ref={leftParallaxRef} className="w-full h-full will-change-transform">
+            <img
+              src={leftImg}
+              alt="Cavree Olive Green Model - Nationwide Expansion"
+              className="w-full h-full object-cover object-[center_top] block transform hover:scale-[1.03] transition-transform duration-700 ease-out"
+            />
+          </div>
         </ScrollReveal>
 
         <div className="absolute top-0 bottom-0 right-0 w-[8%] bg-gradient-to-r from-transparent to-[#0d0d0d]/70 pointer-events-none" />
@@ -31,13 +37,13 @@ export const NationwideExpansion = () => {
 
       <div className="nationwide-content-col flex flex-col justify-center max-lg:pt-[clamp(10.5rem,32vh,18rem)] max-lg:pb-12 p-[clamp(2rem,3.5vw,4.5rem)_clamp(1rem,2.5vw,3.5rem)] box-border relative z-10 max-w-[640px] mx-auto lg:max-w-none">
 
-        <ScrollReveal variant="fade-up" delay={80} duration={1050} className="mb-3">
+        <ScrollReveal variant="fade-up" delay={50} duration={850} className="mb-3">
           <span className="font-sans text-[clamp(0.74rem,0.85vw,0.88rem)] font-bold tracking-[0.14em] uppercase text-[#D4AF37]">
             Nationwide Vision
           </span>
         </ScrollReveal>
 
-        <ScrollReveal variant="fade-up" delay={160} duration={1100} className="mb-4">
+        <ScrollReveal variant="fade-up" delay={110} duration={900} className="mb-4">
           <h1 className="font-sans text-[clamp(1.65rem,3.2vw,3.2rem)] font-black tracking-[0.015em] uppercase text-white leading-[1.08] m-0">
             600 Stores by 2027
           </h1>
@@ -46,13 +52,13 @@ export const NationwideExpansion = () => {
           </h1>
         </ScrollReveal>
 
-        <ScrollReveal variant="fade-up" delay={240} duration={1150}>
+        <ScrollReveal variant="fade-up" delay={170} duration={950}>
           <p className="font-sans text-[clamp(0.85rem,0.95vw,0.98rem)] leading-[1.7] text-white/75 mb-7 text-justify [text-justify:inter-word] [hyphens:auto] font-normal">
             By December 2027, Cavree aims to complete 600 stores. The long-term target is to reach approximately 2,000 stores across India by 2029.
           </p>
         </ScrollReveal>
 
-        <ScrollReveal variant="scale-up" delay={320} duration={1100} className="mb-7 relative w-full">
+        <ScrollReveal variant="scale-up" delay={230} duration={900} className="mb-7 relative w-full">
 
           <div className="flex justify-between mb-2">
             <span className="font-sans text-[clamp(0.7rem,0.78vw,0.78rem)] font-bold tracking-[0.08em] uppercase text-white/85">
@@ -89,7 +95,7 @@ export const NationwideExpansion = () => {
           </div>
         </ScrollReveal>
 
-        <ScrollReveal variant="fade-up" delay={420} duration={1150} className="bg-[#121318]/90 backdrop-blur-sm border border-[#dec29d]/28 rounded-[12px] p-[1.15rem_clamp(0.95rem,2vw,1.6rem)] hover:border-[#D4AF37]/50 transition-colors duration-300">
+        <ScrollReveal variant="fade-up" delay={310} duration={950} className="bg-[#121318]/90 backdrop-blur-sm border border-[#dec29d]/28 rounded-[12px] p-[1.15rem_clamp(0.95rem,2vw,1.6rem)] hover:border-[#D4AF37]/50 transition-colors duration-300">
           <div className="mb-2.5">
             <span className="font-sans text-[0.72rem] font-bold tracking-[0.12em] uppercase text-[#D4AF37]">
               International Expansion
@@ -124,12 +130,14 @@ export const NationwideExpansion = () => {
       </div>
 
       <div className="nationwide-right-image hidden lg:block relative w-full h-full lg:min-h-screen overflow-hidden">
-        <ScrollReveal variant="fade-left" duration={1250} className="w-full h-full">
-          <img
-            src={rightImg}
-            alt="Cavree Mustard Model - International Expansion"
-            className="w-full h-full object-cover object-[center_top] block transform hover:scale-[1.03] transition-transform duration-700 ease-out"
-          />
+        <ScrollReveal variant="fade-left" duration={1050} className="w-full h-full">
+          <div ref={rightParallaxRef} className="w-full h-full will-change-transform">
+            <img
+              src={rightImg}
+              alt="Cavree Mustard Model - International Expansion"
+              className="w-full h-full object-cover object-[center_top] block transform hover:scale-[1.03] transition-transform duration-700 ease-out"
+            />
+          </div>
         </ScrollReveal>
 
         <div className="absolute top-0 bottom-0 left-0 w-[8%] bg-gradient-to-l from-transparent to-[#0d0d0d]/70 pointer-events-none" />

@@ -91,7 +91,7 @@ export const InvestmentRecoverySection = () => {
     >
       <div className="container max-w-[1534px] w-full mx-auto px-[clamp(1rem,1.8vw,1.75rem)]">
 
-        <ScrollReveal variant="fade-up" duration={1150} className="investment-recovery-grid grid grid-cols-1 md:grid-cols-3 xl:grid-cols-[45%_18.33%_18.33%_18.33%] border-[1.5px] border-[#b8860b]/45 rounded-[12px] bg-[#FDFBF7] shadow-[0_4px_24px_rgba(0,0,0,0.03)] overflow-hidden items-stretch">
+        <ScrollReveal variant="fade-up" duration={950} className="investment-recovery-grid grid grid-cols-1 md:grid-cols-3 xl:grid-cols-[45%_18.33%_18.33%_18.33%] border-[1.5px] border-[#b8860b]/45 rounded-[12px] bg-[#FDFBF7] shadow-[0_4px_24px_rgba(0,0,0,0.03)] overflow-hidden items-stretch">
 
           <div className="md:col-span-3 xl:col-span-1 p-[clamp(1.25rem,1.8vw,2rem)] border-b xl:border-b-0 xl:border-r border-[#b8860b]/35 flex flex-col justify-between">
 

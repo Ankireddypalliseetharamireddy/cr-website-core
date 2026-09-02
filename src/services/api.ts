@@ -1,81 +1,15 @@
-import axios from 'axios';
+// Re-export all modular services for seamless backward compatibility
+import apiClient from './apiClient';
 
-const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://127.0.0.1:8000/api'
-    : 'https://cavree.com/api';
-
-const apiClient = axios.create({
-    baseURL: API_BASE_URL,
-    headers: {
-        'Content-Type': 'application/json',
-    }
-});
-
-// Auto-inject token
-apiClient.interceptors.request.use(
-    (config) => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-    },
-    (error) => Promise.reject(error)
-);
-
+export { apiClient };
 export default apiClient;
 
-export const authService = {
-    login: (credentials: any) => apiClient.post('/auth/login', credentials),
-    register: (data: any) => apiClient.post('/auth/register', data),
-    getProfile: () => apiClient.get('/auth/profile/'),
-    forgotPassword: (identifier: string) => apiClient.post('/auth/forgot-password/', { identifier }),
-    verifyResetOtp: (identifier: string, otp_code: string) => apiClient.post('/auth/verify-reset-otp/', { identifier, otp_code }),
-    resetPassword: (data: { identifier: string; otp_code: string; new_password: string }) => apiClient.post('/auth/reset-password/', data),
-};
+export { authService } from './authService';
+export { catalogService } from './catalogService';
+export { billingService } from './billingService';
+export { orderService } from './orderService';
+export { transferService } from './transferService';
+export { employeeService } from './employeeService';
+export { dashboardService } from './dashboardService';
 
-export const catalogService = {
-    getProducts: () => apiClient.get('/products/'),
-    getFranchises: () => apiClient.get('/franchises/'),
-    getFranchiseEmployees: (franchiseId: number) => apiClient.get(`/franchises/${franchiseId}/employees/`),
-    getCategories: () => apiClient.get('/categories/'),
-    getSubCategories: () => apiClient.get('/subcategories/'),
-    getBrands: () => apiClient.get('/brands/'),
-};
-
-export const billingService = {
-    lookupBarcode: (barcode: string) => apiClient.get(`/billing/lookup/?barcode=${barcode}`),
-    checkout: (data: {
-        customer_name: string;
-        customer_phone: string;
-        payment_method: string;
-        payment_status: string;
-        items: Array<{ product_id: number; quantity: number }>;
-    }) => apiClient.post('/billing/checkout/', data),
-};
-
-export const dashboardService = {
-    getFranchiseStats: () => apiClient.get('/dashboards/franchise/'),
-};
-
-export const transferService = {
-    requestTransfer: (data: { product_id: number; quantity: number }) => 
-        apiClient.post('/transfers/request/', data),
-    getTransfers: () => apiClient.get('/transfers/'),
-};
-
-export const employeeService = {
-    getEmployees: (params?: any) => apiClient.get('/employees/', { params }),
-    createEmployee: (data: any) => apiClient.post('/employees/', data),
-    toggleEmployeeActive: (id: number) => apiClient.post(`/employees/${id}/toggle_active/`),
-};
-
-export const orderService = {
-    getOrders: (params?: { timeframe?: string; search?: string; franchise?: string }) => 
-        apiClient.get('/orders/', { params }),
-    getSalesSummary: (timeframe: string = 'today') => 
-        apiClient.get('/orders/sales_summary/', { params: { timeframe } }),
-    submitAudit: (data: { items: Array<{ product_id: number; physical_count: number }> }) => 
-        apiClient.post('/inventory/audit/', data),
-};
-
+export * from './index';

@@ -201,11 +201,25 @@ export default function StorePortal() {
 
                 {/* Main Content Layout based on user role and active page */}
                 <main style={{ flexGrow: 1 }}>
-                    {activePage === 'home' && <EmployeeHome onNavigate={(p) => handleNavigate(p)} userRole={role} />}
+                    {activePage === 'home' && (
+                        normalizedRole === 'FRANCHISE_ADMIN' ? (
+                            <FranchiseDashboard
+                                onNavigateToBilling={() => handleNavigate('billing')}
+                                onNavigateToAudit={() => handleNavigate('auditing')}
+                            />
+                        ) : (
+                            <EmployeeHome onNavigate={(p) => handleNavigate(p)} userRole={role} />
+                        )
+                    )}
                     {activePage === 'billing' && <Billing />}
                     {activePage === 'auditing' && <Auditing onBack={() => handleNavigate('home')} />}
                     {activePage === 'history' && <EmployeeHome onNavigate={(p) => handleNavigate(p)} userRole={role} />}
-                    {activePage === 'dashboard' && <FranchiseDashboard />}
+                    {activePage === 'dashboard' && (
+                        <FranchiseDashboard
+                            onNavigateToBilling={() => handleNavigate('billing')}
+                            onNavigateToAudit={() => handleNavigate('auditing')}
+                        />
+                    )}
                 </main>
             </div>
         </div>

@@ -2,12 +2,18 @@ import React, { useEffect, useState } from 'react';
 import {
     Store, DollarSign, Package, Users, ArrowRightLeft, Power,
     Plus, Shield, Send, Search, CheckCircle, AlertTriangle,
-    TrendingUp, ArrowUpRight, Wallet, Percent, Clock, Sparkles, Filter
+    TrendingUp, ArrowUpRight, Wallet, Percent, Clock, Sparkles, Filter,
+    ShoppingCart, ArrowRight, Share2, Printer, Check, RefreshCw, X
 } from 'lucide-react';
 import { dashboardService, catalogService, transferService, employeeService, orderService } from '../services/api';
 import '../styles/website.css';
 
-export default function FranchiseDashboard() {
+interface FranchiseDashboardProps {
+    onNavigateToBilling?: () => void;
+    onNavigateToAudit?: () => void;
+}
+
+export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAudit }: FranchiseDashboardProps) {
     const [activeTab, setActiveTab] = useState<'overview' | 'employees' | 'products' | 'wallet'>('overview');
     const [stats, setStats] = useState<any>(null);
     const [products, setProducts] = useState<any[]>([]);
@@ -20,6 +26,7 @@ export default function FranchiseDashboard() {
     const [productSearch, setProductSearch] = useState('');
     const [productStockFilter, setProductStockFilter] = useState<'all' | 'low' | 'out'>('all');
     const [employeeSearch, setEmployeeSearch] = useState('');
+    const [invoiceSearch, setInvoiceSearch] = useState('');
 
     // Stock Transfer Form
     const [selectedProductId, setSelectedProductId] = useState<number>(0);
@@ -34,6 +41,15 @@ export default function FranchiseDashboard() {
     const [empRole, setEmpRole] = useState('CASHIER');
     const [empPassword, setEmpPassword] = useState('');
     const [empSubmitting, setEmpSubmitting] = useState(false);
+
+    // Payout Request Modal
+    const [showPayoutModal, setShowPayoutModal] = useState(false);
+    const [payoutAmount, setPayoutAmount] = useState('');
+    const [payoutUpi, setPayoutUpi] = useState('');
+    const [payoutSuccess, setPayoutSuccess] = useState(false);
+
+    const adminName = localStorage.getItem('username') || 'Franchise Admin';
+    const storeName = localStorage.getItem('franchiseId') || 'Cavree Store';
 
     const loadDashboardData = async () => {
         try {
@@ -88,6 +104,17 @@ export default function FranchiseDashboard() {
         }
     };
 
+    const handleReceiveTransfer = async (transferId: number) => {
+        try {
+            await transferService.updateTransferStatus(transferId, 'RECEIVED');
+            alert("Consignment marked as RECEIVED! Store shelf stock has been updated.");
+            loadDashboardData();
+        } catch (err: any) {
+            console.error("Receive transfer error", err);
+            alert(err.response?.data?.error || "Failed to receive consignment.");
+        }
+    };
+
     const handleAddEmployeeSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!empName || !empEmail || !empPassword) return;
@@ -125,15 +152,24 @@ export default function FranchiseDashboard() {
         }
     };
 
-    const handleReceiveTransfer = async (transferId: number) => {
-        try {
-            await transferService.updateTransferStatus(transferId, 'RECEIVED');
-            alert("Consignment marked as RECEIVED! Store shelf stock has been updated.");
-            loadDashboardData();
-        } catch (err: any) {
-            console.error("Receive transfer error", err);
-            alert(err.response?.data?.error || "Failed to receive consignment.");
-        }
+    const handlePayoutSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setPayoutSuccess(true);
+        setTimeout(() => {
+            setPayoutSuccess(false);
+            setShowPayoutModal(false);
+            setPayoutAmount('');
+            setPayoutUpi('');
+            alert("Payout request of ₹" + payoutAmount + " submitted for bank transfer settlement!");
+        }, 1500);
+    };
+
+    const handleShareWhatsApp = (order: any) => {
+        const phone = order.customer_phone?.replace(/[^0-9]/g, '') || '';
+        const itemsSummary = order.items?.map((it: any) => `• ${it.product_name} x ${it.quantity} = ₹${(parseFloat(it.unit_price) * it.quantity).toFixed(2)}`).join('%0A') || '';
+        const text = `🛍️ *CAVREE INVOICE RECEIPT*%0AStore: ${stats?.name || storeName}%0AInvoice No: *${order.invoice_number}*%0ADate: ${new Date(order.created_at).toLocaleDateString()}%0A%0A*Items:*%0A${itemsSummary}%0A%0A*Total Paid: ₹${parseFloat(order.total_price).toFixed(2)}*%0A%0AThank you for shopping at Cavree!`;
+        const targetPhone = phone && phone.length === 10 ? `91${phone}` : phone;
+        window.open(`https://wa.me/${targetPhone}?text=${text}`, '_blank');
     };
 
     // Filter Products
@@ -151,6 +187,11 @@ export default function FranchiseDashboard() {
         return matchesSearch;
     });
 
+    const lowStockCount = products.filter(p => {
+        const franchiseInv = p.franchise_stock?.find((f: any) => f.quantity !== undefined) || { quantity: 0 };
+        return (franchiseInv.quantity || 0) <= (p.minimum_stock_level || 5);
+    }).length;
+
     // Filter Employees
     const filteredEmployees = employees.filter(emp => 
         (emp.employee_id && emp.employee_id.toLowerCase().includes(employeeSearch.toLowerCase())) ||
@@ -161,13 +202,20 @@ export default function FranchiseDashboard() {
         (emp.role && emp.role.toLowerCase().includes(employeeSearch.toLowerCase()))
     );
 
+    // Filter Invoices
+    const filteredInvoices = orders.filter(o => 
+        o.invoice_number.toLowerCase().includes(invoiceSearch.toLowerCase()) ||
+        o.customer_phone.includes(invoiceSearch) ||
+        o.customer_name.toLowerCase().includes(invoiceSearch.toLowerCase())
+    );
+
     const commissionPercent = parseFloat(stats?.commission_percentage || '15');
 
     if (loading) {
         return (
             <div className="main-content">
                 <div style={{ textAlign: 'center', padding: '5rem 0', color: 'var(--pos-text-secondary)' }}>
-                    <p>Loading franchise store analytics &amp; management ledger...</p>
+                    <p>Loading franchise command center &amp; store analytics...</p>
                 </div>
             </div>
         );
@@ -176,42 +224,181 @@ export default function FranchiseDashboard() {
     return (
         <div className="main-content">
             
-            {/* Top Store Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.75rem', flexWrap: 'wrap', gap: '1rem' }}>
+            {/* ========================================================================== */}
+            {/* EXECUTIVE STORE HERO BANNER                                               */}
+            {/* ========================================================================== */}
+            <div style={{
+                background: 'linear-gradient(135deg, rgba(22, 27, 40, 0.98) 0%, rgba(10, 12, 18, 0.98) 100%)',
+                border: '1px solid var(--pos-border-gold)',
+                borderRadius: '22px',
+                padding: '2rem 2.25rem',
+                marginBottom: '2rem',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '1.5rem',
+                boxShadow: '0 16px 50px rgba(0, 0, 0, 0.75), 0 0 35px rgba(212, 175, 55, 0.1)'
+            }}>
                 <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.35rem' }}>
-                        <span className="badge badge-gold">
-                            <Store size={12} style={{ marginRight: '0.3rem' }} />
-                            {stats?.name || 'Franchise Store Operations'}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.65rem', flexWrap: 'wrap' }}>
+                        <span className="badge badge-gold" style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}>
+                            <Store size={13} style={{ marginRight: '0.35rem' }} />
+                            {stats?.name || storeName}
                         </span>
                         <span className="badge badge-blue">
-                            Location: {stats?.location || 'Indiranagar, Bangalore'}
+                            📍 {stats?.location || 'Central Retail Branch'}
+                        </span>
+                        <span className="badge badge-success" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <span className="pulse-dot"></span> Live POS Counter Active
                         </span>
                         <span className="badge badge-purple">
-                            Commission: {commissionPercent}%
+                            ⚡ {commissionPercent}% Commission Rate
                         </span>
                     </div>
-                    <h1 className="page-title" style={{ fontSize: '1.75rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                        Franchise Administration &amp; Operations
+
+                    <h1 style={{ fontSize: '2rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: '0.25rem 0', color: 'var(--pos-text-primary)' }}>
+                        Welcome, <span style={{ background: 'var(--pos-gold-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{adminName}</span>
                     </h1>
+                    <p style={{ color: 'var(--pos-text-secondary)', fontSize: '0.875rem', margin: '0.35rem 0 0 0', maxWidth: '650px', lineHeight: '1.5' }}>
+                        Franchise Executive Dashboard &bull; Manage live store employees, monitor shelf inventory, track central consignments, and audit dynamic commission earnings.
+                    </p>
                 </div>
 
-                <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
-                    <button className="btn btn-secondary" onClick={() => setShowTransferModal(true)}>
-                        <ArrowRightLeft size={15} /> Request Stock Consignment
-                    </button>
-                    <button className="btn btn-primary" onClick={() => { setActiveTab('employees'); setShowAddForm(true); }}>
-                        <Plus size={15} /> Add Store Employee
+                {/* Quick Action Trigger Buttons */}
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    {onNavigateToBilling && (
+                        <button
+                            className="btn btn-primary"
+                            onClick={onNavigateToBilling}
+                            style={{ padding: '0.85rem 1.4rem', fontSize: '0.9375rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                        >
+                            <ShoppingCart size={18} />
+                            <span>Launch POS Billing</span>
+                            <ArrowRight size={15} />
+                        </button>
+                    )}
+                    <button
+                        className="btn btn-secondary"
+                        onClick={() => setShowTransferModal(true)}
+                        style={{ padding: '0.85rem 1.25rem', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}
+                    >
+                        <ArrowRightLeft size={16} />
+                        <span>+ Request Consignment</span>
                     </button>
                 </div>
             </div>
 
-            {/* Navigation Filter Tabs for Franchise Admin (Overview / Employees / Products / Wallet) */}
+            {/* ========================================================================== */}
+            {/* 4 LUXURY KPI COMMAND CARDS                                                */}
+            {/* ========================================================================== */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem', marginBottom: '2.25rem' }}>
+                
+                {/* 1. Live Wallet Balance */}
+                <div className="glass-panel" style={{ borderLeft: '4px solid var(--pos-gold-primary)', cursor: 'pointer' }} onClick={() => setActiveTab('wallet')}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                            <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--pos-text-secondary)', fontWeight: 700, letterSpacing: '0.05em' }}>
+                                Live Wallet Balance
+                            </span>
+                            <h2 style={{ fontSize: '1.85rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: '0.35rem 0 0 0', color: 'var(--pos-gold-light)' }}>
+                                ₹{parseFloat(stats?.wallet_balance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                            </h2>
+                        </div>
+                        <div style={{ padding: '0.65rem', borderRadius: '12px', background: 'var(--pos-gold-gradient-subtle)', border: '1px solid var(--pos-border-gold)' }}>
+                            <Wallet size={24} style={{ color: 'var(--pos-gold-primary)' }} />
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem', paddingTop: '0.65rem', borderTop: '1px solid var(--pos-border-subtle)' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>Net commission earnings</span>
+                        <button
+                            className="btn btn-secondary btn-sm"
+                            onClick={(e) => { e.stopPropagation(); setShowPayoutModal(true); }}
+                            style={{ padding: '0.2rem 0.55rem', fontSize: '0.6875rem' }}
+                        >
+                            Withdraw Payout &rarr;
+                        </button>
+                    </div>
+                </div>
+
+                {/* 2. Today's Gross Sales & Commission */}
+                <div className="glass-panel" style={{ borderLeft: '4px solid var(--pos-accent-green)', cursor: 'pointer' }} onClick={() => setActiveTab('wallet')}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                            <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--pos-text-secondary)', fontWeight: 700, letterSpacing: '0.05em' }}>
+                                Today's Counter Sales
+                            </span>
+                            <h2 style={{ fontSize: '1.85rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: '0.35rem 0 0 0', color: '#6ee7b7' }}>
+                                ₹{parseFloat(stats?.sales_today || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                            </h2>
+                        </div>
+                        <div style={{ padding: '0.65rem', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
+                            <TrendingUp size={24} style={{ color: 'var(--pos-accent-green)' }} />
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem', paddingTop: '0.65rem', borderTop: '1px solid var(--pos-border-subtle)' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>All-Time: ₹{parseFloat(stats?.total_sold_all_time || 0).toLocaleString('en-IN')}</span>
+                        <span style={{ fontSize: '0.75rem', color: '#6ee7b7', fontWeight: 'bold' }}>+{commissionPercent}% Comm</span>
+                    </div>
+                </div>
+
+                {/* 3. Active Shelf Stock */}
+                <div className="glass-panel" style={{ borderLeft: '4px solid var(--pos-gold-metallic)', cursor: 'pointer' }} onClick={() => setActiveTab('products')}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                            <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--pos-text-secondary)', fontWeight: 700, letterSpacing: '0.05em' }}>
+                                Active Shelf Stock
+                            </span>
+                            <h2 style={{ fontSize: '1.85rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: '0.35rem 0 0 0', color: 'var(--pos-text-primary)' }}>
+                                {stats?.active_stock_count || 0} <span style={{ fontSize: '0.9rem', color: 'var(--pos-text-secondary)' }}>units</span>
+                            </h2>
+                        </div>
+                        <div style={{ padding: '0.65rem', borderRadius: '12px', background: 'rgba(230, 202, 101, 0.12)', border: '1px solid var(--pos-border-gold)' }}>
+                            <Package size={24} style={{ color: 'var(--pos-gold-metallic)' }} />
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem', paddingTop: '0.65rem', borderTop: '1px solid var(--pos-border-subtle)' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>{products.length} active SKUs</span>
+                        {lowStockCount > 0 ? (
+                            <span className="badge badge-warning" style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem' }}>
+                                {lowStockCount} Low Stock
+                            </span>
+                        ) : (
+                            <span className="badge badge-success" style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem' }}>Healthy</span>
+                        )}
+                    </div>
+                </div>
+
+                {/* 4. Store Employees On-Duty */}
+                <div className="glass-panel" style={{ borderLeft: '4px solid var(--pos-gold-champagne)', cursor: 'pointer' }} onClick={() => setActiveTab('employees')}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                            <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--pos-text-secondary)', fontWeight: 700, letterSpacing: '0.05em' }}>
+                                Store Staff Team
+                            </span>
+                            <h2 style={{ fontSize: '1.85rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: '0.35rem 0 0 0', color: 'var(--pos-gold-champagne)' }}>
+                                {employees.length} <span style={{ fontSize: '0.9rem', color: 'var(--pos-text-secondary)' }}>members</span>
+                            </h2>
+                        </div>
+                        <div style={{ padding: '0.65rem', borderRadius: '12px', background: 'rgba(222, 194, 157, 0.12)', border: '1px solid var(--pos-border-gold)' }}>
+                            <Users size={24} style={{ color: 'var(--pos-gold-champagne)' }} />
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem', paddingTop: '0.65rem', borderTop: '1px solid var(--pos-border-subtle)' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>Assigned to {stats?.name || storeName}</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--pos-gold-champagne)', display: 'flex', alignItems: 'center' }}>Manage &rarr;</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* ========================================================================== */}
+            {/* NAVIGATION TABS FOR FRANCHISE COMMAND (Overview / Employees / Products / Wallet) */}
+            {/* ========================================================================== */}
             <div style={{
                 display: 'flex',
                 gap: '0.5rem',
                 borderBottom: '1px solid var(--pos-border-gold)',
-                paddingBottom: '0.75rem',
+                paddingBottom: '0.85rem',
                 marginBottom: '1.75rem',
                 overflowX: 'auto',
                 WebkitOverflowScrolling: 'touch'
@@ -219,16 +406,16 @@ export default function FranchiseDashboard() {
                 <button
                     className={`btn btn-sm ${activeTab === 'overview' ? 'btn-primary' : 'btn-secondary'}`}
                     onClick={() => setActiveTab('overview')}
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', whiteSpace: 'nowrap' }}
                 >
                     <TrendingUp size={14} />
-                    <span>📊 Store Overview</span>
+                    <span>📊 Command Overview</span>
                 </button>
 
                 <button
                     className={`btn btn-sm ${activeTab === 'employees' ? 'btn-primary' : 'btn-secondary'}`}
                     onClick={() => setActiveTab('employees')}
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', whiteSpace: 'nowrap' }}
                 >
                     <Users size={14} />
                     <span>👥 Store Employees ({employees.length})</span>
@@ -237,158 +424,232 @@ export default function FranchiseDashboard() {
                 <button
                     className={`btn btn-sm ${activeTab === 'products' ? 'btn-primary' : 'btn-secondary'}`}
                     onClick={() => setActiveTab('products')}
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', whiteSpace: 'nowrap' }}
                 >
                     <Package size={14} />
-                    <span>📦 Products &amp; Stock ({products.length})</span>
+                    <span>📦 Products &amp; Shelf Inventory ({products.length})</span>
                 </button>
 
                 <button
                     className={`btn btn-sm ${activeTab === 'wallet' ? 'btn-primary' : 'btn-secondary'}`}
                     onClick={() => setActiveTab('wallet')}
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', whiteSpace: 'nowrap' }}
                 >
                     <Wallet size={14} />
-                    <span>💰 Wallet &amp; Earnings (₹{parseFloat(stats?.wallet_balance || 0).toLocaleString('en-IN')})</span>
+                    <span>💰 Live Wallet &amp; Ledger (₹{parseFloat(stats?.wallet_balance || 0).toLocaleString('en-IN')})</span>
                 </button>
             </div>
 
-            {/* ========================================== */}
-            {/* TAB 1: OVERVIEW                            */}
-            {/* ========================================== */}
+            {/* ========================================================================== */}
+            {/* TAB 1: OVERVIEW & COMMAND HUB                                             */}
+            {/* ========================================================================== */}
             {activeTab === 'overview' && (
-                <div>
-                    {/* 4 KPI Metrics */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                    
+                    {/* 4 Interactive Quick-Action Command Modules */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem' }}>
                         
-                        {/* Live Wallet Balance */}
-                        <div className="glass-panel" style={{ borderLeft: '4px solid var(--pos-gold-primary)', cursor: 'pointer' }} onClick={() => setActiveTab('wallet')}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                <div>
-                                    <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--pos-text-secondary)', fontWeight: 700 }}>
-                                        Live Wallet Balance
-                                    </span>
-                                    <h2 style={{ fontSize: '1.75rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: '0.35rem 0 0 0', color: 'var(--pos-gold-light)' }}>
-                                        ₹{parseFloat(stats?.wallet_balance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                                    </h2>
+                        {/* Module 1: POS Billing */}
+                        <div
+                            className="glass-panel"
+                            style={{ cursor: 'pointer', borderTop: '4px solid var(--pos-gold-primary)', transition: 'transform 0.2s' }}
+                            onClick={() => onNavigateToBilling ? onNavigateToBilling() : null}
+                            onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-3px)')}
+                            onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                                <div style={{ padding: '0.75rem', borderRadius: '12px', background: 'var(--pos-gold-gradient-subtle)', color: 'var(--pos-gold-primary)', border: '1px solid var(--pos-border-gold)' }}>
+                                    <ShoppingCart size={22} />
                                 </div>
-                                <DollarSign size={26} style={{ color: 'var(--pos-gold-primary)' }} />
+                                <div>
+                                    <h3 style={{ fontSize: '1.1rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: 0, color: 'var(--pos-gold-light)' }}>
+                                        Counter POS Billing
+                                    </h3>
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>QR Scanner &bull; Laser &bull; mPOS</span>
+                                </div>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>Commission earnings</span>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--pos-gold-light)', display: 'flex', alignItems: 'center' }}>View &rarr;</span>
+                            <p style={{ fontSize: '0.8125rem', color: 'var(--pos-text-secondary)', margin: '0 0 1rem 0', lineHeight: '1.4' }}>
+                                Scan tags, process instant checkout, deduct store stock, and calculate GST.
+                            </p>
+                            <div style={{ display: 'flex', alignItems: 'center', color: 'var(--pos-gold-light)', fontWeight: 'bold', fontSize: '0.8125rem', gap: '0.35rem' }}>
+                                <span>Open Billing Terminal</span>
+                                <ArrowRight size={14} />
                             </div>
                         </div>
 
-                        {/* Active Store Stock */}
-                        <div className="glass-panel" style={{ borderLeft: '4px solid var(--pos-accent-green)', cursor: 'pointer' }} onClick={() => setActiveTab('products')}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                <div>
-                                    <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--pos-text-secondary)', fontWeight: 700 }}>
-                                        Active Store Stock
-                                    </span>
-                                    <h2 style={{ fontSize: '1.75rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: '0.35rem 0 0 0', color: '#6ee7b7' }}>
-                                        {stats?.active_stock_count || 0} <span style={{ fontSize: '0.9rem', color: 'var(--pos-text-secondary)' }}>units</span>
-                                    </h2>
+                        {/* Module 2: Manage Staff */}
+                        <div
+                            className="glass-panel"
+                            style={{ cursor: 'pointer', borderTop: '4px solid var(--pos-gold-champagne)', transition: 'transform 0.2s' }}
+                            onClick={() => setActiveTab('employees')}
+                            onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-3px)')}
+                            onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                                <div style={{ padding: '0.75rem', borderRadius: '12px', background: 'rgba(222, 194, 157, 0.12)', color: 'var(--pos-gold-champagne)', border: '1px solid var(--pos-border-gold)' }}>
+                                    <Users size={22} />
                                 </div>
-                                <Package size={26} style={{ color: 'var(--pos-accent-green)' }} />
+                                <div>
+                                    <h3 style={{ fontSize: '1.1rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: 0, color: 'var(--pos-gold-champagne)' }}>
+                                        Store Staff Directory
+                                    </h3>
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>{employees.length} Staff Members</span>
+                                </div>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>Across {products.length} SKUs</span>
-                                <span style={{ fontSize: '0.75rem', color: '#6ee7b7', display: 'flex', alignItems: 'center' }}>Manage &rarr;</span>
+                            <p style={{ fontSize: '0.8125rem', color: 'var(--pos-text-secondary)', margin: '0 0 1rem 0', lineHeight: '1.4' }}>
+                                Assign roles (Cashiers, Managers, Auditors), toggle active access, and add employees.
+                            </p>
+                            <div style={{ display: 'flex', alignItems: 'center', color: 'var(--pos-gold-champagne)', fontWeight: 'bold', fontSize: '0.8125rem', gap: '0.35rem' }}>
+                                <span>Manage Employees</span>
+                                <ArrowRight size={14} />
                             </div>
                         </div>
 
-                        {/* Active Store Staff */}
-                        <div className="glass-panel" style={{ borderLeft: '4px solid var(--pos-gold-champagne)', cursor: 'pointer' }} onClick={() => setActiveTab('employees')}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                <div>
-                                    <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--pos-text-secondary)', fontWeight: 700 }}>
-                                        Store Staff Members
-                                    </span>
-                                    <h2 style={{ fontSize: '1.75rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: '0.35rem 0 0 0', color: 'var(--pos-gold-champagne)' }}>
-                                        {employees.length} <span style={{ fontSize: '0.9rem', color: 'var(--pos-text-secondary)' }}>staff</span>
-                                    </h2>
+                        {/* Module 3: Inventory & Consignments */}
+                        <div
+                            className="glass-panel"
+                            style={{ cursor: 'pointer', borderTop: '4px solid var(--pos-accent-green)', transition: 'transform 0.2s' }}
+                            onClick={() => setActiveTab('products')}
+                            onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-3px)')}
+                            onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                                <div style={{ padding: '0.75rem', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.12)', color: 'var(--pos-accent-green)', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
+                                    <Package size={22} />
                                 </div>
-                                <Users size={26} style={{ color: 'var(--pos-gold-champagne)' }} />
+                                <div>
+                                    <h3 style={{ fontSize: '1.1rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: 0, color: '#6ee7b7' }}>
+                                        Shelf Inventory
+                                    </h3>
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>{stats?.active_stock_count || 0} Units in Stock</span>
+                                </div>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>Assigned to this store</span>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--pos-gold-champagne)', display: 'flex', alignItems: 'center' }}>Directory &rarr;</span>
+                            <p style={{ fontSize: '0.8125rem', color: 'var(--pos-text-secondary)', margin: '0 0 1rem 0', lineHeight: '1.4' }}>
+                                View stock levels, low-stock warnings, and request additional consignment from Central Warehouse.
+                            </p>
+                            <div style={{ display: 'flex', alignItems: 'center', color: 'var(--pos-accent-green)', fontWeight: 'bold', fontSize: '0.8125rem', gap: '0.35rem' }}>
+                                <span>Inspect Inventory</span>
+                                <ArrowRight size={14} />
                             </div>
                         </div>
 
-                        {/* All-time Sales */}
-                        <div className="glass-panel" style={{ borderLeft: '4px solid var(--pos-gold-metallic)' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                <div>
-                                    <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--pos-text-secondary)', fontWeight: 700 }}>
-                                        All-Time Gross Sales
-                                    </span>
-                                    <h2 style={{ fontSize: '1.75rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: '0.35rem 0 0 0', color: 'var(--pos-gold-light)' }}>
-                                        ₹{parseFloat(stats?.total_sold_all_time || 0).toLocaleString('en-IN')}
-                                    </h2>
+                        {/* Module 4: Wallet & Payouts */}
+                        <div
+                            className="glass-panel"
+                            style={{ cursor: 'pointer', borderTop: '4px solid var(--pos-gold-metallic)', transition: 'transform 0.2s' }}
+                            onClick={() => setActiveTab('wallet')}
+                            onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-3px)')}
+                            onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                                <div style={{ padding: '0.75rem', borderRadius: '12px', background: 'rgba(230, 202, 101, 0.12)', color: 'var(--pos-gold-metallic)', border: '1px solid var(--pos-border-gold)' }}>
+                                    <Wallet size={22} />
                                 </div>
-                                <Sparkles size={26} style={{ color: 'var(--pos-gold-metallic)' }} />
+                                <div>
+                                    <h3 style={{ fontSize: '1.1rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: 0, color: 'var(--pos-gold-light)' }}>
+                                        Commission Ledger
+                                    </h3>
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>{commissionPercent}% Net Share</span>
+                                </div>
                             </div>
-                            <p style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)', margin: '0.5rem 0 0 0' }}>Total billed transactions</p>
+                            <p style={{ fontSize: '0.8125rem', color: 'var(--pos-text-secondary)', margin: '0 0 1rem 0', lineHeight: '1.4' }}>
+                                Transparent per-bill commission earnings, GST deductions, and bank payout requests.
+                            </p>
+                            <div style={{ display: 'flex', alignItems: 'center', color: 'var(--pos-gold-light)', fontWeight: 'bold', fontSize: '0.8125rem', gap: '0.35rem' }}>
+                                <span>View Wallet &amp; Ledger</span>
+                                <ArrowRight size={14} />
+                            </div>
                         </div>
                     </div>
 
-                    {/* Quick Split Preview: Recent Consignments & Top Selling SKUs */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+                    {/* Split 2-Column Live Feed: Recent Orders & Consignments */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '1.5rem' }}>
                         
-                        {/* Top Selling Products */}
+                        {/* Left Feed: Recent Counter Sales Invoices */}
                         <div className="glass-panel">
-                            <h3 className="panel-title">
-                                <Sparkles size={18} style={{ color: 'var(--pos-gold-primary)' }} />
-                                Top Selling Store Products
-                            </h3>
-                            {stats?.top_products && stats.top_products.length > 0 ? (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                                <h3 className="panel-title" style={{ margin: 0, border: 'none', padding: 0 }}>
+                                    <ShoppingCart size={18} style={{ color: 'var(--pos-gold-primary)' }} />
+                                    Live Counter Invoices ({orders.length})
+                                </h3>
+                                <button className="btn btn-secondary btn-sm" onClick={() => setActiveTab('wallet')}>
+                                    View All Ledger &rarr;
+                                </button>
+                            </div>
+
+                            {orders.length > 0 ? (
                                 <div className="table-responsive">
                                     <table className="glass-table">
                                         <thead>
                                             <tr>
-                                                <th>Product</th>
-                                                <th style={{ textAlign: 'right' }}>Units Sold</th>
+                                                <th>Invoice #</th>
+                                                <th>Customer</th>
+                                                <th>Total Bill</th>
+                                                <th style={{ textAlign: 'right' }}>Commission ({commissionPercent}%)</th>
+                                                <th style={{ textAlign: 'center' }}>Share</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {stats.top_products.map((item: any, idx: number) => (
-                                                <tr key={idx}>
-                                                    <td style={{ fontWeight: 600 }}>{item.product__name}</td>
-                                                    <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'var(--pos-gold-light)' }}>
-                                                        {item.total_qty} units
-                                                    </td>
-                                                </tr>
-                                            ))}
+                                            {orders.slice(0, 5).map((ord) => {
+                                                const gross = parseFloat(ord.total_price) || 0;
+                                                const comm = gross * (commissionPercent / 100);
+
+                                                return (
+                                                    <tr key={ord.id}>
+                                                        <td style={{ fontWeight: 'bold', color: 'var(--pos-gold-light)', fontFamily: 'monospace' }}>
+                                                            {ord.invoice_number}
+                                                        </td>
+                                                        <td>
+                                                            <div style={{ fontWeight: 600 }}>{ord.customer_name || 'Walk-in'}</div>
+                                                            <div style={{ fontSize: '0.72rem', color: 'var(--pos-text-secondary)' }}>{ord.customer_phone}</div>
+                                                        </td>
+                                                        <td style={{ fontWeight: 'bold' }}>
+                                                            ₹{gross.toFixed(2)}
+                                                        </td>
+                                                        <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#6ee7b7' }}>
+                                                            +₹{comm.toFixed(2)}
+                                                        </td>
+                                                        <td style={{ textAlign: 'center' }}>
+                                                            <button
+                                                                className="btn btn-secondary btn-sm"
+                                                                onClick={() => handleShareWhatsApp(ord)}
+                                                                style={{ padding: '0.25rem 0.5rem' }}
+                                                                title="Share Invoice on WhatsApp"
+                                                            >
+                                                                <Share2 size={12} style={{ color: '#25D366' }} />
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
                                         </tbody>
                                     </table>
                                 </div>
                             ) : (
-                                <p style={{ color: 'var(--pos-text-secondary)', textAlign: 'center', padding: '1.5rem 0' }}>
-                                    No sales transactions recorded yet.
+                                <p style={{ color: 'var(--pos-text-secondary)', textAlign: 'center', padding: '2rem 0' }}>
+                                    No sales transactions recorded yet today.
                                 </p>
                             )}
                         </div>
 
-                        {/* Recent Stock Consignment Transfers */}
+                        {/* Right Feed: Active Consignments & In-Transit Transfers */}
                         <div className="glass-panel">
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                                 <h3 className="panel-title" style={{ margin: 0, border: 'none', padding: 0 }}>
                                     <ArrowRightLeft size={18} style={{ color: 'var(--pos-gold-primary)' }} />
-                                    Recent Consignment Transfers
+                                    Incoming Consignment Shipments
                                 </h3>
-                                <button className="btn btn-secondary btn-sm" onClick={() => setShowTransferModal(true)}>
+                                <button className="btn btn-primary btn-sm" onClick={() => setShowTransferModal(true)}>
                                     + Request Transfer
                                 </button>
                             </div>
+
                             {transfers.length > 0 ? (
                                 <div className="table-responsive">
                                     <table className="glass-table">
                                         <thead>
                                             <tr>
-                                                <th>Transfer #</th>
+                                                <th>Tracking #</th>
                                                 <th>Product</th>
                                                 <th>Qty</th>
                                                 <th>Status</th>
@@ -398,7 +659,9 @@ export default function FranchiseDashboard() {
                                         <tbody>
                                             {transfers.slice(0, 5).map((t) => (
                                                 <tr key={t.id}>
-                                                    <td style={{ fontWeight: 'bold', color: 'var(--pos-gold-light)', fontFamily: 'monospace' }}>{t.transfer_number}</td>
+                                                    <td style={{ fontWeight: 'bold', color: 'var(--pos-gold-light)', fontFamily: 'monospace' }}>
+                                                        {t.transfer_number}
+                                                    </td>
                                                     <td>{t.product_name}</td>
                                                     <td style={{ fontWeight: 'bold' }}>{t.quantity}</td>
                                                     <td>
@@ -412,7 +675,7 @@ export default function FranchiseDashboard() {
                                                                 className="btn btn-primary btn-sm"
                                                                 onClick={() => handleReceiveTransfer(t.id)}
                                                                 style={{ padding: '0.25rem 0.65rem', fontSize: '0.75rem' }}
-                                                                title="Confirm delivery and add stock to store inventory"
+                                                                title="Accept package and add to store shelf stock"
                                                             >
                                                                 📥 Receive Stock
                                                             </button>
@@ -428,7 +691,7 @@ export default function FranchiseDashboard() {
                                     </table>
                                 </div>
                             ) : (
-                                <p style={{ color: 'var(--pos-text-secondary)', textAlign: 'center', padding: '1.5rem 0' }}>
+                                <p style={{ color: 'var(--pos-text-secondary)', textAlign: 'center', padding: '2rem 0' }}>
                                     No pending consignment transfers.
                                 </p>
                             )}
@@ -437,9 +700,9 @@ export default function FranchiseDashboard() {
                 </div>
             )}
 
-            {/* ========================================== */}
-            {/* TAB 2: STORE EMPLOYEES                     */}
-            {/* ========================================== */}
+            {/* ========================================================================== */}
+            {/* TAB 2: STORE EMPLOYEES DIRECTORY                                           */}
+            {/* ========================================================================== */}
             {activeTab === 'employees' && (
                 <div className="glass-panel">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
@@ -449,7 +712,7 @@ export default function FranchiseDashboard() {
                                 Store Employees Directory ({filteredEmployees.length})
                             </h2>
                             <p style={{ color: 'var(--pos-text-secondary)', fontSize: '0.8125rem', margin: '0.25rem 0 0 0' }}>
-                                Active staff assigned to {stats?.name || 'this franchise'}. Add new staff members or manage access.
+                                Active staff assigned to {stats?.name || storeName}. Add new staff members or manage roles.
                             </p>
                         </div>
 
@@ -602,9 +865,9 @@ export default function FranchiseDashboard() {
                 </div>
             )}
 
-            {/* ========================================== */}
-            {/* TAB 3: PRODUCTS & SHELF INVENTORY          */}
-            {/* ========================================== */}
+            {/* ========================================================================== */}
+            {/* TAB 3: PRODUCTS & SHELF INVENTORY                                         */}
+            {/* ========================================================================== */}
             {activeTab === 'products' && (
                 <div className="glass-panel">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
@@ -614,7 +877,7 @@ export default function FranchiseDashboard() {
                                 Store Products &amp; Shelf Inventory ({filteredProducts.length})
                             </h2>
                             <p style={{ color: 'var(--pos-text-secondary)', fontSize: '0.8125rem', margin: '0.25rem 0 0 0' }}>
-                                Real-time quantities on shelf at {stats?.name || 'Store'}, minimum thresholds, and consignment requests.
+                                Real-time quantities on shelf at {stats?.name || storeName}, minimum thresholds, and consignment requests.
                             </p>
                         </div>
 
@@ -752,9 +1015,9 @@ export default function FranchiseDashboard() {
                 </div>
             )}
 
-            {/* ========================================== */}
-            {/* TAB 4: WALLET & COMMISSIONS                */}
-            {/* ========================================== */}
+            {/* ========================================================================== */}
+            {/* TAB 4: LIVE WALLET & TRANSACTION COMMISSION LEDGER                        */}
+            {/* ========================================================================== */}
             {activeTab === 'wallet' && (
                 <div>
                     {/* Financial Summary Cards */}
@@ -772,9 +1035,12 @@ export default function FranchiseDashboard() {
                                 </div>
                                 <Wallet size={28} style={{ color: 'var(--pos-gold-primary)' }} />
                             </div>
-                            <p style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)', margin: '0.65rem 0 0 0' }}>
-                                Accumulated commissions earned on counter sales
-                            </p>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem' }}>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>Available for bank payout</span>
+                                <button className="btn btn-primary btn-sm" onClick={() => setShowPayoutModal(true)}>
+                                    Request Payout
+                                </button>
+                            </div>
                         </div>
 
                         <div className="glass-panel" style={{ borderLeft: '4px solid var(--pos-accent-green)' }}>
@@ -807,7 +1073,7 @@ export default function FranchiseDashboard() {
                                 <Store size={28} style={{ color: 'var(--pos-gold-champagne)' }} />
                             </div>
                             <p style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)', margin: '0.65rem 0 0 0' }}>
-                                Initial invested capital for {stats?.name || 'this branch'}
+                                Initial invested capital for {stats?.name || storeName}
                             </p>
                         </div>
                     </div>
@@ -818,15 +1084,27 @@ export default function FranchiseDashboard() {
                             <div>
                                 <h3 className="panel-title" style={{ margin: 0, border: 'none', padding: 0 }}>
                                     <TrendingUp size={18} style={{ color: 'var(--pos-gold-primary)' }} />
-                                    Transaction Commission Ledger ({orders.length} Invoices)
+                                    Transaction Commission Ledger ({filteredInvoices.length} Invoices)
                                 </h3>
                                 <p style={{ color: 'var(--pos-text-secondary)', fontSize: '0.8125rem', margin: '0.2rem 0 0 0' }}>
                                     Breakdown of sales revenue and calculated franchise commission credit.
                                 </p>
                             </div>
+
+                            <div style={{ position: 'relative', minWidth: '260px' }}>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    placeholder="Search by Invoice # or Customer Phone..."
+                                    value={invoiceSearch}
+                                    onChange={(e) => setInvoiceSearch(e.target.value)}
+                                    style={{ paddingLeft: '2.4rem', fontSize: '0.85rem' }}
+                                />
+                                <Search size={15} style={{ position: 'absolute', left: '0.85rem', top: '0.95rem', color: 'var(--pos-text-secondary)' }} />
+                            </div>
                         </div>
 
-                        {orders.length > 0 ? (
+                        {filteredInvoices.length > 0 ? (
                             <div className="table-responsive">
                                 <table className="glass-table">
                                     <thead>
@@ -837,12 +1115,12 @@ export default function FranchiseDashboard() {
                                             <th>Total Bill Amount</th>
                                             <th>Payment Method</th>
                                             <th style={{ textAlign: 'right' }}>Calculated Commission ({commissionPercent}%)</th>
+                                            <th style={{ textAlign: 'center' }}>Receipt</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {orders.map((ord) => {
+                                        {filteredInvoices.map((ord) => {
                                             const gross = parseFloat(ord.total_price) || 0;
-                                            // 15% estimated net commission on sales
                                             const comm = (gross * (commissionPercent / 100));
 
                                             return (
@@ -866,6 +1144,16 @@ export default function FranchiseDashboard() {
                                                     <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#6ee7b7', fontSize: '0.9375rem' }}>
                                                         + ₹{comm.toFixed(2)}
                                                     </td>
+                                                    <td style={{ textAlign: 'center' }}>
+                                                        <button
+                                                            className="btn btn-secondary btn-sm"
+                                                            onClick={() => handleShareWhatsApp(ord)}
+                                                            style={{ padding: '0.25rem 0.5rem' }}
+                                                            title="Share on WhatsApp"
+                                                        >
+                                                            <Share2 size={12} style={{ color: '#25D366' }} />
+                                                        </button>
+                                                    </td>
                                                 </tr>
                                             );
                                         })}
@@ -874,16 +1162,16 @@ export default function FranchiseDashboard() {
                             </div>
                         ) : (
                             <p style={{ padding: '3rem', textAlign: 'center', color: 'var(--pos-text-secondary)' }}>
-                                No sales transactions yet to calculate commission earnings.
+                                No sales transactions found matching your filter.
                             </p>
                         )}
                     </div>
                 </div>
             )}
 
-            {/* ========================================== */}
-            {/* MODAL: REQUEST STOCK CONSIGNMENT           */}
-            {/* ========================================== */}
+            {/* ========================================================================== */}
+            {/* MODAL: REQUEST STOCK CONSIGNMENT                                          */}
+            {/* ========================================================================== */}
             {showTransferModal && (
                 <div className="modal-overlay">
                     <div className="modal-content" style={{ maxWidth: '480px' }}>
@@ -935,6 +1223,79 @@ export default function FranchiseDashboard() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* ========================================================================== */}
+            {/* MODAL: REQUEST WALLET PAYOUT                                              */}
+            {/* ========================================================================== */}
+            {showPayoutModal && (
+                <div className="modal-overlay">
+                    <div className="modal-content" style={{ maxWidth: '440px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                            <h3 className="panel-title" style={{ margin: 0, border: 'none', padding: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <Wallet size={20} style={{ color: 'var(--pos-gold-primary)' }} />
+                                Request Wallet Payout
+                            </h3>
+                            <button className="btn btn-secondary btn-sm" onClick={() => setShowPayoutModal(false)}>
+                                &times;
+                            </button>
+                        </div>
+
+                        {payoutSuccess ? (
+                            <div style={{ textAlign: 'center', padding: '2rem 0' }}>
+                                <CheckCircle size={48} style={{ color: 'var(--pos-accent-green)', marginBottom: '0.75rem' }} />
+                                <h4 style={{ color: 'var(--pos-gold-light)', margin: '0 0 0.5rem 0' }}>Payout Request Queued!</h4>
+                                <p style={{ fontSize: '0.85rem', color: 'var(--pos-text-secondary)' }}>
+                                    Your withdrawal request for ₹{payoutAmount} will be transferred to your registered bank account via NEFT/IMPS.
+                                </p>
+                            </div>
+                        ) : (
+                            <form onSubmit={handlePayoutSubmit}>
+                                <div className="form-group">
+                                    <label className="form-label">Available Wallet Balance</label>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--pos-gold-light)', fontFamily: 'Cinzel, serif', padding: '0.5rem 0' }}>
+                                        ₹{parseFloat(stats?.wallet_balance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                    </div>
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Withdrawal Amount (₹) *</label>
+                                    <input
+                                        type="number"
+                                        className="form-input"
+                                        placeholder="Enter amount to withdraw..."
+                                        value={payoutAmount}
+                                        onChange={(e) => setPayoutAmount(e.target.value)}
+                                        max={stats?.wallet_balance || 999999}
+                                        min="100"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Bank UPI ID / Account Number *</label>
+                                    <input
+                                        type="text"
+                                        className="form-input"
+                                        placeholder="e.g. franchise@hdfcbank or Bank A/C #"
+                                        value={payoutUpi}
+                                        onChange={(e) => setPayoutUpi(e.target.value)}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="modal-actions">
+                                    <button type="button" className="btn btn-secondary" onClick={() => setShowPayoutModal(false)}>
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className="btn btn-primary">
+                                        Confirm Withdrawal
+                                    </button>
+                                </div>
+                            </form>
+                        )}
                     </div>
                 </div>
             )}

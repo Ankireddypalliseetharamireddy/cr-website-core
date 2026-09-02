@@ -198,16 +198,16 @@ export default function StorePortal() {
                 </header>
 
                 {/* ========================================================================== */}
-                {/* SLIDE-OUT 3-LINES HAMBURGER MENU DRAWER (MOBILE & DESKTOP)                */}
+                {/* SLIDE-OUT 3-LINES HAMBURGER MENU DRAWER (COMPACT & MOBILE-FIT)            */}
                 {/* ========================================================================== */}
                 {menuOpen && (
                     <div className="modal-overlay" style={{ justifyContent: 'flex-end', padding: 0 }} onClick={() => setMenuOpen(false)}>
                         <div
                             className="modal-content"
                             style={{
-                                width: 'min(85vw, 340px)',
-                                height: '100vh',
-                                maxHeight: '100vh',
+                                width: 'min(85vw, 320px)',
+                                height: '100dvh',
+                                maxHeight: '100dvh',
                                 borderRadius: '0',
                                 borderLeft: '1px solid var(--pos-border-gold-bright)',
                                 borderTop: 'none',
@@ -216,66 +216,71 @@ export default function StorePortal() {
                                 display: 'flex',
                                 flexDirection: 'column',
                                 justifyContent: 'space-between',
-                                padding: '1.75rem 1.5rem',
+                                padding: '1rem 1.15rem',
+                                overflowY: 'auto',
                                 animation: 'slideInRight 0.25s ease-out'
                             }}
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <div>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
                                 {/* Drawer Header with Logo and Close */}
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '1.25rem', borderBottom: '1px solid var(--pos-border-gold)', marginBottom: '1.25rem' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        <img src="/cavree-emblem-gold.png" alt="Cavree" style={{ height: '24px', width: 'auto' }} />
-                                        <span style={{ fontFamily: 'Cinzel, serif', fontWeight: 700, fontSize: '1.1rem', color: 'var(--pos-gold-light)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '0.65rem', borderBottom: '1px solid var(--pos-border-gold)', marginBottom: '0.75rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                                        <img src="/cavree-emblem-gold.png" alt="Cavree" style={{ height: '22px', width: 'auto' }} />
+                                        <span style={{ fontFamily: 'Cinzel, serif', fontWeight: 700, fontSize: '1rem', color: 'var(--pos-gold-light)', letterSpacing: '0.05em' }}>
                                             CAVREE STORE
                                         </span>
                                     </div>
-                                    <button className="btn btn-secondary btn-sm" onClick={() => setMenuOpen(false)} style={{ padding: '0.3rem 0.5rem' }}>
-                                        <X size={18} />
+                                    <button className="btn btn-secondary btn-sm" onClick={() => setMenuOpen(false)} style={{ padding: '0.25rem 0.45rem' }}>
+                                        <X size={16} />
                                     </button>
                                 </div>
 
-                                {/* Staff Profile Details Card */}
-                                <div style={{ background: 'rgba(212, 175, 55, 0.08)', border: '1px solid var(--pos-border-gold)', borderRadius: '12px', padding: '1rem', marginBottom: '1.5rem' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.4rem' }}>
-                                        <div style={{ padding: '0.45rem', borderRadius: '50%', background: 'var(--pos-gold-primary)', color: '#000' }}>
-                                            <User size={16} />
+                                {/* Compact Staff Profile Card */}
+                                <div style={{ background: 'rgba(212, 175, 55, 0.08)', border: '1px solid var(--pos-border-gold)', borderRadius: '10px', padding: '0.65rem 0.85rem', marginBottom: '0.85rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                                        <div style={{ padding: '0.35rem', borderRadius: '50%', background: 'var(--pos-gold-primary)', color: '#000', display: 'flex' }}>
+                                            <User size={13} />
                                         </div>
-                                        <div>
-                                            <div style={{ fontWeight: 'bold', color: 'var(--pos-text-primary)', fontSize: '0.9375rem' }}>{username}</div>
-                                            <span className="badge badge-gold" style={{ fontSize: '0.65rem' }}>{formatRoleLabel(role)}</span>
+                                        <div style={{ minWidth: 0, flex: 1 }}>
+                                            <div style={{ fontWeight: 'bold', color: 'var(--pos-text-primary)', fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                {username}
+                                            </div>
                                         </div>
+                                        <span className="badge badge-gold" style={{ fontSize: '0.6rem', padding: '0.1rem 0.4rem', whiteSpace: 'nowrap' }}>
+                                            {formatRoleLabel(role)}
+                                        </span>
                                     </div>
-                                    <div style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)', marginTop: '0.4rem' }}>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--pos-text-secondary)', paddingLeft: '0.2rem' }}>
                                         Store: <strong style={{ color: 'var(--pos-gold-light)' }}>{franchiseId || 'Central Branch'}</strong>
                                     </div>
                                 </div>
 
-                                {/* Navigation Menu Items */}
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                {/* Navigation Menu Items (Compact) */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                                     <button
                                         className={`btn ${activePage === 'home' ? 'btn-primary' : 'btn-secondary'}`}
                                         onClick={() => handleNavigate('home')}
-                                        style={{ justifyContent: 'space-between', padding: '0.85rem 1rem' }}
+                                        style={{ justifyContent: 'space-between', padding: '0.55rem 0.85rem', fontSize: '0.85rem' }}
                                     >
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                                            <Home size={16} />
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <Home size={15} />
                                             <span>Store Hub</span>
                                         </div>
-                                        <ChevronRight size={14} />
+                                        <ChevronRight size={13} />
                                     </button>
 
                                     {canAccessBilling && (
                                         <button
                                             className={`btn ${activePage === 'billing' ? 'btn-primary' : 'btn-secondary'}`}
                                             onClick={() => handleNavigate('billing')}
-                                            style={{ justifyContent: 'space-between', padding: '0.85rem 1rem' }}
+                                            style={{ justifyContent: 'space-between', padding: '0.55rem 0.85rem', fontSize: '0.85rem' }}
                                         >
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                                                <ShoppingCart size={16} />
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <ShoppingCart size={15} />
                                                 <span>POS Billing Counter</span>
                                             </div>
-                                            <ChevronRight size={14} />
+                                            <ChevronRight size={13} />
                                         </button>
                                     )}
 
@@ -283,13 +288,13 @@ export default function StorePortal() {
                                         <button
                                             className={`btn ${activePage === 'auditing' ? 'btn-primary' : 'btn-secondary'}`}
                                             onClick={() => handleNavigate('auditing')}
-                                            style={{ justifyContent: 'space-between', padding: '0.85rem 1rem' }}
+                                            style={{ justifyContent: 'space-between', padding: '0.55rem 0.85rem', fontSize: '0.85rem' }}
                                         >
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                                                <ClipboardCheck size={16} />
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <ClipboardCheck size={15} />
                                                 <span>Store Inventory Audit</span>
                                             </div>
-                                            <ChevronRight size={14} />
+                                            <ChevronRight size={13} />
                                         </button>
                                     )}
 
@@ -297,13 +302,13 @@ export default function StorePortal() {
                                         <button
                                             className={`btn ${activePage === 'history' ? 'btn-primary' : 'btn-secondary'}`}
                                             onClick={() => handleNavigate('history')}
-                                            style={{ justifyContent: 'space-between', padding: '0.85rem 1rem' }}
+                                            style={{ justifyContent: 'space-between', padding: '0.55rem 0.85rem', fontSize: '0.85rem' }}
                                         >
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                                                <Receipt size={16} />
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <Receipt size={15} />
                                                 <span>Sales &amp; Invoices</span>
                                             </div>
-                                            <ChevronRight size={14} />
+                                            <ChevronRight size={13} />
                                         </button>
                                     )}
 
@@ -311,33 +316,33 @@ export default function StorePortal() {
                                         <button
                                             className={`btn ${activePage === 'dashboard' ? 'btn-primary' : 'btn-secondary'}`}
                                             onClick={() => handleNavigate('dashboard')}
-                                            style={{ justifyContent: 'space-between', padding: '0.85rem 1rem' }}
+                                            style={{ justifyContent: 'space-between', padding: '0.55rem 0.85rem', fontSize: '0.85rem' }}
                                         >
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                                                <Store size={16} />
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <Store size={15} />
                                                 <span>Franchise Operations</span>
                                             </div>
-                                            <ChevronRight size={14} />
+                                            <ChevronRight size={13} />
                                         </button>
                                     )}
                                 </div>
                             </div>
 
-                            {/* Drawer Footer Actions */}
-                            <div style={{ borderTop: '1px solid var(--pos-border-gold)', paddingTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {/* Drawer Footer Actions (Compact) */}
+                            <div style={{ borderTop: '1px solid var(--pos-border-gold)', paddingTop: '0.75rem', marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
                                 <button
-                                    className="btn btn-secondary"
+                                    className="btn btn-secondary btn-sm"
                                     onClick={() => navigate('/')}
-                                    style={{ justifyContent: 'center', padding: '0.75rem' }}
+                                    style={{ justifyContent: 'center', padding: '0.55rem 0.75rem', fontSize: '0.8125rem' }}
                                 >
-                                    <Globe size={15} /> View Public Website
+                                    <Globe size={14} /> View Public Website
                                 </button>
                                 <button
-                                    className="btn btn-danger"
+                                    className="btn btn-danger btn-sm"
                                     onClick={handleLogout}
-                                    style={{ justifyContent: 'center', padding: '0.75rem' }}
+                                    style={{ justifyContent: 'center', padding: '0.55rem 0.75rem', fontSize: '0.8125rem' }}
                                 >
-                                    <LogOut size={15} /> Sign Out
+                                    <LogOut size={14} /> Sign Out
                                 </button>
                             </div>
                         </div>

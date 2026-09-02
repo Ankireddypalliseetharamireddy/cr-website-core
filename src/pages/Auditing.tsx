@@ -156,40 +156,40 @@ export default function Auditing({ onBack }: AuditingProps) {
                 </div>
             )}
 
-            {/* 3 Summary Statistic Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '1.75rem' }}>
-                <div className="glass-panel" style={{ borderLeft: '4px solid var(--pos-gold-primary)' }}>
-                    <div style={{ color: 'var(--pos-text-secondary)', fontSize: '0.8125rem', marginBottom: '0.4rem' }}>Catalog SKUs</div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--pos-gold-light)', fontFamily: 'Cinzel, serif' }}>
-                        {auditItems.length} Products
+            {/* 3 Summary Statistic Cards (2 Columns on Mobile with Reduced Size) */}
+            <div className="kpi-grid">
+                <div className="kpi-card glass-panel" style={{ borderLeft: '4px solid var(--pos-gold-primary)' }}>
+                    <span className="kpi-label" style={{ color: 'var(--pos-text-secondary)' }}>Catalog SKUs</span>
+                    <div className="kpi-val" style={{ color: 'var(--pos-gold-light)' }}>
+                        {auditItems.length}
                     </div>
-                    <span style={{ fontSize: '0.6875rem', color: 'var(--pos-text-secondary)' }}>In active franchise catalog</span>
+                    <span className="kpi-sub" style={{ color: 'var(--pos-text-secondary)' }}>Active catalog products</span>
                 </div>
 
-                <div className="glass-panel" style={{ borderLeft: '4px solid #f59e0b' }}>
-                    <div style={{ color: 'var(--pos-text-secondary)', fontSize: '0.8125rem', marginBottom: '0.4rem' }}>Discrepant Items</div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: totalVariances.length > 0 ? '#fde047' : 'var(--pos-accent-green)' }}>
-                        {totalVariances.length} SKUs
+                <div className="kpi-card glass-panel" style={{ borderLeft: '4px solid #f59e0b' }}>
+                    <span className="kpi-label" style={{ color: 'var(--pos-text-secondary)' }}>Discrepant Items</span>
+                    <div className="kpi-val" style={{ color: totalVariances.length > 0 ? '#fde047' : 'var(--pos-accent-green)' }}>
+                        {totalVariances.length}
                     </div>
-                    <span style={{ fontSize: '0.6875rem', color: 'var(--pos-text-secondary)' }}>{shortageItems.length} shortages identified</span>
+                    <span className="kpi-sub" style={{ color: 'var(--pos-text-secondary)' }}>{shortageItems.length} shortages</span>
                 </div>
 
-                <div className="glass-panel" style={{ borderLeft: '4px solid var(--pos-accent-green)' }}>
-                    <div style={{ color: 'var(--pos-text-secondary)', fontSize: '0.8125rem', marginBottom: '0.4rem' }}>Net Variance Units</div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: totalDiscrepancyUnits === 0 ? 'var(--pos-accent-green)' : (totalDiscrepancyUnits < 0 ? 'var(--pos-accent-red)' : 'var(--pos-gold-light)') }}>
-                        {totalDiscrepancyUnits > 0 ? `+${totalDiscrepancyUnits}` : totalDiscrepancyUnits} Units
+                <div className="kpi-card glass-panel" style={{ borderLeft: '4px solid var(--pos-accent-green)' }}>
+                    <span className="kpi-label" style={{ color: 'var(--pos-text-secondary)' }}>Net Variance</span>
+                    <div className="kpi-val" style={{ color: totalDiscrepancyUnits === 0 ? 'var(--pos-accent-green)' : (totalDiscrepancyUnits < 0 ? 'var(--pos-accent-red)' : 'var(--pos-gold-light)') }}>
+                        {totalDiscrepancyUnits > 0 ? `+${totalDiscrepancyUnits}` : totalDiscrepancyUnits}
                     </div>
-                    <span style={{ fontSize: '0.6875rem', color: 'var(--pos-text-secondary)' }}>Physical vs Central ERP count</span>
+                    <span className="kpi-sub" style={{ color: 'var(--pos-text-secondary)' }}>Physical vs ERP</span>
                 </div>
             </div>
 
-            {/* Audit Verification Table */}
+            {/* Audit Verification Table (Clean 3 Columns: Product Name, Price, Stock) */}
             <div className="glass-panel">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                     <h3 className="panel-title" style={{ margin: 0, border: 'none', padding: 0 }}>
                         Physical Stock Ledger ({filteredItems.length})
                     </h3>
-                    <div style={{ position: 'relative', minWidth: '280px' }}>
+                    <div style={{ position: 'relative', minWidth: '260px' }}>
                         <input
                             type="text"
                             className="form-input"
@@ -209,76 +209,53 @@ export default function Auditing({ onBack }: AuditingProps) {
                         <table className="glass-table">
                             <thead>
                                 <tr>
-                                    <th>Product SKU</th>
                                     <th>Product Name</th>
-                                    <th>Unit Selling Price</th>
-                                    <th style={{ textAlign: 'center' }}>System ERP Stock</th>
-                                    <th style={{ textAlign: 'center' }}>Physical Shelf Count</th>
-                                    <th style={{ textAlign: 'center' }}>Variance Status</th>
+                                    <th style={{ textAlign: 'center' }}>Price</th>
+                                    <th style={{ textAlign: 'center' }}>Physical Stock Count</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredItems.map((item) => {
-                                    const diff = item.physical_count - item.system_stock;
-                                    return (
-                                        <tr key={item.id}>
-                                            <td style={{ fontWeight: 'bold', color: 'var(--pos-gold-light)', fontFamily: 'monospace' }}>
-                                                {item.sku}
-                                            </td>
-                                            <td style={{ fontWeight: 600 }}>
+                                {filteredItems.map((item) => (
+                                    <tr key={item.id}>
+                                        <td>
+                                            <div style={{ fontWeight: 600, color: 'var(--pos-text-primary)', fontSize: '0.9375rem' }}>
                                                 {item.name}
-                                                {item.barcode && (
-                                                    <div style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>Barcode: {item.barcode}</div>
-                                                )}
-                                            </td>
-                                            <td>₹{item.selling_price}</td>
-                                            <td style={{ textAlign: 'center', fontWeight: 'bold', color: 'var(--pos-text-secondary)' }}>
-                                                {item.system_stock}
-                                            </td>
-                                            <td style={{ textAlign: 'center' }}>
-                                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                                                    <button
-                                                        type="button"
-                                                        className="qty-btn"
-                                                        onClick={() => handleIncrement(item.id, -1)}
-                                                    >
-                                                        -
-                                                    </button>
-                                                    <input
-                                                        type="number"
-                                                        min="0"
-                                                        value={item.physical_count}
-                                                        onChange={(e) => handleCountChange(item.id, e.target.value)}
-                                                        className="form-input"
-                                                        style={{ width: '65px', textAlign: 'center', padding: '0.45rem', fontSize: '0.9375rem', fontWeight: 'bold' }}
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        className="qty-btn"
-                                                        onClick={() => handleIncrement(item.id, 1)}
-                                                    >
-                                                        +
-                                                    </button>
-                                                </div>
-                                            </td>
-                                            <td style={{ textAlign: 'center' }}>
-                                                {diff === 0 ? (
-                                                    <span className="badge badge-success">
-                                                        <Check size={11} style={{ marginRight: '0.2rem' }} /> Match
-                                                    </span>
-                                                ) : diff < 0 ? (
-                                                    <span className="badge badge-danger">
-                                                        {diff} Shortage
-                                                    </span>
-                                                ) : (
-                                                    <span className="badge badge-warning">
-                                                        +{diff} Surplus
-                                                    </span>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
+                                            </div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>
+                                                {item.sku} {item.barcode ? `• Barcode: ${item.barcode}` : ''}
+                                            </div>
+                                        </td>
+                                        <td style={{ textAlign: 'center', fontWeight: 'bold', color: 'var(--pos-gold-light)', fontSize: '1rem' }}>
+                                            ₹{item.selling_price}
+                                        </td>
+                                        <td style={{ textAlign: 'center' }}>
+                                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                                                <button
+                                                    type="button"
+                                                    className="qty-btn"
+                                                    onClick={() => handleIncrement(item.id, -1)}
+                                                >
+                                                    -
+                                                </button>
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    value={item.physical_count}
+                                                    onChange={(e) => handleCountChange(item.id, e.target.value)}
+                                                    className="form-input"
+                                                    style={{ width: '60px', textAlign: 'center', padding: '0.35rem', fontSize: '0.9375rem', fontWeight: 'bold' }}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    className="qty-btn"
+                                                    onClick={() => handleIncrement(item.id, 1)}
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                     </div>

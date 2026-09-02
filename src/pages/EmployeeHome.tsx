@@ -170,83 +170,83 @@ export default function EmployeeHome({ onNavigate, userRole }: EmployeeHomeProps
             </div>
 
             {/* Main Action Hub Modules (3 Luxury Glass Cards) */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+            <div className="action-grid">
                 
                 {/* Module 1: Billing & POS */}
                 <div
-                    className="glass-panel"
-                    style={{ cursor: 'pointer', borderTop: '4px solid var(--pos-gold-primary)' }}
+                    className="action-card glass-panel"
+                    style={{ borderTop: '4px solid var(--pos-gold-primary)' }}
                     onClick={() => onNavigate('billing')}
                 >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '1rem' }}>
-                        <div style={{ padding: '0.85rem', borderRadius: '14px', background: 'var(--pos-gold-gradient-subtle)', color: 'var(--pos-gold-primary)', border: '1px solid var(--pos-border-gold)' }}>
-                            <ShoppingCart size={28} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.65rem' }}>
+                        <div style={{ padding: '0.65rem', borderRadius: '12px', background: 'var(--pos-gold-gradient-subtle)', color: 'var(--pos-gold-primary)', border: '1px solid var(--pos-border-gold)', display: 'flex' }}>
+                            <ShoppingCart size={22} />
                         </div>
                         <div>
-                            <h3 style={{ fontSize: '1.2rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: 0, color: 'var(--pos-gold-light)' }}>
+                            <h3 style={{ fontSize: '1.15rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: 0, color: 'var(--pos-gold-light)' }}>
                                 Counter Billing &amp; POS
                             </h3>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>Laser Gun &bull; Camera QR &bull; mPOS</span>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--pos-text-secondary)' }}>Laser Gun &bull; Camera QR &bull; mPOS</span>
                         </div>
                     </div>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--pos-text-secondary)', marginBottom: '1.25rem', lineHeight: '1.5' }}>
+                    <p style={{ fontSize: '0.8125rem', color: 'var(--pos-text-secondary)', marginBottom: '0.75rem', lineHeight: '1.4' }}>
                         Instant barcode and QR lookup, live tax calculation, cash change calculator, and multi-channel receipt sharing.
                     </p>
-                    <div style={{ display: 'flex', alignItems: 'center', color: 'var(--pos-gold-light)', fontWeight: 'bold', fontSize: '0.875rem', gap: '0.35rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', color: 'var(--pos-gold-light)', fontWeight: 'bold', fontSize: '0.8125rem', gap: '0.35rem' }}>
                         <span>Open Billing Terminal</span>
-                        <ArrowRight size={15} />
+                        <ArrowRight size={14} />
                     </div>
                 </div>
 
                 {/* Module 2: Store Inventory Auditing */}
                 <div
-                    className="glass-panel"
-                    style={{ cursor: 'pointer', borderTop: '4px solid var(--pos-accent-green)' }}
+                    className="action-card glass-panel"
+                    style={{ borderTop: '4px solid var(--pos-accent-green)' }}
                     onClick={() => onNavigate('auditing')}
                 >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '1rem' }}>
-                        <div style={{ padding: '0.85rem', borderRadius: '14px', background: 'rgba(16, 185, 129, 0.12)', color: 'var(--pos-accent-green)', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
-                            <ClipboardCheck size={28} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.65rem' }}>
+                        <div style={{ padding: '0.65rem', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.12)', color: 'var(--pos-accent-green)', border: '1px solid rgba(16, 185, 129, 0.25)', display: 'flex' }}>
+                            <ClipboardCheck size={22} />
                         </div>
                         <div>
-                            <h3 style={{ fontSize: '1.2rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: 0, color: '#6ee7b7' }}>
+                            <h3 style={{ fontSize: '1.15rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: 0, color: '#6ee7b7' }}>
                                 Store Auditing
                             </h3>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>Physical Count &bull; Discrepancy Log</span>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--pos-text-secondary)' }}>Physical Count &bull; Discrepancy Log</span>
                         </div>
                     </div>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--pos-text-secondary)', marginBottom: '1.25rem', lineHeight: '1.5' }}>
+                    <p style={{ fontSize: '0.8125rem', color: 'var(--pos-text-secondary)', marginBottom: '0.75rem', lineHeight: '1.4' }}>
                         Verify shelf stock against central ERP numbers, scan barcodes, and submit real-time variance audit logs.
                     </p>
-                    <div style={{ display: 'flex', alignItems: 'center', color: 'var(--pos-accent-green)', fontWeight: 'bold', fontSize: '0.875rem', gap: '0.35rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', color: 'var(--pos-accent-green)', fontWeight: 'bold', fontSize: '0.8125rem', gap: '0.35rem' }}>
                         <span>Launch Stock Audit</span>
-                        <ArrowRight size={15} />
+                        <ArrowRight size={14} />
                     </div>
                 </div>
 
                 {/* Module 3: Invoices & History */}
                 <div
-                    className="glass-panel"
-                    style={{ cursor: 'pointer', borderTop: '4px solid var(--pos-gold-champagne)' }}
+                    className="action-card glass-panel"
+                    style={{ borderTop: '4px solid var(--pos-gold-champagne)' }}
                     onClick={() => onNavigate('history')}
                 >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '1rem' }}>
-                        <div style={{ padding: '0.85rem', borderRadius: '14px', background: 'rgba(222, 194, 157, 0.12)', color: 'var(--pos-gold-champagne)', border: '1px solid var(--pos-border-gold)' }}>
-                            <Receipt size={28} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.65rem' }}>
+                        <div style={{ padding: '0.65rem', borderRadius: '12px', background: 'rgba(222, 194, 157, 0.12)', color: 'var(--pos-gold-champagne)', border: '1px solid var(--pos-border-gold)', display: 'flex' }}>
+                            <Receipt size={22} />
                         </div>
                         <div>
-                            <h3 style={{ fontSize: '1.2rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: 0, color: 'var(--pos-gold-champagne)' }}>
+                            <h3 style={{ fontSize: '1.15rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: 0, color: 'var(--pos-gold-champagne)' }}>
                                 Sales &amp; Invoices
                             </h3>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>Receipts &bull; WhatsApp Share</span>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--pos-text-secondary)' }}>Receipts &bull; WhatsApp Share</span>
                         </div>
                     </div>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--pos-text-secondary)', marginBottom: '1.25rem', lineHeight: '1.5' }}>
+                    <p style={{ fontSize: '0.8125rem', color: 'var(--pos-text-secondary)', marginBottom: '0.75rem', lineHeight: '1.4' }}>
                         Access transaction logs, re-print thermal slips, and broadcast PDF invoices directly to customer phones.
                     </p>
-                    <div style={{ display: 'flex', alignItems: 'center', color: 'var(--pos-gold-champagne)', fontWeight: 'bold', fontSize: '0.875rem', gap: '0.35rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', color: 'var(--pos-gold-champagne)', fontWeight: 'bold', fontSize: '0.8125rem', gap: '0.35rem' }}>
                         <span>View Sales History</span>
-                        <ArrowRight size={15} />
+                        <ArrowRight size={14} />
                     </div>
                 </div>
             </div>

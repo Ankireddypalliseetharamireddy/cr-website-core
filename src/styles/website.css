@@ -216,6 +216,40 @@
     }
 }
 
+/* Action Hub Grid and Cards */
+.store-portal-root .action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.store-portal-root .action-card {
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+@media (max-width: 768px) {
+    .store-portal-root .action-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0.75rem !important;
+        margin-bottom: 1.25rem !important;
+    }
+
+    .store-portal-root .action-card {
+        padding: 1rem 1.15rem !important;
+        border-radius: 14px !important;
+    }
+
+    .store-portal-root .action-card h3 {
+        font-size: 1.05rem !important;
+    }
+
+    .store-portal-root .action-card p {
+        display: none; /* Hide verbose paragraphs on mobile so action cards are slim */
+    }
+}
+
 .store-portal-root .panel-title {
     font-family: 'Cinzel', serif;
     font-size: 1.1rem;

@@ -172,27 +172,35 @@ export default function Login({ onLoginSuccess }: LoginProps) {
         <div className="login-container">
             <div className="glass-panel login-card">
                 <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
-                    <div style={{ display: 'inline-flex', padding: '0.75rem', borderRadius: '50%', backgroundColor: 'rgba(59, 130, 246, 0.1)', color: 'var(--accent-blue)', marginBottom: '0.75rem' }}>
+                    <div style={{ display: 'inline-flex', padding: '0.85rem', borderRadius: '50%', backgroundColor: 'rgba(212, 175, 55, 0.12)', border: '1px solid var(--pos-border-gold)', color: 'var(--pos-gold-primary)', marginBottom: '0.75rem', boxShadow: '0 0 25px rgba(212, 175, 55, 0.2)' }}>
                         <Store size={32} />
                     </div>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.25rem' }}>Cavree Portal</h2>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Sign in to access store operations &amp; POS</p>
+                    <h2 style={{ fontFamily: 'Cinzel, serif', fontSize: '1.6rem', fontWeight: 'bold', marginBottom: '0.25rem', letterSpacing: '0.04em' }}>
+                        <span style={{ background: 'var(--pos-gold-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                            CAVREE PORTAL
+                        </span>
+                    </h2>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--pos-text-secondary)' }}>Sign in to access store operations &amp; POS</p>
                 </div>
 
                 {/* Login Role Tabs */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', background: 'rgba(0,0,0,0.2)', padding: '0.25rem', borderRadius: '8px', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--pos-border-gold)', padding: '0.35rem', borderRadius: '10px', marginBottom: '1.5rem' }}>
                     <button
                         type="button"
                         onClick={() => { setLoginType('employee'); setError(''); }}
                         style={{
-                            padding: '0.5rem',
-                            border: 'none',
-                            borderRadius: '6px',
-                            background: loginType === 'employee' ? 'var(--accent-blue)' : 'transparent',
-                            color: '#fff',
-                            fontWeight: 'bold',
+                            padding: '0.6rem',
+                            border: loginType === 'employee' ? '1px solid rgba(255,255,255,0.3)' : 'none',
+                            borderRadius: '8px',
+                            background: loginType === 'employee' ? 'var(--pos-gold-gradient)' : 'transparent',
+                            color: loginType === 'employee' ? '#07080B' : 'var(--pos-gold-light)',
+                            fontWeight: '700',
                             cursor: 'pointer',
-                            fontSize: '0.8125rem'
+                            fontSize: '0.8125rem',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em',
+                            transition: 'all 0.2s ease',
+                            boxShadow: loginType === 'employee' ? '0 4px 15px rgba(212, 175, 55, 0.3)' : 'none'
                         }}
                     >
                         Store Staff
@@ -201,14 +209,18 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                         type="button"
                         onClick={() => { setLoginType('admin'); setError(''); }}
                         style={{
-                            padding: '0.5rem',
-                            border: 'none',
-                            borderRadius: '6px',
-                            background: loginType === 'admin' ? 'var(--accent-blue)' : 'transparent',
-                            color: '#fff',
-                            fontWeight: 'bold',
+                            padding: '0.6rem',
+                            border: loginType === 'admin' ? '1px solid rgba(255,255,255,0.3)' : 'none',
+                            borderRadius: '8px',
+                            background: loginType === 'admin' ? 'var(--pos-gold-gradient)' : 'transparent',
+                            color: loginType === 'admin' ? '#07080B' : 'var(--pos-gold-light)',
+                            fontWeight: '700',
                             cursor: 'pointer',
-                            fontSize: '0.8125rem'
+                            fontSize: '0.8125rem',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em',
+                            transition: 'all 0.2s ease',
+                            boxShadow: loginType === 'admin' ? '0 4px 15px rgba(212, 175, 55, 0.3)' : 'none'
                         }}
                     >
                         Franchise Admin
@@ -337,7 +349,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                             style={{
                                 background: 'none',
                                 border: 'none',
-                                color: 'var(--accent-blue)',
+                                color: 'var(--pos-gold-light)',
                                 fontSize: '0.8125rem',
                                 cursor: 'pointer',
                                 fontWeight: 600,
@@ -490,8 +502,8 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                                     setForgotLoading(false);
                                 }
                             }}>
-                                <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginBottom: '1.25rem', lineHeight: '1.5' }}>
-                                    Enter the 6-digit code sent to <strong style={{ color: 'var(--accent-blue)' }}>{forgotMaskedEmail}</strong> along with your new password.
+                                <p style={{ fontSize: '0.8125rem', color: 'var(--pos-text-secondary)', marginBottom: '1.25rem', lineHeight: '1.5' }}>
+                                    Enter the 6-digit code sent to <strong style={{ color: 'var(--pos-gold-light)' }}>{forgotMaskedEmail}</strong> along with your new password.
                                 </p>
 
                                 <div className="form-group">
@@ -500,7 +512,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                                         type="text"
                                         maxLength={6}
                                         className="form-input"
-                                        style={{ textAlign: 'center', fontSize: '1.5rem', letterSpacing: '6px', fontWeight: 'bold', color: 'var(--accent-blue)' }}
+                                        style={{ textAlign: 'center', fontSize: '1.5rem', letterSpacing: '6px', fontWeight: 'bold', color: 'var(--pos-gold-primary)' }}
                                         placeholder="------"
                                         value={forgotOtp}
                                         onChange={(e) => setForgotOtp(e.target.value.replace(/[^0-9]/g, ''))}

@@ -1,22 +1,41 @@
 /* ================================================================ */
-/* STORE STAFF POS & FRANCHISE PORTAL STYLES (SCOPED)              */
+/* CAVREE STORE STAFF POS & FRANCHISE PORTAL - LUXURY GOLD THEME   */
 /* ================================================================ */
 
 .store-portal-root {
-    --pos-bg-primary: #0a0b10;
-    --pos-bg-surface: rgba(20, 22, 37, 0.85);
-    --pos-border-color: rgba(255, 255, 255, 0.1);
-    --pos-text-primary: #f3f4f6;
-    --pos-text-secondary: #9ca3af;
-    --pos-accent-blue: #3b82f6;
+    --pos-bg-primary: #07080B;
+    --pos-bg-secondary: #0D0F15;
+    --pos-bg-tertiary: #131620;
+    --pos-bg-surface: rgba(16, 19, 28, 0.85);
+    --pos-bg-surface-elevated: rgba(24, 28, 42, 0.95);
+    
+    --pos-gold-primary: #D4AF37;
+    --pos-gold-light: #F3E5AB;
+    --pos-gold-dark: #A67C1E;
+    --pos-gold-metallic: #E6CA65;
+    --pos-gold-champagne: #DEC29D;
+    --pos-gold-glow: rgba(212, 175, 55, 0.35);
+    
+    --pos-gold-gradient: linear-gradient(135deg, #D4AF37 0%, #F5E6A3 40%, #BF8C24 75%, #8C6514 100%);
+    --pos-gold-gradient-subtle: linear-gradient(135deg, rgba(212, 175, 55, 0.16) 0%, rgba(243, 229, 171, 0.05) 100%);
+    
+    --pos-border-subtle: rgba(255, 255, 255, 0.08);
+    --pos-border-gold: rgba(212, 175, 55, 0.25);
+    --pos-border-gold-bright: rgba(212, 175, 55, 0.65);
+    
+    --pos-text-primary: #F8F9FC;
+    --pos-text-secondary: #AEB3C4;
+    --pos-text-muted: #6B7285;
+    --pos-text-gold: #FFF3B3;
+
     --pos-accent-green: #10b981;
-    --pos-accent-orange: #f59e0b;
     --pos-accent-red: #ef4444;
-    --pos-accent-purple: #8b5cf6;
+    --pos-accent-orange: #f59e0b;
+    --pos-accent-purple: #D4AF37;
 
     background-color: var(--pos-bg-primary);
     color: var(--pos-text-primary);
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -31,7 +50,7 @@
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    background-color: var(--pos-bg-primary);
+    background: radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.05) 0%, #07080B 75%);
 }
 
 /* Header Navbar */
@@ -40,23 +59,32 @@
     justify-content: space-between;
     align-items: center;
     padding: 0.875rem 1.5rem;
-    background: var(--pos-bg-surface);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--pos-border-color);
+    background: rgba(10, 11, 14, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--pos-border-gold);
     position: sticky;
     top: 0;
     z-index: 100;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
 }
 
 .store-portal-root .brand {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-weight: bold;
-    font-size: 1.125rem;
-    color: var(--pos-text-primary);
+    gap: 0.65rem;
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: 1.15rem;
+    letter-spacing: 0.08em;
+    color: var(--pos-gold-light);
     user-select: none;
+}
+
+.store-portal-root .brand span {
+    background: var(--pos-gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .store-portal-root .user-badge {
@@ -65,13 +93,14 @@
     gap: 0.5rem;
     font-size: 0.8125rem;
     color: var(--pos-text-secondary);
+    border: 1px solid var(--pos-border-gold);
 }
 
 /* Main Content Wrapper */
 .store-portal-root .main-content {
     flex-grow: 1;
-    padding: 1.5rem;
-    max-width: 1320px;
+    padding: 1.75rem;
+    max-width: 1360px;
     width: 100%;
     margin: 0 auto;
 }
@@ -95,22 +124,29 @@
 /* Cards & Panels */
 .store-portal-root .glass-panel {
     background: var(--pos-bg-surface);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--pos-border-color);
-    border-radius: 14px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--pos-border-gold);
+    border-radius: 16px;
     padding: 1.5rem;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-    transition: border-color 0.2s, transform 0.2s;
+    box-shadow: 0 10px 35px 0 rgba(0, 0, 0, 0.6), 0 0 20px rgba(212, 175, 55, 0.05);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.store-portal-root .glass-panel:hover {
+    border-color: var(--pos-border-gold-bright);
+    box-shadow: 0 14px 45px 0 rgba(0, 0, 0, 0.8), 0 0 30px rgba(212, 175, 55, 0.12);
 }
 
 .store-portal-root .panel-title {
-    font-size: 1.125rem;
-    font-weight: bold;
-    margin-bottom: 1rem;
-    color: var(--pos-text-primary);
-    border-bottom: 1px solid var(--pos-border-color);
-    padding-bottom: 0.5rem;
+    font-family: 'Cinzel', serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    margin-bottom: 1.25rem;
+    color: var(--pos-gold-light);
+    border-bottom: 1px solid var(--pos-border-gold);
+    padding-bottom: 0.65rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -118,41 +154,42 @@
 
 /* Form Styles */
 .store-portal-root .form-group {
-    margin-bottom: 1.125rem;
+    margin-bottom: 1.25rem;
     display: flex;
     flex-direction: column;
-    gap: 0.375rem;
+    gap: 0.4rem;
 }
 
 .store-portal-root .form-label {
     font-size: 0.75rem;
     font-weight: 700;
-    color: var(--pos-text-secondary);
+    color: var(--pos-gold-champagne);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
 }
 
 .store-portal-root .form-input {
     width: 100%;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--pos-border-color);
-    border-radius: 8px;
-    padding: 0.75rem 1rem;
+    background: rgba(8, 10, 15, 0.7);
+    border: 1px solid var(--pos-border-gold);
+    border-radius: 10px;
+    padding: 0.8rem 1rem;
     color: var(--pos-text-primary);
     font-size: 0.9375rem;
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: all 0.2s ease;
 }
 
 .store-portal-root .form-input:focus {
-    border-color: var(--pos-accent-blue);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+    border-color: var(--pos-gold-primary);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.25);
+    background: rgba(12, 14, 22, 0.9);
 }
 
 .store-portal-root .form-select {
     appearance: none;
     cursor: pointer;
-    background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg fill='%23D4AF37' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
     background-repeat: no-repeat;
     background-position: right 0.75rem center;
 }
@@ -163,13 +200,14 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.75rem 1.25rem;
-    font-size: 0.9375rem;
+    padding: 0.75rem 1.35rem;
+    font-size: 0.875rem;
     font-weight: 600;
+    letter-spacing: 0.04em;
     border-radius: 8px;
     border: none;
     cursor: pointer;
-    transition: opacity 0.2s, transform 0.1s, background-color 0.2s;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     user-select: none;
     touch-action: manipulation;
 }
@@ -179,42 +217,49 @@
 }
 
 .store-portal-root .btn:disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: not-allowed;
 }
 
 .store-portal-root .btn-primary {
-    background: var(--pos-accent-blue);
-    color: #fff;
-    box-shadow: none;
-    text-transform: none;
-    letter-spacing: normal;
+    background: var(--pos-gold-gradient);
+    color: #07080B;
+    font-weight: 700;
+    box-shadow: 0 4px 18px rgba(212, 175, 55, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .store-portal-root .btn-primary:hover:not(:disabled) {
-    background: #2563eb;
+    box-shadow: 0 6px 24px rgba(212, 175, 55, 0.45);
+    transform: translateY(-1px);
 }
 
 .store-portal-root .btn-secondary {
-    background: rgba(255, 255, 255, 0.08);
-    color: var(--pos-text-primary);
-    border: 1px solid var(--pos-border-color);
-    box-shadow: none;
-    text-transform: none;
-    letter-spacing: normal;
+    background: rgba(18, 21, 30, 0.7);
+    color: var(--pos-gold-light);
+    border: 1px solid var(--pos-border-gold);
+    backdrop-filter: blur(10px);
 }
 
 .store-portal-root .btn-secondary:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.14);
+    background: rgba(28, 32, 46, 0.9);
+    border-color: var(--pos-border-gold-bright);
+    color: #FFF3B3;
 }
 
 .store-portal-root .btn-danger {
-    background: var(--pos-accent-red);
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.store-portal-root .btn-danger:hover:not(:disabled) {
+    background: #ef4444;
     color: #fff;
 }
 
 .store-portal-root .btn-sm {
-    padding: 0.4rem 0.75rem;
+    padding: 0.45rem 0.85rem;
     font-size: 0.8125rem;
     border-radius: 6px;
 }
@@ -236,36 +281,36 @@
 
 .store-portal-root .glass-table th, 
 .store-portal-root .glass-table td {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--pos-border-color);
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--pos-border-gold);
 }
 
 .store-portal-root .glass-table th {
     font-weight: 700;
-    color: var(--pos-text-secondary);
+    color: var(--pos-gold-champagne);
     text-transform: uppercase;
-    font-size: 0.6875rem;
-    letter-spacing: 0.05em;
-    background: rgba(0, 0, 0, 0.2);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    background: rgba(0, 0, 0, 0.4);
 }
 
 /* Badges */
 .store-portal-root .badge {
     display: inline-flex;
     align-items: center;
-    padding: 0.25rem 0.5rem;
+    padding: 0.3rem 0.6rem;
     font-size: 0.6875rem;
     font-weight: 700;
-    border-radius: 4px;
+    border-radius: 9999px;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
 }
 
-.store-portal-root .badge-blue { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
-.store-portal-root .badge-success { background: rgba(16, 185, 129, 0.2); color: #34d399; }
-.store-portal-root .badge-warning { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
-.store-portal-root .badge-danger { background: rgba(239, 68, 68, 0.2); color: #f87171; }
-.store-portal-root .badge-purple { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+.store-portal-root .badge-blue { background: rgba(212, 175, 55, 0.15); color: #FFF3B3; border: 1px solid var(--pos-border-gold); }
+.store-portal-root .badge-success { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
+.store-portal-root .badge-warning { background: rgba(245, 158, 11, 0.15); color: #fde047; border: 1px solid rgba(245, 158, 11, 0.3); }
+.store-portal-root .badge-danger { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+.store-portal-root .badge-purple { background: var(--pos-gold-gradient-subtle); color: var(--pos-gold-light); border: 1px solid var(--pos-border-gold-bright); }
 
 /* Login Container */
 .store-portal-root .login-container {
@@ -273,12 +318,16 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1.25rem;
+    padding: 1.5rem;
 }
 
 .store-portal-root .login-card {
     width: 100%;
-    max-width: 440px;
+    max-width: 460px;
+    background: linear-gradient(145deg, rgba(20, 24, 36, 0.9) 0%, rgba(10, 12, 18, 0.95) 100%);
+    border: 1px solid var(--pos-border-gold);
+    border-radius: 20px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 35px rgba(212, 175, 55, 0.12);
 }
 
 /* Cart Specific Styles */
@@ -286,8 +335,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid var(--pos-border-color);
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--pos-border-gold);
 }
 
 .store-portal-root .qty-control {
@@ -300,9 +349,9 @@
     min-width: 32px;
     min-height: 32px;
     border-radius: 6px;
-    border: 1px solid var(--pos-border-color);
-    background: rgba(255, 255, 255, 0.08);
-    color: white;
+    border: 1px solid var(--pos-border-gold);
+    background: rgba(212, 175, 55, 0.1);
+    color: var(--pos-gold-light);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -313,7 +362,7 @@
 }
 
 .store-portal-root .qty-btn:active {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(212, 175, 55, 0.25);
 }
 
 /* Modals inside portal */
@@ -323,9 +372,9 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: rgba(4, 5, 8, 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -334,15 +383,15 @@
 }
 
 .store-portal-root .modal-content {
-    background: #0f111a;
-    border: 1px solid var(--pos-border-color);
-    border-radius: 16px;
-    padding: 1.75rem;
+    background: linear-gradient(145deg, #11141E 0%, #0B0D14 100%);
+    border: 1px solid var(--pos-border-gold-bright);
+    border-radius: 20px;
+    padding: 1.85rem;
     width: 100%;
-    max-width: 480px;
+    max-width: 500px;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.9), 0 0 45px rgba(212, 175, 55, 0.15);
 }
 
 .store-portal-root .modal-actions {
@@ -352,8 +401,8 @@
     margin-top: 1.5rem;
 }
 
-/* Camera Scanner Crosshair Animation */
-@keyframes laserSweep {
+/* Camera Scanner Crosshair Animation (Gold Glow) */
+@keyframes laserSweepGold {
     0% { top: 10%; opacity: 0.8; }
     50% { top: 90%; opacity: 1; }
     100% { top: 10%; opacity: 0.8; }
@@ -363,9 +412,9 @@
     position: absolute;
     width: 100%;
     height: 3px;
-    background: #3b82f6;
-    box-shadow: 0 0 12px #3b82f6, 0 0 20px #8b5cf6;
-    animation: laserSweep 2s infinite ease-in-out;
+    background: var(--pos-gold-primary);
+    box-shadow: 0 0 15px #D4AF37, 0 0 30px #FFF3B3;
+    animation: laserSweepGold 2s infinite ease-in-out;
 }
 
 /* Responsive Media Queries for Store Portal */

@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
+import ScrollProgressBar from '../common/ScrollProgressBar';
 import { ModalProvider, useModal } from '../../context/ModalContext';
 import { VALID_HASHES } from '../../constants/navigation';
 
@@ -13,27 +14,6 @@ const LayoutContent = () => {
   const isKnownRoute = ['/', '/about', '/investment-model', '/benefits', '/process', '/contact', '/thank-you', '/thankyou'].includes(location.pathname);
   const is404 = isInvalidHash || !isKnownRoute;
   const isThankYouPage = location.pathname === '/thank-you' || location.pathname === '/thankyou';
-
-  React.useEffect(() => {
-    if (location.hash) {
-      const id = location.hash.replace('#', '');
-      const timer = setTimeout(() => {
-        const element = document.getElementById(id);
-        if (element) {
-          const navOffset = 80;
-          const elementPosition = element.getBoundingClientRect().top;
-          const offsetPosition = elementPosition + window.pageYOffset - navOffset;
-          window.scrollTo({
-            top: Math.max(0, offsetPosition),
-            behavior: 'smooth'
-          });
-        }
-      }, 150);
-      return () => clearTimeout(timer);
-    } else {
-      window.scrollTo({ top: 0, behavior: 'instant' });
-    }
-  }, [location.pathname, location.hash]);
 
   if (is404) {
     return (
@@ -55,6 +35,7 @@ const LayoutContent = () => {
 
   return (
     <div className="cavree-app-shell flex flex-col min-h-screen bg-[#07080B] text-white">
+      <ScrollProgressBar />
       <Navbar
         onOpenBrochure={openBrochure}
         onOpenConsultation={openConsultation}

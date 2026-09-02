@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import CavreeLogo from '../../components/brand/CavreeLogo';
+import ScrollReveal from '../../components/common/ScrollReveal';
 
 export const ThankYouPage = () => {
   const location = useLocation();
@@ -53,7 +54,7 @@ export const ThankYouPage = () => {
   }, []);
 
   const handleCopyEmail = () => {
-    navigator.clipboard.writeText('cavree99@gmail.com');
+    navigator.clipboard.writeText('contact@cavree.com');
     setCopiedEmail(true);
     setTimeout(() => setCopiedEmail(false), 2200);
   };
@@ -90,7 +91,7 @@ export const ThankYouPage = () => {
         </div>
 
         {/* Main Certificate / Dossier Card */}
-        <div className="w-full bg-white/95 backdrop-blur-md rounded-2xl sm:rounded-3xl border border-[#DEC29D]/70 shadow-[0_16px_50px_rgba(181,140,54,0.08),0_2px_8px_rgba(0,0,0,0.03)] p-5 sm:p-7 md:p-8 relative overflow-hidden">
+        <ScrollReveal variant="fade-up" duration={1100} className="w-full bg-white/95 backdrop-blur-md rounded-2xl sm:rounded-3xl border border-[#DEC29D]/70 shadow-[0_16px_50px_rgba(181,140,54,0.08),0_2px_8px_rgba(0,0,0,0.03)] p-5 sm:p-7 md:p-8 relative overflow-hidden">
           
           {/* Top Gold Metallic Accent Line */}
           <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#D4AF37]/20 via-[#D4AF37] to-[#D4AF37]/20" />
@@ -258,7 +259,7 @@ export const ThankYouPage = () => {
                     Official Investor Desk
                   </span>
                   <span className="font-sans text-xs font-bold text-[#1C1D21] truncate block">
-                    cavree99@gmail.com
+                    contact@cavree.com
                   </span>
                 </div>
               </div>
@@ -295,7 +296,7 @@ export const ThankYouPage = () => {
             </div>
           </div>
 
-        </div>
+        </ScrollReveal>
 
         {/* Security / Trust Badges */}
         <div className="mt-3.5 flex flex-wrap items-center justify-center gap-x-3.5 gap-y-1 font-sans text-[0.68rem] text-[#7A7C85]">

@@ -31,47 +31,52 @@ export const Navbar = ({ onOpenBrochure, onOpenConsultation, onOpenCctv, onOpenL
 
   useEffect(() => {
     let lastSection = '';
+    let frameId = null;
     const handleScroll = () => {
-      const scrolled = window.scrollY > 60;
-      setIsScrolled((prev) => (prev !== scrolled ? scrolled : prev));
+      if (frameId !== null) return;
 
-      if (location.pathname === '/about') {
-        setActiveSection('about');
-        return;
-      }
+      frameId = window.requestAnimationFrame(() => {
+        frameId = null;
+        const scrolled = window.scrollY > 60;
+        setIsScrolled((prev) => (prev !== scrolled ? scrolled : prev));
 
-      const isInvestmentPage = location.pathname === '/investment-model';
-      const sectionIds = isInvestmentPage
-        ? ['investment', 'benefits', 'process', 'contact']
-        : ['home', 'contact'];
+        if (location.pathname === '/about') {
+          setActiveSection('about');
+          return;
+        }
 
-      const scrollPosition = window.scrollY + 240;
+        const isInvestmentPage = location.pathname === '/investment-model';
+        const sectionIds = isInvestmentPage
+          ? ['investment', 'benefits', 'process', 'contact']
+          : ['home', 'contact'];
 
-      for (let i = sectionIds.length - 1; i >= 0; i--) {
-        const el = document.getElementById(sectionIds[i]);
-        if (el && el.offsetTop <= scrollPosition) {
-          setActiveSection((prev) => (prev !== sectionIds[i] ? sectionIds[i] : prev));
-          if (lastSection !== sectionIds[i] && window.scrollY > 150) {
+        const scrollPosition = window.scrollY + 240;
+
+        for (let i = sectionIds.length - 1; i >= 0; i--) {
+          const el = document.getElementById(sectionIds[i]);
+          if (el && el.offsetTop <= scrollPosition) {
+            setActiveSection((prev) => (prev !== sectionIds[i] ? sectionIds[i] : prev));
             lastSection = sectionIds[i];
-            window.history.replaceState(null, '', '#' + sectionIds[i]);
+            break;
           }
-          break;
         }
-      }
 
-      if (window.scrollY <= 150) {
-        const defaultSec = isInvestmentPage ? 'investment' : 'home';
-        if (lastSection !== defaultSec) {
-          lastSection = defaultSec;
-          setActiveSection((prev) => (prev !== defaultSec ? defaultSec : prev));
-          window.history.replaceState(null, '', window.location.pathname);
+        if (window.scrollY <= 150) {
+          const defaultSec = isInvestmentPage ? 'investment' : 'home';
+          if (lastSection !== defaultSec) {
+            lastSection = defaultSec;
+            setActiveSection((prev) => (prev !== defaultSec ? defaultSec : prev));
+          }
         }
-      }
+      });
     };
 
     handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (frameId !== null) window.cancelAnimationFrame(frameId);
+    };
   }, [location.pathname]);
 
   const isVisibleOnScroll = isScrolled || location.pathname !== '/';

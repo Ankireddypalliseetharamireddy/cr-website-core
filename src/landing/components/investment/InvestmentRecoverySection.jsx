@@ -5,6 +5,7 @@ import {
   Megaphone, 
   ShieldCheck 
 } from 'lucide-react';
+import ScrollReveal from '../common/ScrollReveal';
 
 export const InvestmentRecoverySection = () => {
   const recoverySteps = [
@@ -90,7 +91,7 @@ export const InvestmentRecoverySection = () => {
     >
       <div className="container max-w-[1534px] w-full mx-auto px-[clamp(1rem,1.8vw,1.75rem)]">
 
-        <div className="investment-recovery-grid grid grid-cols-1 md:grid-cols-3 xl:grid-cols-[45%_18.33%_18.33%_18.33%] border-[1.5px] border-[#b8860b]/45 rounded-[12px] bg-[#FDFBF7] shadow-[0_4px_24px_rgba(0,0,0,0.03)] overflow-hidden items-stretch">
+        <ScrollReveal variant="fade-up" duration={1150} className="investment-recovery-grid grid grid-cols-1 md:grid-cols-3 xl:grid-cols-[45%_18.33%_18.33%_18.33%] border-[1.5px] border-[#b8860b]/45 rounded-[12px] bg-[#FDFBF7] shadow-[0_4px_24px_rgba(0,0,0,0.03)] overflow-hidden items-stretch">
 
           <div className="md:col-span-3 xl:col-span-1 p-[clamp(1.25rem,1.8vw,2rem)] border-b xl:border-b-0 xl:border-r border-[#b8860b]/35 flex flex-col justify-between">
 
@@ -110,7 +111,7 @@ export const InvestmentRecoverySection = () => {
               {recoverySteps.map((step, idx) => (
                 <div
                   key={idx}
-                  className="flex flex-row md:flex-col items-center md:items-center text-left md:text-center gap-3.5 md:gap-0 p-2.5 md:p-0 bg-white/80 md:bg-transparent border border-[#b8860b]/25 md:border-none rounded-xl md:rounded-none relative z-[2] shadow-[0_2px_6px_rgba(0,0,0,0.02)] md:shadow-none"
+                  className="flex flex-row md:flex-col items-center md:items-center text-left md:text-center gap-3.5 md:gap-0 p-2.5 md:p-0 bg-white/80 md:bg-transparent border border-[#b8860b]/25 md:border-none rounded-xl md:rounded-none relative z-[2] shadow-[0_2px_6px_rgba(0,0,0,0.02)] md:shadow-none hover:-translate-y-0.5 transition-transform duration-300"
                 >
 
                   <div className="w-[38px] h-[38px] min-w-[38px] md:w-[42px] md:h-[42px] md:min-w-[42px] rounded-full bg-[#18191E] border-[1.5px] border-[#D4AF37] flex items-center justify-center md:mb-2.5 shadow-[0_2px_6px_rgba(0,0,0,0.12)] shrink-0">
@@ -146,7 +147,7 @@ export const InvestmentRecoverySection = () => {
                 ].map((item, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center gap-2.5 px-3 py-2 bg-white/80 border border-[#b8860b]/20 rounded-lg text-left shadow-[0_1px_4px_rgba(0,0,0,0.02)]"
+                    className="flex items-center gap-2.5 px-3 py-2 bg-white/80 border border-[#b8860b]/20 rounded-lg text-left shadow-[0_1px_4px_rgba(0,0,0,0.02)] hover:border-[#b8860b]/50 transition-colors duration-200"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-[#B58C36] shrink-0" />
                     <span className="font-sans text-[0.78rem] md:text-[clamp(0.72rem,0.78vw,0.82rem)] font-semibold text-[#2A2D34] leading-snug">
@@ -231,7 +232,7 @@ export const InvestmentRecoverySection = () => {
               Cavree provides a monthly minimum guarantee for each store, considering stock investment, rent, salaries, electricity bills, and other store-related expenses.
             </p>
           </div>
-        </div>
+        </ScrollReveal>
 
       </div>
     </section>

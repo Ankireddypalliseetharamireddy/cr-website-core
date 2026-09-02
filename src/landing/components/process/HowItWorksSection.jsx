@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChevronRight } from 'lucide-react';
+import ScrollReveal from '../common/ScrollReveal';
 
 export const HowItWorksSection = () => {
   const steps = [
@@ -74,19 +75,19 @@ export const HowItWorksSection = () => {
     >
       <div className="container max-w-[1534px] w-full mx-auto px-[clamp(1rem,1.8vw,1.75rem)]">
 
-        <div className="flex items-center justify-center gap-5 mb-6">
+        <ScrollReveal variant="fade-up" delay={50} duration={1000} className="flex items-center justify-center gap-5 mb-6">
           <div className="flex-1 h-[1.5px] bg-gradient-to-r from-transparent to-[#b8860b]/50 max-w-[280px]" />
           <h2 className="font-serif text-[clamp(1.15rem,1.8vw,1.6rem)] font-bold tracking-[0.08em] uppercase text-center m-0 text-[#1A1D20]">
             How It Works
           </h2>
           <div className="flex-1 h-[1.5px] bg-gradient-to-l from-transparent to-[#b8860b]/50 max-w-[280px]" />
-        </div>
+        </ScrollReveal>
 
-        <div className="how-it-works-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-[1.5px] border-[#b8860b]/45 rounded-[10px] bg-[#FDFBF7] shadow-[0_4px_20px_rgba(0,0,0,0.03)] overflow-hidden">
+        <ScrollReveal variant="fade-up" delay={150} duration={1150} className="how-it-works-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-[1.5px] border-[#b8860b]/45 rounded-[10px] bg-[#FDFBF7] shadow-[0_4px_20px_rgba(0,0,0,0.03)] overflow-hidden">
           {steps.map((step, idx) => (
             <div
               key={idx}
-              className={`how-it-works-col flex items-center justify-between p-[clamp(0.85rem,1.5vw,1.6rem)] relative max-lg:border-b max-lg:border-dashed max-lg:border-[#b8860b]/30 ${
+              className={`how-it-works-col flex items-center justify-between p-[clamp(0.85rem,1.5vw,1.6rem)] relative max-lg:border-b max-lg:border-dashed max-lg:border-[#b8860b]/30 hover:bg-[#FAF6EE]/50 transition-colors duration-200 ${
                 idx < 3 ? 'lg:border-r-[1.5px] lg:border-dashed lg:border-[#b8860b]/40' : ''
               } ${
                 idx % 2 === 0 ? 'sm:max-lg:border-r-[1.5px] sm:max-lg:border-dashed sm:max-lg:border-[#b8860b]/40' : ''
@@ -95,7 +96,7 @@ export const HowItWorksSection = () => {
 
               <div className="flex items-center gap-[clamp(0.65rem,1vw,0.95rem)] min-w-0">
 
-                <div className="w-[clamp(38px,3.2vw,46px)] h-[clamp(38px,3.2vw,46px)] min-w-[clamp(38px,3.2vw,46px)] rounded-full bg-[#18191E] border-[1.8px] border-[#D4AF37] flex items-center justify-center shadow-[0_4px_10px_rgba(0,0,0,0.1)] shrink-0">
+                <div className="w-[clamp(38px,3.2vw,46px)] h-[clamp(38px,3.2vw,46px)] min-w-[clamp(38px,3.2vw,46px)] rounded-full bg-[#18191E] border-[1.8px] border-[#D4AF37] flex items-center justify-center shadow-[0_4px_10px_rgba(0,0,0,0.1)] shrink-0 transition-transform duration-300 hover:scale-105">
                   {step.icon}
                 </div>
 
@@ -113,7 +114,7 @@ export const HowItWorksSection = () => {
               )}
             </div>
           ))}
-        </div>
+        </ScrollReveal>
 
       </div>
     </section>

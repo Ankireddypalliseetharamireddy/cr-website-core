@@ -61,7 +61,7 @@ export const BrochureModal = ({ isOpen, onClose }) => {
       `   - 100% Contractual Buyback Covenant from Year 3\n` +
       `   - Lloyds of London certified inventory policy\n` +
       `   - 24/7 Smart CCTV & POS IoT Investor Access\n\n` +
-      `Private Wealth Desk: cavree99@gmail.com | +1 (800) 845-CAVREE\n` +
+      `Private Wealth Desk: contact@cavree.com | +1 (800) 845-CAVREE\n` +
       `450 Avenue Montaigne, 75008 Paris, France\n`
     ], { type: 'text/plain' });
     element.href = URL.createObjectURL(file);

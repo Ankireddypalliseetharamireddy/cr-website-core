@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Sparkles, Eye, X, ArrowUpRight, ChevronLeft, ChevronRight, TrendingUp } from 'lucide-react';
+import ScrollReveal from '../../components/common/ScrollReveal';
 
 import img1 from '../../assets/images/img-1.jpeg';
 import img2 from '../../assets/images/img-2.jpeg';
@@ -309,22 +310,26 @@ export const CavreeCollections = () => {
 
         <div className="flex flex-col items-center text-center mb-8 sm:mb-10">
 
-          <div className="inline-flex items-center gap-2 bg-[#B58C36]/10 border border-[#B58C36]/25 py-1.5 px-4 rounded-full mb-3">
+          <ScrollReveal variant="fade-down" delay={50} duration={1000} className="inline-flex items-center gap-2 bg-[#B58C36]/10 border border-[#B58C36]/25 py-1.5 px-4 rounded-full mb-3">
             <Sparkles size={13} color="#9E7E38" />
             <span className="font-sans text-[0.72rem] font-bold tracking-[0.14em] uppercase text-[#9E7E38]">
               Curated Haute Couture Lookbook
             </span>
-          </div>
+          </ScrollReveal>
 
-          <h2 className="font-serif text-[clamp(1.8rem,3.8vw,3.8rem)] font-extrabold tracking-[0.01em] uppercase text-[#1C1D21] leading-[1.08] m-0 mb-2.5">
-            Fashion That <span className="text-[#B58C36] italic">Defines</span> You
-          </h2>
+          <ScrollReveal variant="fade-up" delay={120} duration={1050}>
+            <h2 className="font-serif text-[clamp(1.8rem,3.8vw,3.8rem)] font-extrabold tracking-[0.01em] uppercase text-[#1C1D21] leading-[1.08] m-0 mb-2.5">
+              Fashion That <span className="text-[#B58C36] italic">Defines</span> You
+            </h2>
+          </ScrollReveal>
 
-          <p className="font-sans text-[clamp(0.88rem,1vw,1.05rem)] text-[#65676E] max-w-[620px] leading-[1.6] m-0 mb-7 font-normal">
-            Handcrafted silhouettes weaving classical Indian textiles, intricate embroidery, and modern tailored luxury.
-          </p>
+          <ScrollReveal variant="fade-up" delay={200} duration={1100}>
+            <p className="font-sans text-[clamp(0.88rem,1vw,1.05rem)] text-[#65676E] max-w-[620px] leading-[1.6] m-0 mb-7 font-normal">
+              Handcrafted silhouettes weaving classical Indian textiles, intricate embroidery, and modern tailored luxury.
+            </p>
+          </ScrollReveal>
 
-          <div className="collections-filter-bar flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-3.5 mb-1">
+          <ScrollReveal variant="fade-up" delay={280} duration={1150} className="collections-filter-bar flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-3.5 mb-1">
 
             <div className="w-full sm:w-auto overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden py-0.5 shrink min-w-0">
               <div className="inline-flex items-center gap-1 p-1 bg-white/90 border border-[#1C1D21]/15 rounded-full shadow-[0_2px_12px_rgba(0,0,0,0.03)] backdrop-blur-sm">
@@ -361,10 +366,10 @@ export const CavreeCollections = () => {
                 <ArrowUpRight size={13} className="text-[#B58C36]" />
               </button>
             </div>
-          </div>
+          </ScrollReveal>
         </div>
 
-        <div className="relative w-full mb-10">
+        <ScrollReveal variant="scale-up" delay={340} duration={1200} className="relative w-full mb-10">
 
           <button
             onClick={() => handleScroll('left')}
@@ -458,9 +463,9 @@ export const CavreeCollections = () => {
               />
             ))}
           </div>
-        </div>
+        </ScrollReveal>
 
-        <div className="collections-horizontal-cta mt-10 bg-gradient-to-br from-[#090A0D] via-[#12141C] to-[#0D0F14] rounded-2xl p-[clamp(1.4rem,3.5vw,2.5rem)_clamp(1.2rem,3.5vw,3rem)] flex flex-col xl:grid xl:grid-cols-[minmax(260px,1.2fr)_minmax(260px,1.4fr)_auto] gap-5 xl:gap-[clamp(1.5rem,2.5vw,3rem)] items-stretch xl:items-center text-white border border-[#DEC29D]/25 relative overflow-hidden box-border">
+        <ScrollReveal variant="fade-up" delay={200} duration={1100} className="collections-horizontal-cta mt-10 bg-gradient-to-br from-[#090A0D] via-[#12141C] to-[#0D0F14] rounded-2xl p-[clamp(1.4rem,3.5vw,2.5rem)_clamp(1.2rem,3.5vw,3rem)] flex flex-col xl:grid xl:grid-cols-[minmax(260px,1.2fr)_minmax(260px,1.4fr)_auto] gap-5 xl:gap-[clamp(1.5rem,2.5vw,3rem)] items-stretch xl:items-center text-white border border-[#DEC29D]/25 relative overflow-hidden box-border">
 
           <div className="relative z-[2] flex flex-col items-start">
             <div className="inline-flex items-center gap-1.5 mb-2 text-[#DEC29D] font-sans text-[0.72rem] font-extrabold tracking-[0.14em] uppercase">
@@ -495,7 +500,7 @@ export const CavreeCollections = () => {
               <ArrowUpRight size={16} />
             </button>
           </div>
-        </div>
+        </ScrollReveal>
       </div>
 
       {showFullGallery && (

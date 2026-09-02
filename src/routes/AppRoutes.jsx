@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useLayoutEffect } from 'react';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import MainLayout from '../landing/components/layout/MainLayout';
 import HomePage from '../landing/pages/Home/HomePage';
@@ -11,20 +11,22 @@ import AboutUs from '../landing/pages/Home/About';
 const ScrollToTop = () => {
   const { pathname, hash } = useLocation();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (hash) {
       const targetId = hash.replace('#', '');
-      const element = document.getElementById(targetId);
-      if (element) {
-        setTimeout(() => {
+      const timer = setTimeout(() => {
+        const element = document.getElementById(targetId);
+        if (element) {
           if (window.__lenis) {
             window.__lenis.scrollTo(element, { offset: -70, duration: 3.2 });
           } else {
             const topOffset = element.getBoundingClientRect().top + window.pageYOffset - 70;
             window.scrollTo({ top: topOffset, behavior: 'smooth' });
           }
-        }, 120);
-      }
+        }
+      }, 120);
+
+      return () => clearTimeout(timer);
     } else {
       if (window.__lenis) {
         window.__lenis.scrollTo(0, { immediate: true });

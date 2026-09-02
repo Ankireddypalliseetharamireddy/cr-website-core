@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { TrendingUp, Store } from 'lucide-react';
 import CavreeLogo from '../brand/CavreeLogo';
 import { useModal } from '../../context/ModalContext';
+import ScrollReveal from '../common/ScrollReveal';
 
 export const HeroSection = () => {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ export const HeroSection = () => {
 
           <div className="pl-0 max-lg:pt-[clamp(9rem,28vh,15rem)] max-lg:pb-12">
 
-            <div className="mb-6 -mt-5 w-full flex items-center justify-center lg:justify-start lg:ml-[clamp(2.5rem,4.5vw,5.2rem)]">
+            <ScrollReveal variant="fade-down" delay={50} duration={1000} className="mb-6 -mt-5 w-full flex items-center justify-center lg:justify-start lg:ml-[clamp(2.5rem,4.5vw,5.2rem)]">
               <a
                 href="/"
                 onClick={(e) => {
@@ -54,25 +55,29 @@ export const HeroSection = () => {
                     }
                   }
                 }}
-                className="cursor-pointer no-underline inline-flex items-center justify-center"
+                className="cursor-pointer no-underline inline-flex items-center justify-center hover:scale-[1.02] transition-transform duration-300"
                 title="Cavree Home"
               >
                 <CavreeLogo size="lg" badgeStyle={false} />
               </a>
-            </div>
+            </ScrollReveal>
 
-            <h1 className="font-serif text-[clamp(1.85rem,3.3vw,3.9rem)] leading-[1.12] font-semibold tracking-[0.025em] mb-[1.15rem] bg-gradient-to-br from-[#F8E29B] via-[#E6CA65] to-[#C2942C] bg-clip-text text-transparent text-center lg:text-left">
-              Luxury Store <br />
-              Investment Model
-            </h1>
+            <ScrollReveal variant="fade-up" delay={150} duration={1100}>
+              <h1 className="font-serif text-[clamp(1.85rem,3.3vw,3.9rem)] leading-[1.12] font-semibold tracking-[0.025em] mb-[1.15rem] bg-gradient-to-br from-[#F8E29B] via-[#E6CA65] to-[#C2942C] bg-clip-text text-transparent text-center lg:text-left">
+                Luxury Store <br />
+                Investment Model
+              </h1>
+            </ScrollReveal>
 
-            <p className="font-sans text-[clamp(0.86rem,1.05vw,1.15rem)] text-white leading-[1.68] max-w-[580px] mb-7 font-normal opacity-95 text-justify [text-justify:inter-word]">
-              Partner with Cavree to launch a premium fashion retail store with company-backed support, structured investment security, and attractive income potential.
-            </p>
+            <ScrollReveal variant="fade-up" delay={240} duration={1150}>
+              <p className="font-sans text-[clamp(0.86rem,1.05vw,1.15rem)] text-white leading-[1.68] max-w-[580px] mb-7 font-normal opacity-95 text-justify [text-justify:inter-word]">
+                Partner with Cavree to launch a premium fashion retail store with company-backed support, structured investment security, and attractive income potential.
+              </p>
+            </ScrollReveal>
 
             <div className="hero-feature-cards grid grid-cols-1 sm:grid-cols-3 gap-[clamp(0.45rem,0.6vw,0.65rem)] mb-8 max-w-[600px] w-full">
 
-              <div className="flex items-center gap-[clamp(0.45rem,0.6vw,0.6rem)] p-[clamp(0.55rem,0.7vw,0.75rem)_clamp(0.5rem,0.7vw,0.75rem)] rounded-md border border-[#D4AF37]/35 bg-[#121318]/90 backdrop-blur-sm shadow-none min-w-0">
+              <ScrollReveal variant="scale-up" delay={320} duration={1000} className="flex items-center gap-[clamp(0.45rem,0.6vw,0.6rem)] p-[clamp(0.55rem,0.7vw,0.75rem)_clamp(0.5rem,0.7vw,0.75rem)] rounded-md border border-[#D4AF37]/35 bg-[#121318]/90 backdrop-blur-sm shadow-none min-w-0 hover:border-[#D4AF37]/70 transition-colors duration-300">
                 <div className="w-[clamp(28px,2.3vw,32px)] h-[clamp(28px,2.3vw,32px)] min-w-[clamp(28px,2.3vw,32px)] rounded-full border-[1.5px] border-[#E6CA65] flex items-center justify-center text-[#E6CA65] font-sans text-[clamp(0.85rem,1vw,0.95rem)] font-bold">
                   ₹
                 </div>
@@ -84,9 +89,9 @@ export const HeroSection = () => {
                     ₹2L to ₹6L
                   </div>
                 </div>
-              </div>
+              </ScrollReveal>
 
-              <div className="flex items-center gap-[clamp(0.45rem,0.6vw,0.6rem)] p-[clamp(0.55rem,0.7vw,0.75rem)_clamp(0.5rem,0.7vw,0.75rem)] rounded-md border border-[#D4AF37]/35 bg-[#121318]/90 backdrop-blur-sm shadow-none min-w-0">
+              <ScrollReveal variant="scale-up" delay={400} duration={1000} className="flex items-center gap-[clamp(0.45rem,0.6vw,0.6rem)] p-[clamp(0.55rem,0.7vw,0.75rem)_clamp(0.5rem,0.7vw,0.75rem)] rounded-md border border-[#D4AF37]/35 bg-[#121318]/90 backdrop-blur-sm shadow-none min-w-0 hover:border-[#D4AF37]/70 transition-colors duration-300">
                 <div className="w-[clamp(28px,2.3vw,32px)] h-[clamp(28px,2.3vw,32px)] min-w-[clamp(28px,2.3vw,32px)] flex items-center justify-center text-[#E6CA65]">
                   <TrendingUp size={22} color="#E6CA65" strokeWidth={2.2} />
                 </div>
@@ -98,9 +103,9 @@ export const HeroSection = () => {
                     19% to 69%
                   </div>
                 </div>
-              </div>
+              </ScrollReveal>
 
-              <div className="flex items-center gap-[clamp(0.45rem,0.6vw,0.6rem)] p-[clamp(0.55rem,0.7vw,0.75rem)_clamp(0.5rem,0.7vw,0.75rem)] rounded-md border border-[#D4AF37]/35 bg-[#121318]/90 backdrop-blur-sm shadow-none min-w-0">
+              <ScrollReveal variant="scale-up" delay={480} duration={1000} className="flex items-center gap-[clamp(0.45rem,0.6vw,0.6rem)] p-[clamp(0.55rem,0.7vw,0.75rem)_clamp(0.5rem,0.7vw,0.75rem)] rounded-md border border-[#D4AF37]/35 bg-[#121318]/90 backdrop-blur-sm shadow-none min-w-0 hover:border-[#D4AF37]/70 transition-colors duration-300">
                 <div className="w-[clamp(28px,2.3vw,32px)] h-[clamp(28px,2.3vw,32px)] min-w-[clamp(28px,2.3vw,32px)] flex items-center justify-center text-[#E6CA65]">
                   <Store size={20} color="#E6CA65" strokeWidth={1.8} />
                 </div>
@@ -112,10 +117,10 @@ export const HeroSection = () => {
                     Interior & Store Setup
                   </div>
                 </div>
-              </div>
+              </ScrollReveal>
             </div>
 
-            <div className="grid grid-cols-2 sm:flex sm:items-center gap-2.5 sm:gap-3.5 max-w-[600px] w-full">
+            <ScrollReveal variant="fade-up" delay={540} duration={1100} className="grid grid-cols-2 sm:flex sm:items-center gap-2.5 sm:gap-3.5 max-w-[600px] w-full">
 
               <button
                 type="button"
@@ -154,18 +159,19 @@ export const HeroSection = () => {
               >
                 Explore Home
               </button>
-            </div>
+            </ScrollReveal>
           </div>
 
           <div className="hidden lg:flex relative w-full pt-[1rem] lg:pt-[1.6rem] mt-4 lg:mt-[1.1rem] justify-center">
-
-            <div className="hero-showcase-frame relative max-w-[710px] w-full overflow-hidden border-[3.5px] border-[#D4AF37]/90 border-r-0 aspect-[16/11.6] bg-[#121318] rounded-[5px_5px_0_clamp(50px,7vw,110px)]">
-              <img
-                src="/cavree-hero-boutique.png"
-                alt="Cavree Luxury Flagship Boutique Showroom"
-                className="w-full h-full object-cover"
-              />
-            </div>
+            <ScrollReveal variant="fade-left" delay={250} duration={1250} className="w-full flex justify-center">
+              <div className="hero-showcase-frame relative max-w-[710px] w-full overflow-hidden border-[3.5px] border-[#D4AF37]/90 border-r-0 aspect-[16/11.6] bg-[#121318] rounded-[5px_5px_0_clamp(50px,7vw,110px)] shadow-[0_20px_60px_rgba(0,0,0,0.8),0_0_40px_rgba(212,175,55,0.12)]">
+                <img
+                  src="/cavree-hero-boutique.png"
+                  alt="Cavree Luxury Flagship Boutique Showroom"
+                  className="w-full h-full object-cover transform hover:scale-[1.03] transition-transform duration-700 ease-out"
+                />
+              </div>
+            </ScrollReveal>
           </div>
         </div>
       </div>

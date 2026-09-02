@@ -139,3 +139,98 @@
   box-shadow: 0 0 15px rgba(212, 175, 55, 0.7);
   border: 2px solid #08090C;
 }
+
+/* ========================================================================== */
+/* LUXURY SCROLL REVEAL ANIMATION ENGINE                                     */
+/* ========================================================================== */
+
+.reveal-init {
+  will-change: transform, opacity, filter;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  transition-property: opacity, transform, filter;
+  transition-duration: 1.15s;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-fade-up {
+  opacity: 0;
+  transform: translate3d(0, 36px, 0);
+}
+
+.reveal-fade-down {
+  opacity: 0;
+  transform: translate3d(0, -36px, 0);
+}
+
+.reveal-fade-left {
+  opacity: 0;
+  transform: translate3d(40px, 0, 0);
+}
+
+.reveal-fade-right {
+  opacity: 0;
+  transform: translate3d(-40px, 0, 0);
+}
+
+.reveal-scale-up {
+  opacity: 0;
+  transform: scale3d(0.93, 0.93, 1) translate3d(0, 20px, 0);
+}
+
+.reveal-blur-in {
+  opacity: 0;
+  filter: blur(8px);
+  transform: translate3d(0, 20px, 0);
+}
+
+/* Triggered Visible State */
+.reveal-visible,
+.reveal-init.reveal-visible {
+  opacity: 1 !important;
+  transform: translate3d(0, 0, 0) scale3d(1, 1, 1) !important;
+  filter: blur(0px) !important;
+}
+
+/* Staggered Delay Utilities */
+.stagger-1 { transition-delay: 80ms !important; }
+.stagger-2 { transition-delay: 160ms !important; }
+.stagger-3 { transition-delay: 240ms !important; }
+.stagger-4 { transition-delay: 320ms !important; }
+.stagger-5 { transition-delay: 400ms !important; }
+.stagger-6 { transition-delay: 480ms !important; }
+.stagger-7 { transition-delay: 560ms !important; }
+.stagger-8 { transition-delay: 640ms !important; }
+.stagger-9 { transition-delay: 720ms !important; }
+.stagger-10 { transition-delay: 800ms !important; }
+.stagger-11 { transition-delay: 880ms !important; }
+.stagger-12 { transition-delay: 960ms !important; }
+
+/* Subtle Parallax Float Effect for Luxury Visuals */
+@keyframes luxuryFloatSlow {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(0.4deg);
+  }
+}
+
+.animate-luxury-float {
+  animation: luxuryFloatSlow 6.5s ease-in-out infinite;
+}
+
+/* Fallback & Accessibility for Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-init {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+  .animate-luxury-float,
+  .animate-float {
+    animation: none !important;
+  }
+}
+

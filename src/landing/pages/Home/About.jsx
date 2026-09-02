@@ -12,6 +12,7 @@ import {
   Award,
   ArrowUpRight,
 } from "lucide-react";
+import ScrollReveal from "../../components/common/ScrollReveal";
 
 const VALUES = [
   {
@@ -341,7 +342,7 @@ export default function AboutUs() {
         <div className="max-w-[1480px] mx-auto grid grid-cols-1 lg:grid-cols-[54%_46%] gap-8 lg:gap-12 items-center relative z-10">
           
           {/* Left Column: Hero Narrative */}
-          <div className="flex flex-col justify-center max-lg:pt-[clamp(9rem,26vh,14rem)] max-lg:pb-6">
+          <ScrollReveal variant="fade-up" delay={50} duration={1100} className="flex flex-col justify-center max-lg:pt-[clamp(9rem,26vh,14rem)] max-lg:pb-6">
 
             <div className="mb-3 text-center lg:text-left">
               <h1 className="font-serif text-[clamp(2.1rem,3.8vw,4rem)] font-extrabold tracking-[0.01em] uppercase text-[#1C1D21] leading-[1.02] m-0">
@@ -372,7 +373,7 @@ export default function AboutUs() {
               <button
                 type="button"
                 onClick={handleDiscoverStory}
-                className="inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-gradient-to-r from-[#1C1D21] via-[#2A2B32] to-[#1C1D21] hover:from-[#B58C36] hover:via-[#D4AF37] hover:to-[#9E7E38] text-white font-sans text-[clamp(0.68rem,0.8vw,0.78rem)] font-bold tracking-[0.04em] sm:tracking-[0.06em] uppercase px-3 sm:px-5 py-3 rounded-[7px] transition-all duration-300 shadow-[0_4px_14px_rgba(0,0,0,0.15)] cursor-pointer border-none text-center"
+                className="inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-gradient-to-r from-[#1C1D21] via-[#2A2B32] to-[#1C1D21] hover:from-[#B58C36] hover:via-[#D4AF37] hover:to-[#9E7E38] text-white font-sans text-[clamp(0.68rem,0.8vw,0.78rem)] font-bold tracking-[0.04em] sm:tracking-[0.06em] uppercase px-3 sm:px-5 py-3 rounded-[7px] transition-all duration-300 shadow-[0_4px_14px_rgba(0,0,0,0.15)] cursor-pointer border-none text-center hover:scale-[1.02]"
               >
                 <span>Discover Story</span>
                 <ArrowRight size={13} className="text-[#DEC29D]" />
@@ -380,7 +381,7 @@ export default function AboutUs() {
 
               <Link
                 to="/investment-model"
-                className="inline-flex items-center justify-center gap-1.5 sm:gap-2 border border-[#DEC29D] bg-gradient-to-b from-white to-[#FAF6EE] text-[#1C1D21] font-sans text-[clamp(0.68rem,0.8vw,0.78rem)] font-bold tracking-[0.04em] sm:tracking-[0.06em] uppercase px-3 sm:px-5 py-3 rounded-[7px] hover:border-[#1C1D21] hover:shadow-md transition-all duration-300 shadow-sm no-underline text-center"
+                className="inline-flex items-center justify-center gap-1.5 sm:gap-2 border border-[#DEC29D] bg-gradient-to-b from-white to-[#FAF6EE] text-[#1C1D21] font-sans text-[clamp(0.68rem,0.8vw,0.78rem)] font-bold tracking-[0.04em] sm:tracking-[0.06em] uppercase px-3 sm:px-5 py-3 rounded-[7px] hover:border-[#1C1D21] hover:shadow-md transition-all duration-300 shadow-sm no-underline text-center hover:scale-[1.02]"
               >
                 <span>Franchise Model</span>
                 <ArrowUpRight size={13} className="text-[#B58C36]" />
@@ -417,10 +418,10 @@ export default function AboutUs() {
               </div>
             </div>
 
-          </div>
+          </ScrollReveal>
 
           {/* Right Column: Hero Visual with Clean 7px Gold Border (Desktop Only) */}
-          <div className="hidden lg:block relative w-full h-[320px] sm:h-[380px] lg:h-[410px]">
+          <ScrollReveal variant="fade-left" delay={200} duration={1200} className="hidden lg:block relative w-full h-[320px] sm:h-[380px] lg:h-[410px]">
             {/* Clean Luxury Framed Image */}
             <div className="relative w-full h-full rounded-[7px] overflow-hidden border-[1.5px] border-[#DEC29D] bg-[#EDE5D4] shadow-[0_10px_28px_rgba(181,140,54,0.14)]">
               <img
@@ -443,10 +444,10 @@ export default function AboutUs() {
                 Cavree Haute Couture
               </h4>
               <p className="font-sans text-[0.68rem] text-white/75 leading-tight m-0">
-                Bespoke garments &amp; gold jewellery.
+                Bespoke garments &amp; 1 gram gold jewellery.
               </p>
             </div>
-          </div>
+          </ScrollReveal>
 
         </div>
       </section>
@@ -468,7 +469,7 @@ export default function AboutUs() {
         <div className="max-w-[1480px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center relative z-10">
           
           {/* Story Visual with 7px Radius & Gold Luminous Border */}
-          <div className="relative w-full h-[290px] sm:h-[350px] lg:h-[380px]">
+          <ScrollReveal variant="fade-right" delay={100} duration={1100} className="relative w-full h-[290px] sm:h-[350px] lg:h-[380px]">
             <div className="relative w-full h-full overflow-hidden rounded-[7px] border-[1.5px] border-[#D4AF37]/60 bg-[#0D0E12] shadow-[0_14px_36px_rgba(0,0,0,0.6)]">
               <img
                 src="/images/cavree/story.jpg"
@@ -490,10 +491,10 @@ export default function AboutUs() {
                 <Award size={18} className="text-[#D4AF37]" />
               </div>
             </div>
-          </div>
+          </ScrollReveal>
 
           {/* Story Narrative Content */}
-          <div className="flex flex-col justify-center">
+          <ScrollReveal variant="fade-left" delay={200} duration={1100} className="flex flex-col justify-center">
 
             <h2 className="font-serif text-[clamp(1.6rem,2.8vw,3rem)] font-extrabold tracking-[0.01em] uppercase text-white leading-[1.08] m-0">
               Designed from an idea.
@@ -535,7 +536,7 @@ export default function AboutUs() {
               </span>
             </div>
 
-          </div>
+          </ScrollReveal>
 
         </div>
       </section>
@@ -546,7 +547,7 @@ export default function AboutUs() {
       <section className="relative z-10 w-full bg-gradient-to-b from-[#FAF6EE] via-[#FFFDF9] to-[#FAF6EE] py-[clamp(2.5rem,4.5vw,4.5rem)] px-[clamp(1rem,4vw,5rem)] border-b border-[#E8DFCF]/90">
         <div className="max-w-[1480px] mx-auto">
           
-          <div className="flex flex-col items-center text-center max-w-2xl mx-auto mb-8 sm:mb-10">
+          <ScrollReveal variant="fade-up" delay={50} duration={1000} className="flex flex-col items-center text-center max-w-2xl mx-auto mb-8 sm:mb-10">
             <h2 className="font-serif text-[clamp(1.6rem,3vw,3.2rem)] font-extrabold tracking-[0.01em] uppercase text-[#1C1D21] leading-[1.08] m-0">
               Crafted with{" "}
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#B58C36] via-[#D4AF37] to-[#8C6514]">
@@ -558,12 +559,15 @@ export default function AboutUs() {
               Every detail that brings a Cavree design to life is thoughtfully considered —
               from fabric selection and silhouettes to embroidery, finishing, and color combinations.
             </p>
-          </div>
+          </ScrollReveal>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4 max-w-[1240px] mx-auto">
-            {VALUES.map(({ title, icon: Icon, highlight, description }) => (
-              <div
+            {VALUES.map(({ title, icon: Icon, highlight, description }, idx) => (
+              <ScrollReveal
                 key={title}
+                variant="scale-up"
+                delay={100 + idx * 70}
+                duration={950}
                 className="bg-gradient-to-b from-white via-[#FFFDF9] to-[#FAF6EE] border border-[#DEC29D]/70 rounded-[7px] p-4 sm:p-4.5 text-center shadow-[0_4px_16px_rgba(181,140,54,0.06)] hover:shadow-[0_10px_28px_rgba(181,140,54,0.14)] hover:border-[#B58C36] transition-all duration-300 flex flex-col justify-between"
               >
                 <div>
@@ -588,7 +592,7 @@ export default function AboutUs() {
                   <span className="font-sans font-bold uppercase tracking-wider text-[0.62rem]">Cavree Standard</span>
                   <span>◆</span>
                 </div>
-              </div>
+              </ScrollReveal>
             ))}
           </div>
 
@@ -609,7 +613,7 @@ export default function AboutUs() {
         <div className="max-w-[1480px] mx-auto grid grid-cols-1 lg:grid-cols-[56%_44%] gap-8 lg:gap-12 items-center relative z-10">
           
           {/* Emotions Column */}
-          <div className="flex flex-col justify-center">
+          <ScrollReveal variant="fade-right" delay={100} duration={1100} className="flex flex-col justify-center">
 
             <div className="text-center lg:text-left">
               <h2 className="font-serif text-[clamp(1.6rem,2.8vw,3rem)] font-extrabold tracking-[0.01em] uppercase text-white leading-[1.08] m-0">
@@ -630,9 +634,12 @@ export default function AboutUs() {
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
-              {EMOTIONS.map(({ icon: Icon, title, text }) => (
-                <div
+              {EMOTIONS.map(({ icon: Icon, title, text }, idx) => (
+                <ScrollReveal
                   key={title}
+                  variant="scale-up"
+                  delay={150 + idx * 80}
+                  duration={950}
                   className="bg-[#0D0E12]/90 backdrop-blur-md border border-[#D4AF37]/40 rounded-[7px] p-4 text-center shadow-[0_6px_20px_rgba(0,0,0,0.5)] hover:border-[#D4AF37] hover:shadow-[0_10px_28px_rgba(212,175,55,0.15)] transition-all duration-300"
                 >
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#D4AF37] via-[#FFF3B3] to-[#8C6514] text-[#0D0E12] mx-auto mb-2.5 flex items-center justify-center shadow-sm">
@@ -640,14 +647,14 @@ export default function AboutUs() {
                   </div>
                   <h4 className="font-serif text-sm font-bold text-white mb-1">{title}</h4>
                   <p className="font-sans text-[0.74rem] leading-[1.5] text-white/75 m-0">{text}</p>
-                </div>
+                </ScrollReveal>
               ))}
             </div>
 
-          </div>
+          </ScrollReveal>
 
           {/* Model Visual with 7px Radius & Gold Luminous Border */}
-          <div className="relative w-full h-[290px] sm:h-[350px] lg:h-[380px]">
+          <ScrollReveal variant="fade-left" delay={200} duration={1150} className="relative w-full h-[290px] sm:h-[350px] lg:h-[380px]">
             <div className="relative w-full h-full rounded-[7px] overflow-hidden border-[1.5px] border-[#D4AF37]/60 bg-[#0D0E12] shadow-[0_14px_36px_rgba(0,0,0,0.6)]">
               <img
                 src="/images/cavree/confidence.jpg"
@@ -665,7 +672,7 @@ export default function AboutUs() {
                 </p>
               </div>
             </div>
-          </div>
+          </ScrollReveal>
 
         </div>
       </section>
@@ -677,7 +684,7 @@ export default function AboutUs() {
         <div className="max-w-[1480px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           
           {/* Rack Image with 7px Radius & Clean Border */}
-          <div className="relative w-full h-[290px] sm:h-[350px] lg:h-[380px] order-2 lg:order-1">
+          <ScrollReveal variant="fade-right" delay={100} duration={1150} className="relative w-full h-[290px] sm:h-[350px] lg:h-[380px] order-2 lg:order-1">
             <div className="relative w-full h-full overflow-hidden rounded-[7px] border-[1.5px] border-[#DEC29D] bg-[#EDE5D4] shadow-[0_10px_26px_rgba(181,140,54,0.1)]">
               <img
                 src="/images/cavree/collection-rack.jpg"
@@ -699,10 +706,10 @@ export default function AboutUs() {
                 </div>
               </div>
             </div>
-          </div>
+          </ScrollReveal>
 
           {/* Narrative */}
-          <div className="flex flex-col justify-center order-1 lg:order-2">
+          <ScrollReveal variant="fade-left" delay={200} duration={1150} className="flex flex-col justify-center order-1 lg:order-2">
 
             <div className="text-center lg:text-left">
               <span className="font-sans text-[0.68rem] font-bold uppercase tracking-[0.16em] text-[#9E7E38] block mb-1">
@@ -759,14 +766,14 @@ export default function AboutUs() {
             <div className="w-full flex items-center justify-center lg:justify-start">
               <Link
                 to="/#collections"
-                className="w-full max-w-[280px] sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#1C1D21] via-[#2A2B32] to-[#1C1D21] hover:from-[#B58C36] hover:via-[#D4AF37] hover:to-[#9E7E38] text-white font-sans text-[clamp(0.7rem,0.8vw,0.78rem)] font-bold tracking-[0.06em] uppercase px-5 py-3 rounded-[7px] transition-all duration-300 shadow-[0_4px_14px_rgba(0,0,0,0.15)] cursor-pointer no-underline text-center"
+                className="w-full max-w-[280px] sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#1C1D21] via-[#2A2B32] to-[#1C1D21] hover:from-[#B58C36] hover:via-[#D4AF37] hover:to-[#9E7E38] text-white font-sans text-[clamp(0.7rem,0.8vw,0.78rem)] font-bold tracking-[0.06em] uppercase px-5 py-3 rounded-[7px] transition-all duration-300 shadow-[0_4px_14px_rgba(0,0,0,0.15)] cursor-pointer no-underline text-center hover:scale-[1.02]"
               >
                 <span>View Full Lookbook</span>
                 <ArrowUpRight size={13} className="text-[#DEC29D]" />
               </Link>
             </div>
 
-          </div>
+          </ScrollReveal>
 
         </div>
       </section>
@@ -781,7 +788,7 @@ export default function AboutUs() {
         <div className="max-w-[1480px] mx-auto">
           
           <div className="grid grid-cols-1 lg:grid-cols-[45%_55%] gap-8 lg:gap-12 items-center">
-            <div className="flex flex-col justify-center items-center lg:items-start">
+            <ScrollReveal variant="fade-right" delay={100} duration={1150} className="flex flex-col justify-center items-center lg:items-start">
               <div className="text-center lg:text-left w-full">
                 <span className="font-sans text-[0.68rem] font-bold uppercase tracking-[0.16em] text-[#9E7E38] block mb-1">
                   Fine Jewellery Suite
@@ -831,13 +838,16 @@ export default function AboutUs() {
                   </div>
                 </div>
               </div>
-            </div>
+            </ScrollReveal>
 
             {/* 4 Jewellery Cards with 7px Radius & Clean Border */}
             <div className="grid grid-cols-2 gap-3 sm:gap-3.5">
-              {JEWELLERY.map((item) => (
-                <div
+              {JEWELLERY.map((item, idx) => (
+                <ScrollReveal
                   key={item.title}
+                  variant="scale-up"
+                  delay={100 + idx * 75}
+                  duration={950}
                   className="rounded-[7px] border border-[#DEC29D]/70 bg-gradient-to-b from-white via-[#FFFDF9] to-[#FAF6EE] overflow-hidden shadow-[0_4px_14px_rgba(181,140,54,0.06)] hover:border-[#B58C36] hover:shadow-[0_8px_24px_rgba(181,140,54,0.12)] transition-all duration-300 flex flex-col"
                 >
                   {/* Full Width Image Container */}
@@ -858,14 +868,14 @@ export default function AboutUs() {
                       {item.title}
                     </h4>
                   </div>
-                </div>
+                </ScrollReveal>
               ))}
             </div>
 
           </div>
 
           {/* Unique Closing Signature Paragraph */}
-          <div className="mt-10 sm:mt-14 pt-8 pb-2 border-t border-[#E8DFCF]/80 text-center max-w-3xl mx-auto px-4">
+          <ScrollReveal variant="fade-up" delay={150} duration={1000} className="mt-10 sm:mt-14 pt-8 pb-2 border-t border-[#E8DFCF]/80 text-center max-w-3xl mx-auto px-4">
             <div className="flex items-center justify-center gap-2.5 mb-2.5">
               <div className="h-px w-10 bg-gradient-to-r from-transparent via-[#DEC29D] to-[#B58C36]" />
               <Sparkles size={12} className="text-[#B58C36]" />
@@ -879,7 +889,7 @@ export default function AboutUs() {
             <span className="font-sans text-[0.66rem] font-extrabold uppercase tracking-[0.2em] bg-clip-text text-transparent bg-gradient-to-r from-[#8C6514] via-[#B58C36] to-[#8C6514] block">
               — The Essence of Cavree Haute Couture
             </span>
-          </div>
+          </ScrollReveal>
 
         </div>
       </section>

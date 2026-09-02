@@ -192,8 +192,8 @@ export default function StorePortal() {
                                 onClick={() => handleNavigate('dashboard')}
                                 style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap' }}
                             >
-                                <BarChart2 size={14} />
-                                <span>Store Analytics</span>
+                                <Store size={14} />
+                                <span>{normalizedRole === 'FRANCHISE_ADMIN' ? 'Franchise Operations' : 'Store Analytics'}</span>
                             </button>
                         )}
                     </nav>

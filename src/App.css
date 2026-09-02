@@ -149,39 +149,39 @@
   backface-visibility: hidden;
   transform: translateZ(0);
   transition-property: opacity, transform, filter;
-  transition-duration: 1.15s;
-  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  transition-duration: 1.22s;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.28, 1);
 }
 
 .reveal-fade-up {
   opacity: 0;
-  transform: translate3d(0, 36px, 0);
+  transform: translate3d(0, 44px, 0);
 }
 
 .reveal-fade-down {
   opacity: 0;
-  transform: translate3d(0, -36px, 0);
+  transform: translate3d(0, -44px, 0);
 }
 
 .reveal-fade-left {
   opacity: 0;
-  transform: translate3d(40px, 0, 0);
+  transform: translate3d(48px, 0, 0);
 }
 
 .reveal-fade-right {
   opacity: 0;
-  transform: translate3d(-40px, 0, 0);
+  transform: translate3d(-48px, 0, 0);
 }
 
 .reveal-scale-up {
   opacity: 0;
-  transform: scale3d(0.93, 0.93, 1) translate3d(0, 20px, 0);
+  transform: scale3d(0.91, 0.91, 1) translate3d(0, 24px, 0);
 }
 
 .reveal-blur-in {
   opacity: 0;
-  filter: blur(8px);
-  transform: translate3d(0, 20px, 0);
+  filter: blur(10px);
+  transform: translate3d(0, 24px, 0);
 }
 
 /* Triggered Visible State */

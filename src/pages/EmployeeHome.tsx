@@ -136,12 +136,9 @@ export default function EmployeeHome({ onNavigate, userRole }: EmployeeHomeProps
                             {formatRole(userRole)}
                         </span>
                     </div>
-                    <h1 style={{ fontSize: '1.85rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: '0.25rem 0', color: 'var(--pos-text-primary)' }}>
+                    <h1 style={{ fontSize: '1.75rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: '0.25rem 0', color: 'var(--pos-text-primary)' }}>
                         Welcome, <span style={{ background: 'var(--pos-gold-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{staffName}</span>
                     </h1>
-                    <p style={{ color: 'var(--pos-text-secondary)', fontSize: '0.875rem', margin: 0, maxWidth: '600px', lineHeight: '1.5' }}>
-                        Cavree Luxury POS &amp; Retail Operations Terminal. Select a counter action below to process live customer orders or verify inventory.
-                    </p>
                 </div>
 
                 <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap' }}>

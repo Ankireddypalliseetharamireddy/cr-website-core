@@ -1,155 +1,64 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { BrowserRouter } from 'react-router-dom';
+import Lenis from 'lenis';
+import AppRoutes from './routes/AppRoutes';
+import './App.css';
 import './styles/website.css';
-import Login from './pages/Login';
-import Billing from './pages/Billing';
-import Auditing from './pages/Auditing';
-import EmployeeHome from './pages/EmployeeHome';
-import FranchiseDashboard from './pages/FranchiseDashboard';
-import { LogOut, User, Store, ShoppingCart, ClipboardCheck, Home, Receipt } from 'lucide-react';
 
-export default function App() {
-    const [token, setToken] = useState<string | null>(null);
-    const [username, setUsername] = useState<string>('');
-    const [role, setRole] = useState<string>('');
-    const [franchiseId, setFranchiseId] = useState<string>('');
-    const [activePage, setActivePage] = useState<'home' | 'billing' | 'auditing' | 'history'>(() => {
-        return (localStorage.getItem('activePage') as any) || 'home';
-    });
-
-    useEffect(() => {
-        const storedToken = localStorage.getItem('token');
-        const storedUser = localStorage.getItem('username');
-        const storedRole = localStorage.getItem('role');
-        const storedFranchise = localStorage.getItem('franchiseId');
-        const storedPage = localStorage.getItem('activePage') as any;
-
-        if (storedToken) setToken(storedToken);
-        if (storedUser) setUsername(storedUser);
-        if (storedRole) setRole(storedRole);
-        if (storedFranchise) setFranchiseId(storedFranchise);
-        if (storedPage) setActivePage(storedPage);
-    }, []);
-
-    const handleNavigate = (page: 'home' | 'billing' | 'auditing' | 'history') => {
-        setActivePage(page);
-        localStorage.setItem('activePage', page);
-    };
-
-    const handleLoginSuccess = (userToken: string, userDisplayName: string, userRole: string, userFranchise: string) => {
-        setToken(userToken);
-        setUsername(userDisplayName);
-        setRole(userRole);
-        setFranchiseId(userFranchise);
-        handleNavigate('home');
-    };
-
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('username');
-        localStorage.removeItem('role');
-        localStorage.removeItem('franchiseId');
-        localStorage.removeItem('activePage');
-        setToken(null);
-        setUsername('');
-        setRole('');
-        setFranchiseId('');
-        setActivePage('home');
-    };
-
-    // If not authenticated, force login screen
-    if (!token) {
-        return <Login onLoginSuccess={handleLoginSuccess} />;
+export function App() {
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if ('scrollRestoration' in window.history) {
+        window.history.scrollRestoration = 'manual';
+      }
+      window.scrollTo(0, 0);
     }
 
-    const isAdmin = role === 'FRANCHISE_ADMIN' || role === 'SUPER_ADMIN';
+    const lenis = new Lenis({
+      duration: 3.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      wheelMultiplier: 0.55,
+      touchMultiplier: 0.9,
+      infinite: false,
+    });
 
-    return (
-        <div className="app-container">
-            {/* Top Navigation Bar */}
-            <header className="navbar">
-                <div className="navbar-header-row">
-                    <div className="brand" style={{ cursor: 'pointer' }} onClick={() => handleNavigate('home')}>
-                        <Store size={22} style={{ color: 'var(--accent-blue)' }} />
-                        <span>CAVREE STORES</span>
-                        <span className="badge badge-purple" style={{ fontSize: '0.625rem', padding: '0.15rem 0.35rem', marginLeft: '0.35rem' }}>
-                            {isAdmin ? 'ADMIN OVERSIGHT' : 'STORE POS'}
-                        </span>
-                    </div>
+    (window as any).__lenis = lenis;
+    lenis.scrollTo(0, { immediate: true });
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        {/* User Metadata Status */}
-                        <div className="user-badge" style={{ background: 'rgba(255,255,255,0.04)', padding: '0.3rem 0.6rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                                <User size={13} style={{ color: 'var(--accent-blue)' }} />
-                                <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.8125rem' }}>{username}</span>
-                                {franchiseId && (
-                                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginLeft: '0.25rem' }}>
-                                        &bull; {franchiseId}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
+    let animationFrameId: number;
+    function raf(time: number) {
+      lenis.raf(time);
+      animationFrameId = requestAnimationFrame(raf);
+    }
 
-                        {/* Log Out Action */}
-                        <button className="btn btn-danger btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.35rem 0.6rem' }} onClick={handleLogout}>
-                            <LogOut size={13} />
-                            <span style={{ fontSize: '0.75rem' }}>Exit</span>
-                        </button>
-                    </div>
-                </div>
+    animationFrameId = requestAnimationFrame(raf);
 
-                {/* Staff Navigation Tabs Row */}
-                {!isAdmin && (
-                    <nav className="navbar-tabs-row">
-                        <button
-                            className={`btn btn-sm ${activePage === 'home' ? 'btn-primary' : 'btn-secondary'}`}
-                            onClick={() => handleNavigate('home')}
-                            style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap' }}
-                        >
-                            <Home size={14} />
-                            <span>Hub</span>
-                        </button>
-                        <button
-                            className={`btn btn-sm ${activePage === 'billing' ? 'btn-primary' : 'btn-secondary'}`}
-                            onClick={() => handleNavigate('billing')}
-                            style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap' }}
-                        >
-                            <ShoppingCart size={14} />
-                            <span>Billing POS</span>
-                        </button>
-                        <button
-                            className={`btn btn-sm ${activePage === 'auditing' ? 'btn-primary' : 'btn-secondary'}`}
-                            onClick={() => handleNavigate('auditing')}
-                            style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap' }}
-                        >
-                            <ClipboardCheck size={14} />
-                            <span>Store Audit</span>
-                        </button>
-                        <button
-                            className={`btn btn-sm ${activePage === 'history' ? 'btn-primary' : 'btn-secondary'}`}
-                            onClick={() => handleNavigate('history')}
-                            style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap' }}
-                        >
-                            <Receipt size={14} />
-                            <span>Sales History</span>
-                        </button>
-                    </nav>
-                )}
-            </header>
+    const handlePageShow = () => {
+      window.scrollTo(0, 0);
+      lenis.scrollTo(0, { immediate: true });
+    };
 
-            {/* Main Content Layout based on user role and active page */}
-            <main style={{ flexGrow: 1 }}>
-                {isAdmin ? (
-                    <FranchiseDashboard />
-                ) : (
-                    <>
-                        {activePage === 'home' && <EmployeeHome onNavigate={(p) => handleNavigate(p)} userRole={role} />}
-                        {activePage === 'billing' && <Billing />}
-                        {activePage === 'auditing' && <Auditing onBack={() => handleNavigate('home')} />}
-                        {activePage === 'history' && <EmployeeHome onNavigate={(p) => handleNavigate(p)} userRole={role} />}
-                    </>
-                )}
-            </main>
-        </div>
-    );
+    window.addEventListener('pageshow', handlePageShow);
+    window.addEventListener('beforeunload', () => {
+      window.scrollTo(0, 0);
+    });
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('pageshow', handlePageShow);
+      lenis.destroy();
+      (window as any).__lenis = null;
+    };
+  }, []);
+
+  return (
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
+  );
 }
+
+export default App;

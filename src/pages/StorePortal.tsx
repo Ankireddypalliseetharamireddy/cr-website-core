@@ -5,6 +5,7 @@ import Login from './Login';
 import Billing from './Billing';
 import Auditing from './Auditing';
 import EmployeeHome from './EmployeeHome';
+import SalesHistory from './SalesHistory';
 import FranchiseDashboard from './FranchiseDashboard';
 import {
     LogOut, User, Store, ShoppingCart, ClipboardCheck, Home,
@@ -363,7 +364,7 @@ export default function StorePortal() {
                     )}
                     {activePage === 'billing' && <Billing onBack={() => handleNavigate('home')} />}
                     {activePage === 'auditing' && <Auditing onBack={() => handleNavigate('home')} />}
-                    {activePage === 'history' && <EmployeeHome onNavigate={(p) => handleNavigate(p)} userRole={role} />}
+                    {activePage === 'history' && <SalesHistory onBack={() => handleNavigate('home')} />}
                     {activePage === 'dashboard' && (
                         <FranchiseDashboard
                             onNavigateToBilling={() => handleNavigate('billing')}

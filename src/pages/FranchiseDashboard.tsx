@@ -290,103 +290,81 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
             </div>
 
             {/* ========================================================================== */}
-            {/* 4 LUXURY KPI COMMAND CARDS                                                */}
+            {/* 4 LUXURY KPI COMMAND CARDS (2 Columns on Mobile with Reduced Size)         */}
             {/* ========================================================================== */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem', marginBottom: '2.25rem' }}>
+            <div className="kpi-grid">
                 
                 {/* 1. Live Wallet Balance */}
-                <div className="glass-panel" style={{ borderLeft: '4px solid var(--pos-gold-primary)', cursor: 'pointer' }} onClick={() => setActiveTab('wallet')}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <div>
-                            <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--pos-text-secondary)', fontWeight: 700, letterSpacing: '0.05em' }}>
-                                Live Wallet Balance
-                            </span>
-                            <h2 style={{ fontSize: '1.85rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: '0.35rem 0 0 0', color: 'var(--pos-gold-light)' }}>
-                                ₹{parseFloat(stats?.wallet_balance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                            </h2>
-                        </div>
-                        <div style={{ padding: '0.65rem', borderRadius: '12px', background: 'var(--pos-gold-gradient-subtle)', border: '1px solid var(--pos-border-gold)' }}>
-                            <Wallet size={24} style={{ color: 'var(--pos-gold-primary)' }} />
-                        </div>
+                <div className="kpi-card glass-panel" style={{ borderLeft: '4px solid var(--pos-gold-primary)', cursor: 'pointer' }} onClick={() => setActiveTab('wallet')}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                        <span className="kpi-label" style={{ textTransform: 'uppercase', color: 'var(--pos-text-secondary)', fontWeight: 700 }}>
+                            Live Wallet
+                        </span>
+                        <Wallet size={18} style={{ color: 'var(--pos-gold-primary)' }} />
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem', paddingTop: '0.65rem', borderTop: '1px solid var(--pos-border-subtle)' }}>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>Net commission earnings</span>
-                        <button
-                            className="btn btn-secondary btn-sm"
-                            onClick={(e) => { e.stopPropagation(); setShowPayoutModal(true); }}
-                            style={{ padding: '0.2rem 0.55rem', fontSize: '0.6875rem' }}
-                        >
-                            Withdraw Payout &rarr;
-                        </button>
+                    <div className="kpi-val" style={{ color: 'var(--pos-gold-light)' }}>
+                        ₹{parseFloat(stats?.wallet_balance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.35rem', paddingTop: '0.35rem', borderTop: '1px solid var(--pos-border-subtle)' }}>
+                        <span className="kpi-sub" style={{ color: 'var(--pos-text-secondary)' }}>Net commission</span>
+                        <span style={{ fontSize: '0.65rem', color: 'var(--pos-gold-light)', fontWeight: 'bold' }}>Payout &rarr;</span>
                     </div>
                 </div>
 
                 {/* 2. Today's Gross Sales & Commission */}
-                <div className="glass-panel" style={{ borderLeft: '4px solid var(--pos-accent-green)', cursor: 'pointer' }} onClick={() => setActiveTab('wallet')}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <div>
-                            <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--pos-text-secondary)', fontWeight: 700, letterSpacing: '0.05em' }}>
-                                Today's Counter Sales
-                            </span>
-                            <h2 style={{ fontSize: '1.85rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: '0.35rem 0 0 0', color: '#6ee7b7' }}>
-                                ₹{parseFloat(stats?.sales_today || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                            </h2>
-                        </div>
-                        <div style={{ padding: '0.65rem', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
-                            <TrendingUp size={24} style={{ color: 'var(--pos-accent-green)' }} />
-                        </div>
+                <div className="kpi-card glass-panel" style={{ borderLeft: '4px solid var(--pos-accent-green)', cursor: 'pointer' }} onClick={() => setActiveTab('wallet')}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                        <span className="kpi-label" style={{ textTransform: 'uppercase', color: 'var(--pos-text-secondary)', fontWeight: 700 }}>
+                            Today's Sales
+                        </span>
+                        <TrendingUp size={18} style={{ color: 'var(--pos-accent-green)' }} />
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem', paddingTop: '0.65rem', borderTop: '1px solid var(--pos-border-subtle)' }}>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>All-Time: ₹{parseFloat(stats?.total_sold_all_time || 0).toLocaleString('en-IN')}</span>
-                        <span style={{ fontSize: '0.75rem', color: '#6ee7b7', fontWeight: 'bold' }}>+{commissionPercent}% Comm</span>
+                    <div className="kpi-val" style={{ color: '#6ee7b7' }}>
+                        ₹{parseFloat(stats?.sales_today || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.35rem', paddingTop: '0.35rem', borderTop: '1px solid var(--pos-border-subtle)' }}>
+                        <span className="kpi-sub" style={{ color: 'var(--pos-text-secondary)' }}>Today</span>
+                        <span style={{ fontSize: '0.65rem', color: '#6ee7b7', fontWeight: 'bold' }}>+{commissionPercent}% Comm</span>
                     </div>
                 </div>
 
                 {/* 3. Active Shelf Stock */}
-                <div className="glass-panel" style={{ borderLeft: '4px solid var(--pos-gold-metallic)', cursor: 'pointer' }} onClick={() => setActiveTab('products')}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <div>
-                            <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--pos-text-secondary)', fontWeight: 700, letterSpacing: '0.05em' }}>
-                                Active Shelf Stock
-                            </span>
-                            <h2 style={{ fontSize: '1.85rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: '0.35rem 0 0 0', color: 'var(--pos-text-primary)' }}>
-                                {stats?.active_stock_count || 0} <span style={{ fontSize: '0.9rem', color: 'var(--pos-text-secondary)' }}>units</span>
-                            </h2>
-                        </div>
-                        <div style={{ padding: '0.65rem', borderRadius: '12px', background: 'rgba(230, 202, 101, 0.12)', border: '1px solid var(--pos-border-gold)' }}>
-                            <Package size={24} style={{ color: 'var(--pos-gold-metallic)' }} />
-                        </div>
+                <div className="kpi-card glass-panel" style={{ borderLeft: '4px solid var(--pos-gold-metallic)', cursor: 'pointer' }} onClick={() => setActiveTab('products')}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                        <span className="kpi-label" style={{ textTransform: 'uppercase', color: 'var(--pos-text-secondary)', fontWeight: 700 }}>
+                            Shelf Stock
+                        </span>
+                        <Package size={18} style={{ color: 'var(--pos-gold-metallic)' }} />
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem', paddingTop: '0.65rem', borderTop: '1px solid var(--pos-border-subtle)' }}>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>{products.length} active SKUs</span>
+                    <div className="kpi-val" style={{ color: 'var(--pos-text-primary)' }}>
+                        {stats?.active_stock_count || 0} <span style={{ fontSize: '0.8rem', color: 'var(--pos-text-secondary)' }}>units</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.35rem', paddingTop: '0.35rem', borderTop: '1px solid var(--pos-border-subtle)' }}>
+                        <span className="kpi-sub" style={{ color: 'var(--pos-text-secondary)' }}>{products.length} SKUs</span>
                         {lowStockCount > 0 ? (
-                            <span className="badge badge-warning" style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem' }}>
-                                {lowStockCount} Low Stock
+                            <span className="badge badge-warning" style={{ fontSize: '0.6rem', padding: '0.1rem 0.35rem' }}>
+                                {lowStockCount} Low
                             </span>
                         ) : (
-                            <span className="badge badge-success" style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem' }}>Healthy</span>
+                            <span className="badge badge-success" style={{ fontSize: '0.6rem', padding: '0.1rem 0.35rem' }}>Good</span>
                         )}
                     </div>
                 </div>
 
                 {/* 4. Store Employees On-Duty */}
-                <div className="glass-panel" style={{ borderLeft: '4px solid var(--pos-gold-champagne)', cursor: 'pointer' }} onClick={() => setActiveTab('employees')}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <div>
-                            <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--pos-text-secondary)', fontWeight: 700, letterSpacing: '0.05em' }}>
-                                Store Staff Team
-                            </span>
-                            <h2 style={{ fontSize: '1.85rem', fontFamily: 'Cinzel, serif', fontWeight: 'bold', margin: '0.35rem 0 0 0', color: 'var(--pos-gold-champagne)' }}>
-                                {employees.length} <span style={{ fontSize: '0.9rem', color: 'var(--pos-text-secondary)' }}>members</span>
-                            </h2>
-                        </div>
-                        <div style={{ padding: '0.65rem', borderRadius: '12px', background: 'rgba(222, 194, 157, 0.12)', border: '1px solid var(--pos-border-gold)' }}>
-                            <Users size={24} style={{ color: 'var(--pos-gold-champagne)' }} />
-                        </div>
+                <div className="kpi-card glass-panel" style={{ borderLeft: '4px solid var(--pos-gold-champagne)', cursor: 'pointer' }} onClick={() => setActiveTab('employees')}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                        <span className="kpi-label" style={{ textTransform: 'uppercase', color: 'var(--pos-text-secondary)', fontWeight: 700 }}>
+                            Staff Team
+                        </span>
+                        <Users size={18} style={{ color: 'var(--pos-gold-champagne)' }} />
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem', paddingTop: '0.65rem', borderTop: '1px solid var(--pos-border-subtle)' }}>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>Assigned to {stats?.name || storeName}</span>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--pos-gold-champagne)', display: 'flex', alignItems: 'center' }}>Manage &rarr;</span>
+                    <div className="kpi-val" style={{ color: 'var(--pos-gold-champagne)' }}>
+                        {employees.length} <span style={{ fontSize: '0.8rem', color: 'var(--pos-text-secondary)' }}>members</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.35rem', paddingTop: '0.35rem', borderTop: '1px solid var(--pos-border-subtle)' }}>
+                        <span className="kpi-sub" style={{ color: 'var(--pos-text-secondary)' }}>On duty</span>
+                        <span style={{ fontSize: '0.65rem', color: 'var(--pos-gold-champagne)' }}>View &rarr;</span>
                     </div>
                 </div>
             </div>

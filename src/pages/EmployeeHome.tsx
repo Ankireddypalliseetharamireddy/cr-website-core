@@ -298,50 +298,50 @@ export default function EmployeeHome({ onNavigate, userRole }: EmployeeHomeProps
                 </div>
             </div>
 
-            {/* 4 Luxury KPI Metric Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
-                <div className="glass-panel" style={{ borderLeft: '4px solid var(--pos-gold-primary)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--pos-text-secondary)', fontSize: '0.8125rem', marginBottom: '0.5rem' }}>
-                        <span>Gross Revenue</span>
-                        <DollarSign size={18} style={{ color: 'var(--pos-gold-primary)' }} />
+            {/* 4 Luxury KPI Metric Cards (2 Columns on Mobile with Reduced Size) */}
+            <div className="kpi-grid">
+                <div className="kpi-card glass-panel" style={{ borderLeft: '4px solid var(--pos-gold-primary)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                        <span className="kpi-label" style={{ color: 'var(--pos-text-secondary)', fontWeight: 600 }}>Gross Revenue</span>
+                        <DollarSign size={16} style={{ color: 'var(--pos-gold-primary)' }} />
                     </div>
-                    <div style={{ fontSize: '1.65rem', fontWeight: 'bold', color: 'var(--pos-gold-light)', fontFamily: 'Cinzel, serif' }}>
+                    <div className="kpi-val" style={{ color: 'var(--pos-gold-light)' }}>
                         ₹{summary ? summary.total_revenue.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '0.00'}
                     </div>
-                    <span style={{ fontSize: '0.6875rem', color: 'var(--pos-text-secondary)' }}>Gross store sales in {timeframe}</span>
+                    <span className="kpi-sub" style={{ color: 'var(--pos-text-secondary)' }}>Sales in {timeframe}</span>
                 </div>
 
-                <div className="glass-panel" style={{ borderLeft: '4px solid var(--pos-accent-green)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--pos-text-secondary)', fontSize: '0.8125rem', marginBottom: '0.5rem' }}>
-                        <span>Invoices Generated</span>
-                        <Receipt size={18} style={{ color: 'var(--pos-accent-green)' }} />
+                <div className="kpi-card glass-panel" style={{ borderLeft: '4px solid var(--pos-accent-green)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                        <span className="kpi-label" style={{ color: 'var(--pos-text-secondary)', fontWeight: 600 }}>Invoices</span>
+                        <Receipt size={16} style={{ color: 'var(--pos-accent-green)' }} />
                     </div>
-                    <div style={{ fontSize: '1.65rem', fontWeight: 'bold', color: 'var(--pos-text-primary)' }}>
+                    <div className="kpi-val" style={{ color: 'var(--pos-text-primary)' }}>
                         {summary ? summary.total_invoices : 0}
                     </div>
-                    <span style={{ fontSize: '0.6875rem', color: 'var(--pos-text-secondary)' }}>Completed checkouts</span>
+                    <span className="kpi-sub" style={{ color: 'var(--pos-text-secondary)' }}>Checkouts</span>
                 </div>
 
-                <div className="glass-panel" style={{ borderLeft: '4px solid var(--pos-gold-metallic)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--pos-text-secondary)', fontSize: '0.8125rem', marginBottom: '0.5rem' }}>
-                        <span>Items Sold</span>
-                        <Package size={18} style={{ color: 'var(--pos-gold-metallic)' }} />
+                <div className="kpi-card glass-panel" style={{ borderLeft: '4px solid var(--pos-gold-metallic)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                        <span className="kpi-label" style={{ color: 'var(--pos-text-secondary)', fontWeight: 600 }}>Items Sold</span>
+                        <Package size={16} style={{ color: 'var(--pos-gold-metallic)' }} />
                     </div>
-                    <div style={{ fontSize: '1.65rem', fontWeight: 'bold', color: 'var(--pos-text-primary)' }}>
-                        {summary ? summary.items_sold : 0} <span style={{ fontSize: '0.9rem', color: 'var(--pos-text-secondary)' }}>units</span>
+                    <div className="kpi-val" style={{ color: 'var(--pos-text-primary)' }}>
+                        {summary ? summary.items_sold : 0} <span style={{ fontSize: '0.8rem', color: 'var(--pos-text-secondary)' }}>units</span>
                     </div>
-                    <span style={{ fontSize: '0.6875rem', color: 'var(--pos-text-secondary)' }}>Total quantity dispatched</span>
+                    <span className="kpi-sub" style={{ color: 'var(--pos-text-secondary)' }}>Dispatched</span>
                 </div>
 
-                <div className="glass-panel" style={{ borderLeft: '4px solid var(--pos-gold-champagne)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--pos-text-secondary)', fontSize: '0.8125rem', marginBottom: '0.5rem' }}>
-                        <span>Avg Order Value</span>
-                        <Sparkles size={18} style={{ color: 'var(--pos-gold-champagne)' }} />
+                <div className="kpi-card glass-panel" style={{ borderLeft: '4px solid var(--pos-gold-champagne)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                        <span className="kpi-label" style={{ color: 'var(--pos-text-secondary)', fontWeight: 600 }}>Avg Basket</span>
+                        <Sparkles size={16} style={{ color: 'var(--pos-gold-champagne)' }} />
                     </div>
-                    <div style={{ fontSize: '1.65rem', fontWeight: 'bold', color: 'var(--pos-gold-light)', fontFamily: 'Cinzel, serif' }}>
+                    <div className="kpi-val" style={{ color: 'var(--pos-gold-light)' }}>
                         ₹{summary ? summary.average_order_value.toFixed(2) : '0.00'}
                     </div>
-                    <span style={{ fontSize: '0.6875rem', color: 'var(--pos-text-secondary)' }}>Per transaction basket</span>
+                    <span className="kpi-sub" style={{ color: 'var(--pos-text-secondary)' }}>Per order avg</span>
                 </div>
             </div>
 

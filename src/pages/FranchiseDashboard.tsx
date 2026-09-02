@@ -925,17 +925,14 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                         </div>
                     </div>
 
-                    {/* Product Inventory Table */}
+                    {/* Product Inventory Table (Clean Product Name, Price, Stock) */}
                     <div className="table-responsive">
                         <table className="glass-table">
                             <thead>
                                 <tr>
-                                    <th>SKU &amp; Barcode</th>
-                                    <th>Product Title</th>
-                                    <th>Size &amp; Attributes</th>
-                                    <th>Unit Selling Price</th>
-                                    <th style={{ textAlign: 'center' }}>Live Shelf Stock</th>
-                                    <th style={{ textAlign: 'center' }}>Stock Status</th>
+                                    <th>Product Name</th>
+                                    <th style={{ textAlign: 'center' }}>Price</th>
+                                    <th style={{ textAlign: 'center' }}>Stock</th>
                                     <th style={{ textAlign: 'center' }}>Action</th>
                                 </tr>
                             </thead>
@@ -945,47 +942,29 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                         const franchiseInv = p.franchise_stock?.find((f: any) => f.quantity !== undefined) || { quantity: 0 };
                                         const qty = franchiseInv.quantity || 0;
                                         const minStock = p.minimum_stock_level || 5;
-                                        
-                                        let statusLabel = 'In Stock';
-                                        let statusClass = 'badge-success';
-                                        if (qty === 0) {
-                                            statusLabel = 'Out of Stock';
-                                            statusClass = 'badge-danger';
-                                        } else if (qty <= minStock) {
-                                            statusLabel = `Low Stock (<= ${minStock})`;
-                                            statusClass = 'badge-warning';
-                                        }
 
                                         return (
                                             <tr key={p.id}>
                                                 <td>
-                                                    <div style={{ fontWeight: 'bold', color: 'var(--pos-gold-light)', fontFamily: 'monospace' }}>
-                                                        {p.sku}
+                                                    <div style={{ fontWeight: 600, color: 'var(--pos-text-primary)', fontSize: '0.9375rem' }}>{p.name}</div>
+                                                    <div style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>
+                                                        {p.sku} {p.size ? `• Size: ${p.size}` : ''}
                                                     </div>
-                                                    {p.barcode && (
-                                                        <div style={{ fontSize: '0.72rem', color: 'var(--pos-text-secondary)' }}>
-                                                            {p.barcode}
-                                                        </div>
-                                                    )}
                                                 </td>
-                                                <td>
-                                                    <div style={{ fontWeight: 600 }}>{p.name}</div>
-                                                </td>
-                                                <td>
-                                                    <span style={{ fontSize: '0.8125rem', color: 'var(--pos-text-secondary)' }}>
-                                                        Size: {p.size || 'Free'} &bull; GST: {p.gst_percentage}%
-                                                    </span>
-                                                </td>
-                                                <td style={{ fontWeight: 'bold', color: 'var(--pos-gold-light)' }}>
+                                                <td style={{ textAlign: 'center', fontWeight: 'bold', color: 'var(--pos-gold-light)', fontSize: '1rem' }}>
                                                     ₹{parseFloat(p.selling_price).toFixed(2)}
                                                 </td>
                                                 <td style={{ textAlign: 'center' }}>
-                                                    <span style={{ fontSize: '1.15rem', fontWeight: 'bold', color: qty === 0 ? 'var(--pos-accent-red)' : (qty <= minStock ? '#fde047' : 'var(--pos-text-primary)') }}>
+                                                    <span style={{
+                                                        fontSize: '1.05rem',
+                                                        fontWeight: 'bold',
+                                                        color: qty === 0 ? 'var(--pos-accent-red)' : (qty <= minStock ? '#fde047' : '#6ee7b7')
+                                                    }}>
                                                         {qty}
-                                                    </span> units
-                                                </td>
-                                                <td style={{ textAlign: 'center' }}>
-                                                    <span className={`badge ${statusClass}`}>{statusLabel}</span>
+                                                    </span>
+                                                    <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)', marginLeft: '0.25rem' }}>units</span>
+                                                    {qty === 0 && <span className="badge badge-danger" style={{ marginLeft: '0.4rem', fontSize: '0.62rem' }}>Out</span>}
+                                                    {qty > 0 && qty <= minStock && <span className="badge badge-warning" style={{ marginLeft: '0.4rem', fontSize: '0.62rem' }}>Low</span>}
                                                 </td>
                                                 <td style={{ textAlign: 'center' }}>
                                                     <button
@@ -1004,7 +983,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                     })
                                 ) : (
                                     <tr>
-                                        <td colSpan={7} style={{ textAlign: 'center', padding: '3rem', color: 'var(--pos-text-secondary)' }}>
+                                        <td colSpan={4} style={{ textAlign: 'center', padding: '3rem', color: 'var(--pos-text-secondary)' }}>
                                             No products found matching your search.
                                         </td>
                                     </tr>

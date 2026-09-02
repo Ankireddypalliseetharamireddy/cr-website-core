@@ -4,7 +4,7 @@ import {
     TrendingUp, Search, Share2, Send, Printer,
     ArrowRight, Package, Store, Sparkles
 } from 'lucide-react';
-import { orderService } from '../services/api';
+import { orderService, catalogService } from '../services/api';
 import '../styles/website.css';
 
 interface OrderItem {
@@ -23,6 +23,16 @@ interface OrderRecord {
     total_price: string;
     created_at: string;
     items: OrderItem[];
+}
+
+interface ProductItem {
+    id: number;
+    name: string;
+    sku: string;
+    selling_price: string;
+    size?: string;
+    minimum_stock_level?: number;
+    franchise_stock?: Array<{ quantity: number }>;
 }
 
 interface SalesSummary {
@@ -44,10 +54,13 @@ interface EmployeeHomeProps {
 
 export default function EmployeeHome({ onNavigate, userRole }: EmployeeHomeProps) {
     const [timeframe, setTimeframe] = useState<'today' | 'week' | 'month' | 'all'>('today');
+    const [activeSection, setActiveSection] = useState<'inventory' | 'sales'>('inventory');
     const [summary, setSummary] = useState<SalesSummary | null>(null);
     const [orders, setOrders] = useState<OrderRecord[]>([]);
+    const [products, setProducts] = useState<ProductItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [inventorySearch, setInventorySearch] = useState('');
 
     // Selected order for receipt popup
     const [selectedOrder, setSelectedOrder] = useState<OrderRecord | null>(null);
@@ -58,12 +71,14 @@ export default function EmployeeHome({ onNavigate, userRole }: EmployeeHomeProps
     const loadData = async () => {
         setLoading(true);
         try {
-            const [summaryRes, ordersRes] = await Promise.all([
+            const [summaryRes, ordersRes, productsRes] = await Promise.all([
                 orderService.getSalesSummary(timeframe),
-                orderService.getOrders({ timeframe: timeframe === 'all' ? undefined : timeframe })
+                orderService.getOrders({ timeframe: timeframe === 'all' ? undefined : timeframe }),
+                catalogService.getProducts().catch(() => ({ data: [] }))
             ]);
             setSummary(summaryRes.data);
-            setOrders(ordersRes.data);
+            setOrders(ordersRes.data || []);
+            setProducts(productsRes.data || []);
         } catch (err) {
             console.error("Failed to load employee dashboard data", err);
         } finally {
@@ -330,105 +345,211 @@ export default function EmployeeHome({ onNavigate, userRole }: EmployeeHomeProps
                 </div>
             </div>
 
-            {/* Invoices History Table */}
-            <div className="glass-panel">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
-                    <h3 className="panel-title" style={{ margin: 0, border: 'none', padding: 0 }}>
-                        Recent Invoices Ledger ({filteredOrders.length})
-                    </h3>
-                    <div style={{ position: 'relative', minWidth: '280px' }}>
-                        <input
-                            type="text"
-                            className="form-input"
-                            placeholder="Search by Invoice # or Customer Phone..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            style={{ paddingLeft: '2.4rem', fontSize: '0.85rem' }}
-                        />
-                        <Search size={15} style={{ position: 'absolute', left: '0.85rem', top: '0.95rem', color: 'var(--pos-text-secondary)' }} />
-                    </div>
-                </div>
+            {/* Section Switcher Tabs (Store Inventory vs Recent Invoices) */}
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', borderBottom: '1px solid var(--pos-border-gold)', paddingBottom: '0.75rem', overflowX: 'auto' }}>
+                <button
+                    className={`btn btn-sm ${activeSection === 'inventory' ? 'btn-primary' : 'btn-secondary'}`}
+                    onClick={() => setActiveSection('inventory')}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap' }}
+                >
+                    <Package size={14} />
+                    <span>Store Inventory ({products.length} Products)</span>
+                </button>
 
-                {loading ? (
-                    <p style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--pos-text-secondary)' }}>Loading transaction records...</p>
-                ) : filteredOrders.length > 0 ? (
-                    <div className="table-responsive">
-                        <table className="glass-table">
-                            <thead>
-                                <tr>
-                                    <th>Invoice #</th>
-                                    <th>Date &amp; Time</th>
-                                    <th>Customer</th>
-                                    <th>Items</th>
-                                    <th>Payment Mode</th>
-                                    <th>Total Amount</th>
-                                    <th style={{ textAlign: 'center' }}>Share &amp; Print</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredOrders.map((order) => (
-                                    <tr key={order.id}>
-                                        <td style={{ fontWeight: 'bold', color: 'var(--pos-gold-light)' }}>
-                                            {order.invoice_number}
-                                        </td>
-                                        <td style={{ fontSize: '0.8125rem', color: 'var(--pos-text-secondary)' }}>
-                                            {new Date(order.created_at).toLocaleString()}
-                                        </td>
-                                        <td>
-                                            <div style={{ fontWeight: 600 }}>{order.customer_name || 'Walk-in'}</div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>{order.customer_phone}</div>
-                                        </td>
-                                        <td>
-                                            <span className="badge badge-gold">
-                                                {order.items?.reduce((s, it) => s + it.quantity, 0) || 0} Units
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span className="badge badge-blue">{order.payment_method}</span>
-                                        </td>
-                                        <td style={{ fontWeight: 'bold', color: 'var(--pos-gold-light)', fontSize: '0.9375rem' }}>
-                                            ₹{parseFloat(order.total_price).toFixed(2)}
-                                        </td>
-                                        <td>
-                                            <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center' }}>
-                                                <button
-                                                    className="btn btn-secondary btn-sm"
-                                                    onClick={() => handleShareWhatsApp(order)}
-                                                    title="Share Invoice on WhatsApp"
-                                                    style={{ padding: '0.35rem 0.6rem' }}
-                                                >
-                                                    <Share2 size={13} style={{ color: '#25D366' }} />
-                                                </button>
-                                                <button
-                                                    className="btn btn-secondary btn-sm"
-                                                    onClick={() => handleShareSMS(order)}
-                                                    title="Send SMS Receipt"
-                                                    style={{ padding: '0.35rem 0.6rem' }}
-                                                >
-                                                    <Send size={13} />
-                                                </button>
-                                                <button
-                                                    className="btn btn-secondary btn-sm"
-                                                    onClick={() => handlePrintOrder(order)}
-                                                    title="Print Thermal Receipt"
-                                                    style={{ padding: '0.35rem 0.6rem' }}
-                                                >
-                                                    <Printer size={13} />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                ) : (
-                    <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--pos-text-secondary)' }}>
-                        <Receipt size={36} style={{ opacity: 0.3, marginBottom: '0.5rem', color: 'var(--pos-gold-primary)' }} />
-                        <p>No transaction records found matching your filters.</p>
-                    </div>
-                )}
+                <button
+                    className={`btn btn-sm ${activeSection === 'sales' ? 'btn-primary' : 'btn-secondary'}`}
+                    onClick={() => setActiveSection('sales')}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap' }}
+                >
+                    <Receipt size={14} />
+                    <span>Recent Sales Invoices ({orders.length})</span>
+                </button>
             </div>
+
+            {/* TAB 1: STORE INVENTORY TABLE (Clean 3 Columns: Product Name, Price, Stock) */}
+            {activeSection === 'inventory' && (
+                <div className="glass-panel">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+                        <div>
+                            <h3 className="panel-title" style={{ margin: 0, border: 'none', padding: 0 }}>
+                                <Package size={18} style={{ color: 'var(--pos-gold-primary)' }} />
+                                Store Shelf Inventory
+                            </h3>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>Available products and stock count at {storeName}</span>
+                        </div>
+
+                        <div style={{ position: 'relative', minWidth: '260px' }}>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="Search product name or SKU..."
+                                value={inventorySearch}
+                                onChange={(e) => setInventorySearch(e.target.value)}
+                                style={{ paddingLeft: '2.4rem', fontSize: '0.85rem' }}
+                            />
+                            <Search size={15} style={{ position: 'absolute', left: '0.85rem', top: '0.95rem', color: 'var(--pos-text-secondary)' }} />
+                        </div>
+                    </div>
+
+                    {loading ? (
+                        <p style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--pos-text-secondary)' }}>Loading inventory products...</p>
+                    ) : products.length > 0 ? (
+                        <div className="table-responsive">
+                            <table className="glass-table">
+                                <thead>
+                                    <tr>
+                                        <th>Product Name</th>
+                                        <th style={{ textAlign: 'center' }}>Price</th>
+                                        <th style={{ textAlign: 'center' }}>Stock</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {products
+                                        .filter(p => p.name.toLowerCase().includes(inventorySearch.toLowerCase()) || p.sku.toLowerCase().includes(inventorySearch.toLowerCase()))
+                                        .map((prod) => {
+                                            const franchiseStock = prod.franchise_stock?.find((f: any) => f.quantity !== undefined) || { quantity: 0 };
+                                            const qty = franchiseStock.quantity || 0;
+                                            const minLvl = prod.minimum_stock_level || 5;
+
+                                            return (
+                                                <tr key={prod.id}>
+                                                    <td>
+                                                        <div style={{ fontWeight: 600, color: 'var(--pos-text-primary)', fontSize: '0.9375rem' }}>
+                                                            {prod.name}
+                                                        </div>
+                                                        <div style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>
+                                                            {prod.sku} {prod.size ? `• Size: ${prod.size}` : ''}
+                                                        </div>
+                                                    </td>
+                                                    <td style={{ textAlign: 'center', fontWeight: 'bold', color: 'var(--pos-gold-light)', fontSize: '1rem' }}>
+                                                        ₹{parseFloat(prod.selling_price).toFixed(2)}
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>
+                                                        <span style={{
+                                                            fontSize: '1rem',
+                                                            fontWeight: 'bold',
+                                                            color: qty === 0 ? 'var(--pos-accent-red)' : (qty <= minLvl ? '#fde047' : '#6ee7b7')
+                                                        }}>
+                                                            {qty}
+                                                        </span>
+                                                        <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)', marginLeft: '0.25rem' }}>units</span>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--pos-text-secondary)' }}>
+                            <Package size={36} style={{ opacity: 0.3, marginBottom: '0.5rem', color: 'var(--pos-gold-primary)' }} />
+                            <p>No products found in store inventory.</p>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* TAB 2: INVOICES HISTORY TABLE */}
+            {activeSection === 'sales' && (
+                <div className="glass-panel">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+                        <h3 className="panel-title" style={{ margin: 0, border: 'none', padding: 0 }}>
+                            Recent Invoices Ledger ({filteredOrders.length})
+                        </h3>
+                        <div style={{ position: 'relative', minWidth: '280px' }}>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="Search by Invoice # or Customer Phone..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                style={{ paddingLeft: '2.4rem', fontSize: '0.85rem' }}
+                            />
+                            <Search size={15} style={{ position: 'absolute', left: '0.85rem', top: '0.95rem', color: 'var(--pos-text-secondary)' }} />
+                        </div>
+                    </div>
+
+                    {loading ? (
+                        <p style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--pos-text-secondary)' }}>Loading transaction records...</p>
+                    ) : filteredOrders.length > 0 ? (
+                        <div className="table-responsive">
+                            <table className="glass-table">
+                                <thead>
+                                    <tr>
+                                        <th>Invoice #</th>
+                                        <th>Date &amp; Time</th>
+                                        <th>Customer</th>
+                                        <th>Items</th>
+                                        <th>Payment Mode</th>
+                                        <th>Total Amount</th>
+                                        <th style={{ textAlign: 'center' }}>Share &amp; Print</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredOrders.map((order) => (
+                                        <tr key={order.id}>
+                                            <td style={{ fontWeight: 'bold', color: 'var(--pos-gold-light)' }}>
+                                                {order.invoice_number}
+                                            </td>
+                                            <td style={{ fontSize: '0.8125rem', color: 'var(--pos-text-secondary)' }}>
+                                                {new Date(order.created_at).toLocaleString()}
+                                            </td>
+                                            <td>
+                                                <div style={{ fontWeight: 600 }}>{order.customer_name || 'Walk-in'}</div>
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>{order.customer_phone}</div>
+                                            </td>
+                                            <td>
+                                                <span className="badge badge-gold">
+                                                    {order.items?.reduce((s, it) => s + it.quantity, 0) || 0} Units
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span className="badge badge-blue">{order.payment_method}</span>
+                                            </td>
+                                            <td style={{ fontWeight: 'bold', color: 'var(--pos-gold-light)', fontSize: '0.9375rem' }}>
+                                                ₹{parseFloat(order.total_price).toFixed(2)}
+                                            </td>
+                                            <td>
+                                                <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center' }}>
+                                                    <button
+                                                        className="btn btn-secondary btn-sm"
+                                                        onClick={() => handleShareWhatsApp(order)}
+                                                        title="Share Invoice on WhatsApp"
+                                                        style={{ padding: '0.35rem 0.6rem' }}
+                                                    >
+                                                        <Share2 size={13} style={{ color: '#25D366' }} />
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-secondary btn-sm"
+                                                        onClick={() => handleShareSMS(order)}
+                                                        title="Send SMS Receipt"
+                                                        style={{ padding: '0.35rem 0.6rem' }}
+                                                    >
+                                                        <Send size={13} />
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-secondary btn-sm"
+                                                        onClick={() => handlePrintOrder(order)}
+                                                        title="Print Thermal Receipt"
+                                                        style={{ padding: '0.35rem 0.6rem' }}
+                                                    >
+                                                        <Printer size={13} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--pos-text-secondary)' }}>
+                            <Receipt size={36} style={{ opacity: 0.3, marginBottom: '0.5rem', color: 'var(--pos-gold-primary)' }} />
+                            <p>No transaction records found matching your filters.</p>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Hidden Thermal Print Receipt Area */}
             {selectedOrder && (

@@ -6,7 +6,7 @@ import Billing from './Billing';
 import Auditing from './Auditing';
 import EmployeeHome from './EmployeeHome';
 import FranchiseDashboard from './FranchiseDashboard';
-import { LogOut, User, Store, ShoppingCart, ClipboardCheck, Home, Receipt, Globe } from 'lucide-react';
+import { LogOut, User, Store, ShoppingCart, ClipboardCheck, Home, Receipt, Globe, BarChart2 } from 'lucide-react';
 
 export default function StorePortal() {
     const navigate = useNavigate();
@@ -14,7 +14,7 @@ export default function StorePortal() {
     const [username, setUsername] = useState<string>('');
     const [role, setRole] = useState<string>('');
     const [franchiseId, setFranchiseId] = useState<string>('');
-    const [activePage, setActivePage] = useState<'home' | 'billing' | 'auditing' | 'history'>(() => {
+    const [activePage, setActivePage] = useState<'home' | 'billing' | 'auditing' | 'history' | 'dashboard'>(() => {
         return (localStorage.getItem('activePage') as any) || 'home';
     });
 
@@ -32,7 +32,7 @@ export default function StorePortal() {
         if (storedPage) setActivePage(storedPage);
     }, []);
 
-    const handleNavigate = (page: 'home' | 'billing' | 'auditing' | 'history') => {
+    const handleNavigate = (page: 'home' | 'billing' | 'auditing' | 'history' | 'dashboard') => {
         setActivePage(page);
         localStorage.setItem('activePage', page);
     };
@@ -42,7 +42,15 @@ export default function StorePortal() {
         setUsername(userDisplayName);
         setRole(userRole);
         setFranchiseId(userFranchise);
-        handleNavigate('home');
+        
+        // If Cashier logs in, default straight to Billing POS or Hub
+        if (userRole === 'CASHIER') {
+            handleNavigate('billing');
+        } else if (userRole === 'FRANCHISE_ADMIN') {
+            handleNavigate('dashboard');
+        } else {
+            handleNavigate('home');
+        }
     };
 
     const handleLogout = () => {
@@ -76,7 +84,16 @@ export default function StorePortal() {
         );
     }
 
-    const isAdmin = role === 'FRANCHISE_ADMIN' || role === 'SUPER_ADMIN';
+    const normalizedRole = (role || '').toUpperCase();
+    const canAccessBilling = ['CASHIER', 'STORE_MANAGER', 'SALES_EXECUTIVE', 'FRANCHISE_ADMIN', 'SUPER_ADMIN'].includes(normalizedRole) || !role;
+    const canAccessAuditing = ['AUDITOR', 'INVENTORY_MANAGER', 'STORE_MANAGER', 'FRANCHISE_ADMIN', 'SUPER_ADMIN'].includes(normalizedRole);
+    const canAccessHistory = ['CASHIER', 'STORE_MANAGER', 'AUDITOR', 'FRANCHISE_ADMIN', 'SUPER_ADMIN'].includes(normalizedRole);
+    const canAccessDashboard = ['FRANCHISE_ADMIN', 'STORE_MANAGER', 'SUPER_ADMIN'].includes(normalizedRole);
+
+    const formatRoleLabel = (r: string) => {
+        if (!r) return 'Store Staff';
+        return r.replace(/_/g, ' ');
+    };
 
     return (
         <div className="store-portal-root">
@@ -85,10 +102,10 @@ export default function StorePortal() {
                 <header className="navbar">
                     <div className="navbar-header-row">
                         <div className="brand" style={{ cursor: 'pointer' }} onClick={() => handleNavigate('home')}>
-                            <Store size={22} style={{ color: 'var(--pos-accent-blue)' }} />
+                            <Store size={22} style={{ color: 'var(--pos-gold-primary)' }} />
                             <span>CAVREE STORES</span>
-                            <span className="badge badge-purple" style={{ fontSize: '0.625rem', padding: '0.15rem 0.35rem', marginLeft: '0.35rem' }}>
-                                {isAdmin ? 'ADMIN OVERSIGHT' : 'STORE POS'}
+                            <span className="badge badge-gold" style={{ fontSize: '0.625rem', padding: '0.15rem 0.45rem', marginLeft: '0.35rem' }}>
+                                {formatRoleLabel(role)}
                             </span>
                         </div>
 
@@ -107,7 +124,7 @@ export default function StorePortal() {
                             {/* User Metadata Status */}
                             <div className="user-badge" style={{ background: 'rgba(255,255,255,0.04)', padding: '0.3rem 0.6rem', borderRadius: '8px', border: '1px solid var(--pos-border-color)' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                                    <User size={13} style={{ color: 'var(--pos-accent-blue)' }} />
+                                    <User size={13} style={{ color: 'var(--pos-gold-primary)' }} />
                                     <span style={{ fontWeight: 600, color: 'var(--pos-text-primary)', fontSize: '0.8125rem' }}>{username}</span>
                                     {franchiseId && (
                                         <span style={{ color: 'var(--pos-text-secondary)', fontSize: '0.75rem', marginLeft: '0.25rem' }}>
@@ -125,17 +142,18 @@ export default function StorePortal() {
                         </div>
                     </div>
 
-                    {/* Staff Navigation Tabs Row */}
-                    {!isAdmin && (
-                        <nav className="navbar-tabs-row">
-                            <button
-                                className={`btn btn-sm ${activePage === 'home' ? 'btn-primary' : 'btn-secondary'}`}
-                                onClick={() => handleNavigate('home')}
-                                style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap' }}
-                            >
-                                <Home size={14} />
-                                <span>Hub</span>
-                            </button>
+                    {/* Dynamic Role-Based Navigation Tabs Row */}
+                    <nav className="navbar-tabs-row">
+                        <button
+                            className={`btn btn-sm ${activePage === 'home' ? 'btn-primary' : 'btn-secondary'}`}
+                            onClick={() => handleNavigate('home')}
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap' }}
+                        >
+                            <Home size={14} />
+                            <span>Hub</span>
+                        </button>
+
+                        {canAccessBilling && (
                             <button
                                 className={`btn btn-sm ${activePage === 'billing' ? 'btn-primary' : 'btn-secondary'}`}
                                 onClick={() => handleNavigate('billing')}
@@ -144,6 +162,9 @@ export default function StorePortal() {
                                 <ShoppingCart size={14} />
                                 <span>Billing POS</span>
                             </button>
+                        )}
+
+                        {canAccessAuditing && (
                             <button
                                 className={`btn btn-sm ${activePage === 'auditing' ? 'btn-primary' : 'btn-secondary'}`}
                                 onClick={() => handleNavigate('auditing')}
@@ -152,6 +173,9 @@ export default function StorePortal() {
                                 <ClipboardCheck size={14} />
                                 <span>Store Audit</span>
                             </button>
+                        )}
+
+                        {canAccessHistory && (
                             <button
                                 className={`btn btn-sm ${activePage === 'history' ? 'btn-primary' : 'btn-secondary'}`}
                                 onClick={() => handleNavigate('history')}
@@ -160,22 +184,28 @@ export default function StorePortal() {
                                 <Receipt size={14} />
                                 <span>Sales History</span>
                             </button>
-                        </nav>
-                    )}
+                        )}
+
+                        {canAccessDashboard && (
+                            <button
+                                className={`btn btn-sm ${activePage === 'dashboard' ? 'btn-primary' : 'btn-secondary'}`}
+                                onClick={() => handleNavigate('dashboard')}
+                                style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap' }}
+                            >
+                                <BarChart2 size={14} />
+                                <span>Store Analytics</span>
+                            </button>
+                        )}
+                    </nav>
                 </header>
 
                 {/* Main Content Layout based on user role and active page */}
                 <main style={{ flexGrow: 1 }}>
-                    {isAdmin ? (
-                        <FranchiseDashboard />
-                    ) : (
-                        <>
-                            {activePage === 'home' && <EmployeeHome onNavigate={(p) => handleNavigate(p)} userRole={role} />}
-                            {activePage === 'billing' && <Billing />}
-                            {activePage === 'auditing' && <Auditing onBack={() => handleNavigate('home')} />}
-                            {activePage === 'history' && <EmployeeHome onNavigate={(p) => handleNavigate(p)} userRole={role} />}
-                        </>
-                    )}
+                    {activePage === 'home' && <EmployeeHome onNavigate={(p) => handleNavigate(p)} userRole={role} />}
+                    {activePage === 'billing' && <Billing />}
+                    {activePage === 'auditing' && <Auditing onBack={() => handleNavigate('home')} />}
+                    {activePage === 'history' && <EmployeeHome onNavigate={(p) => handleNavigate(p)} userRole={role} />}
+                    {activePage === 'dashboard' && <FranchiseDashboard />}
                 </main>
             </div>
         </div>

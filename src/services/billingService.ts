@@ -5,6 +5,7 @@ export interface CheckoutPayload {
     customer_phone: string;
     payment_method: string;
     payment_status: string;
+    offer_id?: number;
     items: Array<{ product_id: number; quantity: number; serials?: string[]; scanned_serial_number?: string }>;
 }
 

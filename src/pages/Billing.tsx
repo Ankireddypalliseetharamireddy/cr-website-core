@@ -1,10 +1,10 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import {
     Search, ShoppingCart, Trash2, Printer, Plus, Minus, CheckCircle,
     Camera, X, Bluetooth, Smartphone, Banknote, Share2, Send,
-    RotateCcw, Sparkles, Package, ArrowLeft, ArrowRight, User
+    RotateCcw, Sparkles, Package, ArrowLeft, ArrowRight, User, Tag
 } from 'lucide-react';
-import { billingService, catalogService } from '../services/api';
+import { billingService, catalogService, offerService, ActiveOffer } from '../services/api';
 import '../styles/website.css';
 
 interface Product {
@@ -21,6 +21,8 @@ interface Product {
     stock?: number;
     scanned_serial_number?: string;
     serial_item_id?: number;
+    category?: number;
+    category_id?: number;
 }
 
 interface CartItem extends Product {
@@ -37,6 +39,10 @@ interface CompletedOrder {
     customer_name: string;
     customer_phone: string;
     created_at: string;
+    subtotal_before_discount?: string;
+    offer_discount_amount?: string;
+    applied_offer_title?: string;
+    applied_offer_code?: string;
     items: Array<{
         id: number;
         product_name: string;
@@ -89,7 +95,21 @@ export default function Billing({ onBack }: BillingProps) {
     // Cash Change Calculator
     const [cashTendered, setCashTendered] = useState('');
 
+    // Promotional Offers & Slabs State
+    const [availableOffers, setAvailableOffers] = useState<ActiveOffer[]>([]);
+    const [selectedOfferId, setSelectedOfferId] = useState<number | null>(null);
+
     const scanInputRef = useRef<HTMLInputElement>(null);
+
+    const loadOffers = async () => {
+        try {
+            const fid = localStorage.getItem('franchiseId');
+            const res = await offerService.getActiveOffers(fid || undefined);
+            setAvailableOffers(res.data || []);
+        } catch (err) {
+            console.error("Failed to load active offers for POS", err);
+        }
+    };
 
     const loadCatalog = async () => {
         try {
@@ -102,6 +122,7 @@ export default function Billing({ onBack }: BillingProps) {
 
     useEffect(() => {
         loadCatalog();
+        loadOffers();
 
         if ('BarcodeDetector' in window) {
             try {
@@ -283,7 +304,79 @@ export default function Billing({ onBack }: BillingProps) {
         return acc + itemGst;
     }, 0);
 
-    const baseTotal = totalPrice - gstTotal;
+    // Helper: Check if an item qualifies for a scoped offer
+    const isItemQualifying = (item: CartItem, offer: ActiveOffer): boolean => {
+        if (offer.applicable_to_all_products) return true;
+        const prodId = item.id;
+        const catId = item.category || item.category_id;
+        const matchesProduct = Array.isArray(offer.products) && offer.products.includes(prodId);
+        const matchesCategory = Boolean(catId && Array.isArray(offer.categories) && offer.categories.includes(catId));
+        return Boolean(matchesProduct || matchesCategory);
+    };
+
+    // Evaluate all active offers against current cart
+    const evaluatedOffers = useMemo(() => {
+        return availableOffers.map(offer => {
+            const qualifyingSpend = cart.reduce((sum, item) => {
+                if (isItemQualifying(item, offer)) {
+                    return sum + (parseFloat(item.selling_price) * item.qty);
+                }
+                return sum;
+            }, 0);
+
+            const minCartVal = parseFloat(offer.min_cart_value || '0');
+            if (qualifyingSpend < minCartVal) {
+                return {
+                    offer,
+                    qualifies: false,
+                    qualifyingSpend,
+                    minCartVal,
+                    discount: 0,
+                    deficit: minCartVal - qualifyingSpend
+                };
+            }
+
+            let discount = 0;
+            if (offer.offer_type === 'TIERED_PAY') {
+                const payAmt = parseFloat(offer.pay_amount || '0');
+                discount = Math.max(0, qualifyingSpend - payAmt);
+            } else if (offer.offer_type === 'FLAT_DISCOUNT') {
+                discount = Math.min(parseFloat(offer.discount_value || '0'), qualifyingSpend);
+            } else if (offer.offer_type === 'PERCENTAGE') {
+                const pct = parseFloat(offer.discount_value || '0');
+                discount = (qualifyingSpend * pct) / 100.0;
+            }
+
+            return {
+                offer,
+                qualifies: true,
+                qualifyingSpend,
+                minCartVal,
+                discount: Math.min(discount, qualifyingSpend),
+                deficit: 0
+            };
+        });
+    }, [availableOffers, cart]);
+
+    // Active offer resolution
+    const activeOfferEvaluation = useMemo(() => {
+        if (selectedOfferId === -1) return null; // Cashier opted out
+        if (selectedOfferId !== null) {
+            const selected = evaluatedOffers.find(o => o.offer.id === selectedOfferId && o.qualifies);
+            if (selected) return selected;
+        }
+        // Auto-apply best qualifying offer (highest discount)
+        const qualifying = evaluatedOffers.filter(o => o.qualifies).sort((a, b) => b.discount - a.discount);
+        return qualifying.length > 0 ? qualifying[0] : null;
+    }, [evaluatedOffers, selectedOfferId]);
+
+    const offerDiscount = activeOfferEvaluation ? activeOfferEvaluation.discount : 0;
+    const finalPayable = Math.max(0, totalPrice - offerDiscount);
+
+    // Prorated GST and base calculation after discount
+    const realizationRatio = totalPrice > 0 ? finalPayable / totalPrice : 1;
+    const effectiveGstTotal = gstTotal * realizationRatio;
+    const effectiveBaseTotal = finalPayable - effectiveGstTotal;
 
     // mPOS Handlers
     const handleConnectBluetoothMpos = async () => {
@@ -336,6 +429,7 @@ export default function Billing({ onBack }: BillingProps) {
                 customer_phone: custPhone.trim() || "9876543210",
                 payment_method: paymentMethod,
                 payment_status: 'SUCCESS',
+                offer_id: activeOfferEvaluation ? activeOfferEvaluation.offer.id : undefined,
                 items: cart.map(item => ({
                     product_id: item.id,
                     quantity: item.qty,
@@ -351,6 +445,7 @@ export default function Billing({ onBack }: BillingProps) {
             setCustName('');
             setCustPhone('');
             setCashTendered('');
+            setSelectedOfferId(null);
             setView('catalog');
         } catch (err: any) {
             console.error(err);
@@ -363,9 +458,16 @@ export default function Billing({ onBack }: BillingProps) {
     const handleShareWhatsApp = () => {
         if (!completedOrder) return;
         const phone = completedOrder.customer_phone.replace(/[^0-9]/g, '');
-        const storeName = localStorage.getItem('franchiseId') || 'Cavree Store';
+        const storeName = localStorage.getItem('franchiseId') ? `Cavree Store #${localStorage.getItem('franchiseId')}` : 'Cavree Store';
         const itemsSummary = completedOrder.items?.map(it => `• ${it.product_name} x ${it.quantity} = ₹${(parseFloat(it.unit_price) * it.quantity).toFixed(2)}`).join('%0A') || '';
-        const text = `🛍️ *CAVREE LUXURY INVOICE RECEIPT*%0AStore: ${storeName}%0AInvoice No: *${completedOrder.invoice_number}*%0ADate: ${new Date(completedOrder.created_at || Date.now()).toLocaleDateString()}%0A%0A*Items Purchased:*%0A${itemsSummary}%0A%0A*Total Paid: ₹${parseFloat(completedOrder.total_price).toFixed(2)}* (${completedOrder.payment_method})%0A%0AThank you for shopping with Cavree!`;
+        
+        let promoSavingsMsg = '';
+        if (completedOrder.offer_discount_amount && parseFloat(completedOrder.offer_discount_amount) > 0) {
+            const promoTag = completedOrder.applied_offer_title || completedOrder.applied_offer_code || 'Promotional Offer';
+            promoSavingsMsg = `%0A🎁 *Offer Discount (${promoTag}): -₹${parseFloat(completedOrder.offer_discount_amount).toFixed(2)}*%0A(Subtotal: ₹${parseFloat(completedOrder.subtotal_before_discount || completedOrder.total_price).toFixed(2)})%0A`;
+        }
+
+        const text = `🛍️ *CAVREE LUXURY INVOICE RECEIPT*%0AStore: ${storeName}%0AInvoice No: *${completedOrder.invoice_number}*%0ADate: ${new Date(completedOrder.created_at || Date.now()).toLocaleDateString()}%0A%0A*Items Purchased:*%0A${itemsSummary}${promoSavingsMsg}%0A*Final Total Paid: ₹${parseFloat(completedOrder.total_price).toFixed(2)}* (${completedOrder.payment_method})%0A%0AThank you for shopping with Cavree!`;
         const targetPhone = phone && phone.length === 10 ? `91${phone}` : phone;
         window.open(`https://wa.me/${targetPhone}?text=${text}`, '_blank');
     };
@@ -384,7 +486,7 @@ export default function Billing({ onBack }: BillingProps) {
         : [];
 
     const tenderedVal = parseFloat(cashTendered) || 0;
-    const changeDue = tenderedVal > totalPrice ? tenderedVal - totalPrice : 0;
+    const changeDue = tenderedVal > finalPayable ? tenderedVal - finalPayable : 0;
 
     return (
         <div className="main-content">
@@ -422,6 +524,101 @@ export default function Billing({ onBack }: BillingProps) {
                             <span>Scan QR / Barcode</span>
                         </button>
                     </div>
+
+                    {/* Active Promotional Offers Ribbon */}
+                    {availableOffers.length > 0 && (
+                        <div style={{
+                            marginBottom: '1.25rem',
+                            padding: '0.75rem 1rem',
+                            background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.12), rgba(15, 17, 23, 0.85))',
+                            borderRadius: '12px',
+                            border: '1px solid var(--pos-border-gold)',
+                            boxShadow: '0 4px 15px rgba(0,0,0,0.35)'
+                        }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.4rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <Sparkles size={16} style={{ color: 'var(--pos-gold-primary)' }} />
+                                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--pos-gold-light)' }}>
+                                        Active Store Offers &amp; Slabs
+                                    </span>
+                                </div>
+                                <span style={{ fontSize: '0.72rem', color: 'var(--pos-text-secondary)' }}>
+                                    {activeOfferEvaluation ? `Applied: ${activeOfferEvaluation.offer.banner_tag || activeOfferEvaluation.offer.title}` : 'Spend more to unlock bigger discounts!'}
+                                </span>
+                            </div>
+
+                            <div style={{
+                                display: 'flex',
+                                gap: '0.6rem',
+                                overflowX: 'auto',
+                                paddingBottom: '0.35rem',
+                                scrollbarWidth: 'thin'
+                            }}>
+                                {evaluatedOffers.map(({ offer, qualifies, discount, deficit }) => {
+                                    const isSelected = activeOfferEvaluation?.offer.id === offer.id;
+                                    return (
+                                        <button
+                                            key={offer.id}
+                                            type="button"
+                                            onClick={() => {
+                                                if (isSelected) {
+                                                    setSelectedOfferId(-1);
+                                                } else if (qualifies) {
+                                                    setSelectedOfferId(offer.id);
+                                                }
+                                            }}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.5rem',
+                                                padding: '0.45rem 0.85rem',
+                                                borderRadius: '999px',
+                                                fontSize: '0.78rem',
+                                                fontWeight: 600,
+                                                whiteSpace: 'nowrap',
+                                                cursor: qualifies ? 'pointer' : 'default',
+                                                transition: 'all 0.2s ease',
+                                                border: isSelected
+                                                    ? '1.5px solid var(--pos-gold-bright)'
+                                                    : qualifies
+                                                    ? '1px solid rgba(212, 175, 55, 0.4)'
+                                                    : '1px dashed rgba(255, 255, 255, 0.15)',
+                                                background: isSelected
+                                                    ? 'linear-gradient(135deg, rgba(212, 175, 55, 0.3), rgba(212, 175, 55, 0.1))'
+                                                    : qualifies
+                                                    ? 'rgba(212, 175, 55, 0.08)'
+                                                    : 'rgba(255, 255, 255, 0.02)',
+                                                color: isSelected
+                                                    ? 'var(--pos-gold-light)'
+                                                    : qualifies
+                                                    ? 'var(--pos-text-primary)'
+                                                    : 'var(--pos-text-secondary)',
+                                            }}
+                                        >
+                                            <Tag size={13} style={{ color: isSelected || qualifies ? 'var(--pos-gold-primary)' : 'inherit' }} />
+                                            <span>{offer.banner_tag || offer.title}</span>
+                                            {qualifies ? (
+                                                <span style={{
+                                                    background: isSelected ? 'var(--pos-gold-primary)' : 'rgba(16, 185, 129, 0.2)',
+                                                    color: isSelected ? '#000' : '#10b981',
+                                                    padding: '0.15rem 0.45rem',
+                                                    borderRadius: '999px',
+                                                    fontSize: '0.68rem',
+                                                    fontWeight: 700
+                                                }}>
+                                                    {isSelected ? `✓ APPLIED (-₹${discount.toFixed(0)})` : 'QUALIFIED'}
+                                                </span>
+                                            ) : (
+                                                <span style={{ fontSize: '0.68rem', color: 'var(--pos-text-secondary)', opacity: 0.85 }}>
+                                                    Add ₹{deficit.toFixed(0)} more
+                                                </span>
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
 
                     {/* 2-Column Desktop Grid or Stacked Mobile View */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.25rem', marginBottom: '5rem' }}>
@@ -629,9 +826,23 @@ export default function Billing({ onBack }: BillingProps) {
                             {/* Proceed to Checkout CTA */}
                             {cart.length > 0 && (
                                 <div style={{ borderTop: '1px solid var(--pos-border-gold)', paddingTop: '1rem' }}>
+                                    {offerDiscount > 0 && (
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem', color: 'var(--pos-text-secondary)', marginBottom: '0.35rem' }}>
+                                            <span>Gross Total:</span>
+                                            <span style={{ textDecoration: 'line-through' }}>₹{totalPrice.toFixed(2)}</span>
+                                        </div>
+                                    )}
+                                    {offerDiscount > 0 && activeOfferEvaluation && (
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem', color: '#10b981', fontWeight: 600, marginBottom: '0.5rem' }}>
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                                <Sparkles size={12} /> {activeOfferEvaluation.offer.banner_tag || activeOfferEvaluation.offer.title}:
+                                            </span>
+                                            <span>-₹{offerDiscount.toFixed(2)}</span>
+                                        </div>
+                                    )}
                                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1rem', color: 'var(--pos-gold-light)' }}>
                                         <span>Total:</span>
-                                        <span>₹{totalPrice.toFixed(2)}</span>
+                                        <span>₹{finalPayable.toFixed(2)}</span>
                                     </div>
                                     <button
                                         type="button"
@@ -665,9 +876,11 @@ export default function Billing({ onBack }: BillingProps) {
                             boxShadow: '0 -4px 20px rgba(0,0,0,0.8)'
                         }}>
                             <div>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>{totalQty} Items in Cart</span>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>
+                                    {totalQty} Items {offerDiscount > 0 ? `(Saved ₹${offerDiscount.toFixed(0)})` : ''}
+                                </span>
                                 <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--pos-gold-light)' }}>
-                                    ₹{totalPrice.toFixed(2)}
+                                    ₹{finalPayable.toFixed(2)}
                                 </div>
                             </div>
                             <button
@@ -728,19 +941,116 @@ export default function Billing({ onBack }: BillingProps) {
 
                             <div style={{ borderTop: '1px solid var(--pos-border-gold)', paddingTop: '0.75rem', fontSize: '0.8125rem' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem', color: 'var(--pos-text-secondary)' }}>
+                                    <span>Gross Subtotal:</span>
+                                    <span>₹{totalPrice.toFixed(2)}</span>
+                                </div>
+                                {offerDiscount > 0 && activeOfferEvaluation && (
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem', color: '#10b981', fontWeight: 600 }}>
+                                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                            <Sparkles size={12} /> {activeOfferEvaluation.offer.banner_tag || activeOfferEvaluation.offer.title}:
+                                        </span>
+                                        <span>-₹{offerDiscount.toFixed(2)}</span>
+                                    </div>
+                                )}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem', color: 'var(--pos-text-secondary)' }}>
                                     <span>Net Subtotal (excl. GST):</span>
-                                    <span>₹{baseTotal.toFixed(2)}</span>
+                                    <span>₹{effectiveBaseTotal.toFixed(2)}</span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', color: 'var(--pos-text-secondary)' }}>
                                     <span>GST Tax Component:</span>
-                                    <span>₹{gstTotal.toFixed(2)}</span>
+                                    <span>₹{effectiveGstTotal.toFixed(2)}</span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.35rem', fontWeight: 'bold', color: 'var(--pos-gold-light)', borderTop: '1px dashed var(--pos-border-gold)', paddingTop: '0.5rem' }}>
                                     <span>Total Amount Payable:</span>
-                                    <span>₹{totalPrice.toFixed(2)}</span>
+                                    <span>₹{finalPayable.toFixed(2)}</span>
                                 </div>
                             </div>
                         </div>
+
+                        {/* Store Offers Selection in Checkout */}
+                        {availableOffers.length > 0 && (
+                            <div className="glass-panel" style={{ marginBottom: '1.25rem', border: '1px solid var(--pos-border-gold)', padding: '1rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                        <Tag size={15} style={{ color: 'var(--pos-gold-primary)' }} />
+                                        <span style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--pos-gold-light)' }}>
+                                            Promotional Offers &amp; Slabs
+                                        </span>
+                                    </div>
+                                    {activeOfferEvaluation && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setSelectedOfferId(-1)}
+                                            style={{ background: 'transparent', border: 'none', color: 'var(--pos-accent-red)', fontSize: '0.72rem', cursor: 'pointer' }}
+                                        >
+                                            Remove Offer
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                    {evaluatedOffers.map(({ offer, qualifies, discount, deficit }) => {
+                                        const isSelected = activeOfferEvaluation?.offer.id === offer.id;
+                                        return (
+                                            <div
+                                                key={offer.id}
+                                                onClick={() => {
+                                                    if (qualifies) {
+                                                        setSelectedOfferId(isSelected ? -1 : offer.id);
+                                                    }
+                                                }}
+                                                style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    padding: '0.65rem 0.85rem',
+                                                    borderRadius: '8px',
+                                                    cursor: qualifies ? 'pointer' : 'default',
+                                                    border: isSelected
+                                                        ? '1.5px solid var(--pos-gold-bright)'
+                                                        : qualifies
+                                                        ? '1px solid rgba(212, 175, 55, 0.3)'
+                                                        : '1px dashed rgba(255, 255, 255, 0.1)',
+                                                    background: isSelected
+                                                        ? 'rgba(212, 175, 55, 0.15)'
+                                                        : qualifies
+                                                        ? 'rgba(212, 175, 55, 0.05)'
+                                                        : 'rgba(255, 255, 255, 0.02)',
+                                                    transition: 'all 0.2s ease'
+                                                }}
+                                            >
+                                                <div>
+                                                    <div style={{ fontWeight: 600, fontSize: '0.85rem', color: isSelected ? 'var(--pos-gold-light)' : 'var(--pos-text-primary)' }}>
+                                                        {offer.banner_tag || offer.title}
+                                                    </div>
+                                                    <div style={{ fontSize: '0.72rem', color: 'var(--pos-text-secondary)' }}>
+                                                        Code: {offer.code} &bull; Min spend ₹{parseFloat(offer.min_cart_value).toLocaleString('en-IN')}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    {qualifies ? (
+                                                        <span style={{
+                                                            fontSize: '0.72rem',
+                                                            fontWeight: 700,
+                                                            padding: '0.2rem 0.6rem',
+                                                            borderRadius: '999px',
+                                                            background: isSelected ? 'var(--pos-gold-primary)' : 'rgba(16, 185, 129, 0.2)',
+                                                            color: isSelected ? '#000' : '#10b981',
+                                                        }}>
+                                                            {isSelected ? `Applied (-₹${discount.toFixed(0)})` : `Save ₹${discount.toFixed(0)}`}
+                                                        </span>
+                                                    ) : (
+                                                        <span style={{ fontSize: '0.7rem', color: 'var(--pos-text-secondary)', fontStyle: 'italic' }}>
+                                                            Add ₹{deficit.toFixed(0)} to unlock
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
 
                         {/* Customer Information Form */}
                         <div className="glass-panel" style={{ marginBottom: '1.25rem' }}>
@@ -863,7 +1173,7 @@ export default function Billing({ onBack }: BillingProps) {
                                         Customer will scan Dynamic Store QR Code
                                     </p>
                                     <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>
-                                        Amount: ₹{totalPrice.toFixed(2)} &bull; Instant Bank Verification
+                                        Amount: ₹{finalPayable.toFixed(2)} &bull; Instant Bank Verification
                                     </span>
                                 </div>
                             )}
@@ -876,7 +1186,7 @@ export default function Billing({ onBack }: BillingProps) {
                             style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', fontWeight: 700 }}
                             disabled={loading || isProcessingMpos}
                         >
-                            {loading ? 'Processing Bill...' : `Confirm & Complete Payment (₹${totalPrice.toFixed(2)})`}
+                            {loading ? 'Processing Bill...' : `Confirm & Complete Payment (₹${finalPayable.toFixed(2)})`}
                         </button>
                     </form>
                 </div>
@@ -962,6 +1272,26 @@ export default function Billing({ onBack }: BillingProps) {
                             <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--pos-gold-light)', marginTop: '0.25rem' }}>
                                 Total Paid: ₹{parseFloat(completedOrder.total_price).toFixed(2)} ({completedOrder.payment_method})
                             </div>
+                            {completedOrder.offer_discount_amount && parseFloat(completedOrder.offer_discount_amount) > 0 && (
+                                <div style={{
+                                    marginTop: '0.65rem',
+                                    padding: '0.55rem 0.75rem',
+                                    borderRadius: '8px',
+                                    background: 'rgba(16, 185, 129, 0.12)',
+                                    border: '1px solid rgba(16, 185, 129, 0.3)',
+                                    fontSize: '0.78rem',
+                                    color: '#6ee7b7',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '0.35rem'
+                                }}>
+                                    <Sparkles size={14} />
+                                    <span>
+                                        Saved ₹{parseFloat(completedOrder.offer_discount_amount).toFixed(2)} with {completedOrder.applied_offer_title || completedOrder.applied_offer_code}!
+                                    </span>
+                                </div>
+                            )}
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>

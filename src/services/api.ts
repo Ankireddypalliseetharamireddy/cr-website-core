@@ -11,5 +11,6 @@ export { orderService } from './orderService';
 export { transferService } from './transferService';
 export { employeeService } from './employeeService';
 export { dashboardService } from './dashboardService';
+export { offerService } from './offerService';
 
 export * from './index';

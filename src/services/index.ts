@@ -6,8 +6,10 @@ export { orderService, default as order } from './orderService';
 export { transferService, default as transfer } from './transferService';
 export { employeeService, default as employee } from './employeeService';
 export { dashboardService, default as dashboard } from './dashboardService';
+export { offerService, default as offer } from './offerService';
 
 export type { LoginCredentials, ResetPasswordPayload } from './authService';
 export type { CheckoutPayload } from './billingService';
+export type { ActiveOffer } from './offerService';
 export type { AuditPayload } from './orderService';
 export type { TransferRequestPayload } from './transferService';

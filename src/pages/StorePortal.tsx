@@ -107,95 +107,35 @@ export default function StorePortal() {
     return (
         <div className="store-portal-root">
             <div className="app-container">
-                {/* Clean Top Navigation Bar with Original Cavree Logo & Hamburger Menu */}
+                {/* Clean Top Navigation Bar with Cavree Brand on Left & Account Details + Menu on Right */}
                 <header className="navbar">
-                    <div className="navbar-header-row">
-                        <div className="brand" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.65rem' }} onClick={() => handleNavigate('home')}>
-                            <img src="/cavree-emblem-gold.png" alt="Cavree Logo" style={{ height: '28px', width: 'auto', objectFit: 'contain' }} />
-                            <span style={{ fontWeight: 700, letterSpacing: '0.05em', fontSize: '1.2rem', color: '#D4AF37' }}>CAVREE</span>
-                            <span className="badge badge-gold desktop-only" style={{ fontSize: '0.625rem', padding: '0.15rem 0.45rem' }}>
-                                {franchiseId || 'Store'}
-                            </span>
-                        </div>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            {/* Desktop Quick Role Status */}
-                            <div className="user-badge desktop-only" style={{ background: 'rgba(255,255,255,0.04)', padding: '0.35rem 0.75rem', borderRadius: '8px', border: '1px solid var(--pos-border-gold)' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                    <User size={14} style={{ color: 'var(--pos-gold-primary)' }} />
-                                    <span style={{ fontWeight: 600, color: 'var(--pos-text-primary)', fontSize: '0.8125rem' }}>{username}</span>
-                                    <span style={{ color: 'var(--pos-gold-light)', fontSize: '0.75rem' }}>({formatRoleLabel(role)})</span>
-                                </div>
-                            </div>
-
-                            {/* 3-Lines Hamburger Menu Button */}
-                            <button
-                                className="btn btn-primary btn-sm"
-                                onClick={() => setMenuOpen(!menuOpen)}
-                                style={{ padding: '0.45rem 0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', borderRadius: '8px', fontWeight: 700 }}
-                                aria-label="Toggle Navigation Menu"
-                            >
-                                {menuOpen ? <X size={18} /> : <Menu size={18} />}
-                                <span style={{ fontSize: '0.8125rem', fontWeight: 700, letterSpacing: '0.05em' }}>MENU</span>
-                            </button>
-                        </div>
+                    <div className="brand" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.65rem' }} onClick={() => handleNavigate('home')}>
+                        <img src="/cavree-emblem-gold.png" alt="Cavree Logo" style={{ height: '28px', width: 'auto', objectFit: 'contain' }} />
+                        <span style={{ fontWeight: 700, letterSpacing: '0.05em', fontSize: '1.2rem', color: '#D4AF37' }}>CAVREE</span>
+                        <span className="badge badge-gold" style={{ fontSize: '0.625rem', padding: '0.15rem 0.45rem' }}>
+                            {franchiseId || 'Store'}
+                        </span>
                     </div>
 
-                    {/* Desktop Horizontal Nav Bar (Hidden on Mobile) */}
-                    <nav className="navbar-tabs-row desktop-only" style={{ marginTop: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        {/* Account Name & Role Badge in Right Corner */}
+                        <div className="user-badge" style={{ background: 'rgba(255,255,255,0.04)', padding: '0.35rem 0.75rem', borderRadius: '8px', border: '1px solid var(--pos-border-gold)', display: 'flex', alignItems: 'center', gap: '0.4rem', maxWidth: '320px' }}>
+                            <User size={14} style={{ color: 'var(--pos-gold-primary)', flexShrink: 0 }} />
+                            <span style={{ fontWeight: 600, color: 'var(--pos-text-primary)', fontSize: '0.8125rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{username}</span>
+                            <span style={{ color: 'var(--pos-gold-light)', fontSize: '0.75rem', flexShrink: 0 }}>({formatRoleLabel(role)})</span>
+                        </div>
+
+                        {/* 3-Lines Hamburger Menu Button */}
                         <button
-                            className={`btn btn-sm ${activePage === 'home' ? 'btn-primary' : 'btn-secondary'}`}
-                            onClick={() => handleNavigate('home')}
-                            style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                            className="btn btn-primary btn-sm"
+                            onClick={() => setMenuOpen(!menuOpen)}
+                            style={{ padding: '0.45rem 0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', borderRadius: '8px', fontWeight: 700 }}
+                            aria-label="Toggle Navigation Menu"
                         >
-                            <Home size={14} />
-                            <span>Hub</span>
+                            {menuOpen ? <X size={18} /> : <Menu size={18} />}
+                            <span style={{ fontSize: '0.8125rem', fontWeight: 700, letterSpacing: '0.05em' }}>MENU</span>
                         </button>
-
-                        {canAccessBilling && (
-                            <button
-                                className={`btn btn-sm ${activePage === 'billing' ? 'btn-primary' : 'btn-secondary'}`}
-                                onClick={() => handleNavigate('billing')}
-                                style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
-                            >
-                                <ShoppingCart size={14} />
-                                <span>POS Billing</span>
-                            </button>
-                        )}
-
-                        {canAccessAuditing && (
-                            <button
-                                className={`btn btn-sm ${activePage === 'auditing' ? 'btn-primary' : 'btn-secondary'}`}
-                                onClick={() => handleNavigate('auditing')}
-                                style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
-                            >
-                                <ClipboardCheck size={14} />
-                                <span>Store Audit</span>
-                            </button>
-                        )}
-
-                        {canAccessHistory && (
-                            <button
-                                className={`btn btn-sm ${activePage === 'history' ? 'btn-primary' : 'btn-secondary'}`}
-                                onClick={() => handleNavigate('history')}
-                                style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
-                            >
-                                <Receipt size={14} />
-                                <span>Sales History</span>
-                            </button>
-                        )}
-
-                        {canAccessDashboard && (
-                            <button
-                                className={`btn btn-sm ${activePage === 'dashboard' ? 'btn-primary' : 'btn-secondary'}`}
-                                onClick={() => handleNavigate('dashboard')}
-                                style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
-                            >
-                                <Store size={14} />
-                                <span>{normalizedRole === 'FRANCHISE_ADMIN' ? 'Franchise Operations' : 'Store Analytics'}</span>
-                            </button>
-                        )}
-                    </nav>
+                    </div>
                 </header>
 
                 {/* ========================================================================== */}

@@ -17,11 +17,15 @@ interface Product {
     cost_price: string;
     gst_percentage: string;
     size?: string;
+    color?: string;
     stock?: number;
+    scanned_serial_number?: string;
+    serial_item_id?: number;
 }
 
 interface CartItem extends Product {
     qty: number;
+    serials?: string[];
 }
 
 interface CompletedOrder {
@@ -225,14 +229,30 @@ export default function Billing({ onBack }: BillingProps) {
     };
 
     const addToCart = (product: Product) => {
+        const serial = product.scanned_serial_number;
+
+        // Check if this exact serialized piece is already in the cart
+        if (serial) {
+            const alreadyInCart = cart.some(item => item.serials && item.serials.includes(serial));
+            if (alreadyInCart) {
+                alert(`Serial #${serial} is ALREADY scanned in your cart! Duplicate piece scanning prevented.`);
+                return;
+            }
+        }
+
         setCart(prev => {
             const existing = prev.find(item => item.id === product.id);
             if (existing) {
+                const existingSerials = existing.serials || [];
+                const updatedSerials = serial && !existingSerials.includes(serial)
+                    ? [...existingSerials, serial]
+                    : existingSerials;
+
                 return prev.map(item =>
-                    item.id === product.id ? { ...item, qty: item.qty + 1 } : item
+                    item.id === product.id ? { ...item, qty: item.qty + 1, serials: updatedSerials } : item
                 );
             }
-            return [...prev, { ...product, qty: 1 }];
+            return [...prev, { ...product, qty: 1, serials: serial ? [serial] : [] }];
         });
     };
 
@@ -318,7 +338,8 @@ export default function Billing({ onBack }: BillingProps) {
                 payment_status: 'SUCCESS',
                 items: cart.map(item => ({
                     product_id: item.id,
-                    quantity: item.qty
+                    quantity: item.qty,
+                    serials: item.serials || []
                 }))
             };
 
@@ -565,6 +586,23 @@ export default function Billing({ onBack }: BillingProps) {
                                                     <div style={{ fontSize: '0.72rem', color: 'var(--pos-text-secondary)' }}>
                                                         {item.sku} &bull; ₹{item.selling_price}
                                                     </div>
+                                                    {item.serials && item.serials.length > 0 && (
+                                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem', marginTop: '0.25rem' }}>
+                                                            {item.serials.map(sn => (
+                                                                <span key={sn} style={{
+                                                                    fontSize: '0.625rem',
+                                                                    fontFamily: 'monospace',
+                                                                    background: 'rgba(212, 175, 55, 0.12)',
+                                                                    color: 'var(--pos-gold-light)',
+                                                                    border: '1px solid var(--pos-border-gold)',
+                                                                    padding: '0.5px 4px',
+                                                                    borderRadius: '3px'
+                                                                }}>
+                                                                    SN: {sn}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                                     <div className="qty-control">

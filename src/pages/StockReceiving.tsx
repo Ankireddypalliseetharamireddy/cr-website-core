@@ -231,8 +231,8 @@ export default function StockReceiving({ onBack }: StockReceivingProps) {
                 await qrScanner.start(
                     { facingMode: "environment" },
                     {
-                        fps: 10,
-                        qrbox: { width: 280, height: 160 },
+                        fps: 20,
+                        qrbox: { width: 320, height: 130 },
                         aspectRatio: 1.333333
                     },
                     (decodedText) => {

@@ -192,8 +192,8 @@ export default function Billing({ onBack }: BillingProps) {
                 await qrScanner.start(
                     { facingMode: cameraFacing },
                     {
-                        fps: 12,
-                        qrbox: { width: 260, height: 180 },
+                        fps: 20,
+                        qrbox: { width: 320, height: 130 },
                         aspectRatio: 1.333333
                     },
                     (decodedText) => {

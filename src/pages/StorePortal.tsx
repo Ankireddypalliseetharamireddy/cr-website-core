@@ -98,7 +98,7 @@ export default function StorePortal() {
     const isFranchiseAdmin = normalizedRole === 'FRANCHISE_ADMIN';
     const canAccessBilling = !isFranchiseAdmin && (['CASHIER', 'STORE_MANAGER', 'SALES_EXECUTIVE', 'SUPER_ADMIN'].includes(normalizedRole) || !role);
     const canAccessAuditing = !isFranchiseAdmin && ['AUDITOR', 'INVENTORY_MANAGER', 'STORE_MANAGER', 'SUPER_ADMIN'].includes(normalizedRole);
-    const canAccessReceiving = !isFranchiseAdmin && (['INVENTORY_MANAGER', 'STORE_MANAGER', 'SUPER_ADMIN', 'RECEIVING_STAFF', 'WAREHOUSE_STAFF'].includes(normalizedRole) || (!role && !isFranchiseAdmin));
+    const canAccessReceiving = ['INVENTORY_MANAGER', 'STORE_MANAGER', 'SUPER_ADMIN', 'RECEIVING_STAFF', 'WAREHOUSE_STAFF', 'FRANCHISE_ADMIN'].includes(normalizedRole) || !role;
     const canAccessHistory = ['CASHIER', 'STORE_MANAGER', 'AUDITOR', 'FRANCHISE_ADMIN', 'SUPER_ADMIN'].includes(normalizedRole);
     const canAccessDashboard = ['FRANCHISE_ADMIN', 'STORE_MANAGER', 'SUPER_ADMIN'].includes(normalizedRole);
 

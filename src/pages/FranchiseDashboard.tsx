@@ -621,9 +621,16 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                     <ArrowRightLeft size={18} style={{ color: 'var(--pos-gold-primary)' }} />
                                     Incoming Consignment Shipments
                                 </h3>
-                                <span className="badge badge-gold" style={{ fontSize: '0.72rem' }}>
-                                    Central Logistics
-                                </span>
+                                {onNavigateToReceiving && (
+                                    <button
+                                        className="btn btn-primary btn-sm"
+                                        onClick={onNavigateToReceiving}
+                                        style={{ padding: '0.35rem 0.85rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem', borderRadius: '8px' }}
+                                    >
+                                        <Package size={14} />
+                                        <span>Scan &amp; Receive Stock</span>
+                                    </button>
+                                )}
                             </div>
 
                             {transfers.length > 0 ? (
@@ -635,6 +642,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                                 <th>Product</th>
                                                 <th>Delivered Qty</th>
                                                 <th style={{ textAlign: 'center' }}>Consignment Status</th>
+                                                <th style={{ textAlign: 'right' }}>Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -649,6 +657,20 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                                         <span className={`badge ${t.status === 'RECEIVED' ? 'badge-success' : (t.status === 'IN_TRANSIT' ? 'badge-primary' : 'badge-warning')}`} style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}>
                                                             {t.status === 'RECEIVED' ? '✓ Received into Branch Stock' : (t.status === 'IN_TRANSIT' ? '🚚 In Transit from Warehouse' : t.status.replace(/_/g, ' '))}
                                                         </span>
+                                                    </td>
+                                                    <td style={{ textAlign: 'right' }}>
+                                                        {t.status === 'IN_TRANSIT' && onNavigateToReceiving ? (
+                                                            <button
+                                                                className="btn btn-primary btn-sm"
+                                                                onClick={onNavigateToReceiving}
+                                                                style={{ padding: '0.25rem 0.65rem', fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', borderRadius: '6px' }}
+                                                            >
+                                                                <Package size={13} />
+                                                                <span>Scan Barcodes</span>
+                                                            </button>
+                                                        ) : (
+                                                            <span style={{ color: 'var(--pos-text-secondary)', fontSize: '0.75rem' }}>-</span>
+                                                        )}
                                                     </td>
                                                 </tr>
                                             ))}

@@ -48,7 +48,7 @@ interface SalesSummary {
 }
 
 interface EmployeeHomeProps {
-    onNavigate: (page: 'billing' | 'auditing' | 'history') => void;
+    onNavigate: (page: 'billing' | 'auditing' | 'history' | 'receiving') => void;
     userRole?: string;
 }
 
@@ -246,6 +246,32 @@ export default function EmployeeHome({ onNavigate, userRole }: EmployeeHomeProps
                     </p>
                     <div style={{ display: 'flex', alignItems: 'center', color: 'var(--pos-gold-champagne)', fontWeight: 'bold', fontSize: '0.8125rem', gap: '0.35rem' }}>
                         <span>View Sales History</span>
+                        <ArrowRight size={14} />
+                    </div>
+                </div>
+
+                {/* Module 4: Inbound Stock Receiving */}
+                <div
+                    className="action-card glass-panel"
+                    style={{ borderTop: '4px solid #3b82f6' }}
+                    onClick={() => onNavigate('receiving')}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.65rem' }}>
+                        <div style={{ padding: '0.65rem', borderRadius: '12px', background: 'rgba(59, 130, 246, 0.12)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.25)', display: 'flex' }}>
+                            <Package size={22} />
+                        </div>
+                        <div>
+                            <h3 style={{ fontSize: '1.15rem', fontWeight: 'bold', margin: 0, color: '#93c5fd' }}>
+                                Inbound Stock Receiving
+                            </h3>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--pos-text-secondary)' }}>Barcode Scan &bull; Verify Shipments</span>
+                        </div>
+                    </div>
+                    <p style={{ fontSize: '0.8125rem', color: 'var(--pos-text-secondary)', marginBottom: '0.75rem', lineHeight: '1.4' }}>
+                        Scan barcodes on incoming consignment shipments from warehouse. Unreceived pieces cannot be scanned at billing.
+                    </p>
+                    <div style={{ display: 'flex', alignItems: 'center', color: '#60a5fa', fontWeight: 'bold', fontSize: '0.8125rem', gap: '0.35rem' }}>
+                        <span>Scan &amp; Receive Stock</span>
                         <ArrowRight size={14} />
                     </div>
                 </div>

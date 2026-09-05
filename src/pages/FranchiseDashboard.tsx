@@ -11,6 +11,7 @@ import '../styles/website.css';
 interface FranchiseDashboardProps {
     onNavigateToBilling?: () => void;
     onNavigateToAudit?: () => void;
+    onNavigateToReceiving?: () => void;
 }
 
 const formatIndianCurrency = (val: number | string | undefined | null) => {
@@ -24,7 +25,7 @@ const formatIndianCurrency = (val: number | string | undefined | null) => {
     return `₹${num.toLocaleString('en-IN')}`;
 };
 
-export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAudit }: FranchiseDashboardProps) {
+export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAudit, onNavigateToReceiving }: FranchiseDashboardProps) {
     const [activeTab, setActiveTab] = useState<'overview' | 'employees' | 'products' | 'wallet'>('overview');
     const [stats, setStats] = useState<any>(null);
     const [products, setProducts] = useState<any[]>([]);
@@ -237,17 +238,6 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
 
                 {/* Quick Action Trigger Buttons */}
                 <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                    {onNavigateToBilling && (
-                        <button
-                            className="btn btn-primary"
-                            onClick={onNavigateToBilling}
-                            style={{ padding: '0.85rem 1.4rem', fontSize: '0.9375rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                        >
-                            <ShoppingCart size={18} />
-                            <span>Launch POS Billing</span>
-                            <ArrowRight size={15} />
-                        </button>
-                    )}
                     <button
                         className="btn btn-secondary"
                         onClick={() => setShowRenewalModal(true)}
@@ -441,30 +431,30 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                     {/* 4 Interactive Quick-Action Command Modules */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem' }}>
                         
-                        {/* Module 1: POS Billing */}
+                        {/* Module 1: Minimum Guarantee Agreement */}
                         <div
                             className="glass-panel"
                             style={{ cursor: 'pointer', borderTop: '4px solid var(--pos-gold-primary)', transition: 'transform 0.2s' }}
-                            onClick={() => onNavigateToBilling ? onNavigateToBilling() : null}
+                            onClick={() => setShowRenewalModal(true)}
                             onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-3px)')}
                             onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
                         >
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
                                 <div style={{ padding: '0.75rem', borderRadius: '12px', background: 'var(--pos-gold-gradient-subtle)', color: 'var(--pos-gold-primary)', border: '1px solid var(--pos-border-gold)' }}>
-                                    <ShoppingCart size={22} />
+                                    <Sparkles size={22} />
                                 </div>
                                 <div>
                                     <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: 0, color: 'var(--pos-gold-light)' }}>
-                                        Counter POS Billing
+                                        Minimum Guarantee Target
                                     </h3>
-                                    <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>QR Scanner &bull; Laser &bull; mPOS</span>
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>{stats?.agreement_years || 6}-Year Term &bull; Buyout</span>
                                 </div>
                             </div>
                             <p style={{ fontSize: '0.8125rem', color: 'var(--pos-text-secondary)', margin: '0 0 1rem 0', lineHeight: '1.4' }}>
-                                Scan tags, process instant checkout, deduct store stock, and calculate GST automatically.
+                                Target: ₹{parseFloat(stats?.minimum_guarantee_target || 0).toLocaleString('en-IN')} &bull; {stats?.guarantee_target_progress || 0}% realized via net sales.
                             </p>
                             <div style={{ display: 'flex', alignItems: 'center', color: 'var(--pos-gold-light)', fontWeight: 'bold', fontSize: '0.8125rem', gap: '0.35rem' }}>
-                                <span>Open Billing Terminal</span>
+                                <span>View Agreement Details</span>
                                 <ArrowRight size={14} />
                             </div>
                         </div>
@@ -643,9 +633,8 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                             <tr>
                                                 <th>Tracking #</th>
                                                 <th>Product</th>
-                                                <th>Qty</th>
-                                                <th>Status</th>
-                                                <th style={{ textAlign: 'center' }}>Action</th>
+                                                <th>Delivered Qty</th>
+                                                <th style={{ textAlign: 'center' }}>Consignment Status</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -655,27 +644,11 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                                         {t.transfer_number}
                                                     </td>
                                                     <td>{t.product_name}</td>
-                                                    <td style={{ fontWeight: 'bold' }}>{t.quantity}</td>
-                                                    <td>
-                                                        <span className={`badge ${t.status === 'RECEIVED' ? 'badge-success' : (t.status === 'IN_TRANSIT' ? 'badge-primary' : 'badge-warning')}`}>
-                                                            {t.status.replace(/_/g, ' ')}
-                                                        </span>
-                                                    </td>
+                                                    <td style={{ fontWeight: 'bold' }}>{t.quantity} units</td>
                                                     <td style={{ textAlign: 'center' }}>
-                                                        {t.status === 'IN_TRANSIT' ? (
-                                                            <button
-                                                                className="btn btn-primary btn-sm"
-                                                                onClick={() => handleReceiveTransfer(t.id)}
-                                                                style={{ padding: '0.25rem 0.65rem', fontSize: '0.75rem' }}
-                                                                title="Accept package and add to store shelf stock"
-                                                            >
-                                                                📥 Receive Stock
-                                                            </button>
-                                                        ) : (
-                                                            <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>
-                                                                {t.status === 'RECEIVED' ? '✓ Stocked' : 'Awaiting Dispatch'}
-                                                            </span>
-                                                        )}
+                                                        <span className={`badge ${t.status === 'RECEIVED' ? 'badge-success' : (t.status === 'IN_TRANSIT' ? 'badge-primary' : 'badge-warning')}`} style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}>
+                                                            {t.status === 'RECEIVED' ? '✓ Received into Branch Stock' : (t.status === 'IN_TRANSIT' ? '🚚 In Transit from Warehouse' : t.status.replace(/_/g, ' '))}
+                                                        </span>
                                                     </td>
                                                 </tr>
                                             ))}

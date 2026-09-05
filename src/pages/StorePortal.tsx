@@ -7,9 +7,10 @@ import Auditing from './Auditing';
 import EmployeeHome from './EmployeeHome';
 import SalesHistory from './SalesHistory';
 import FranchiseDashboard from './FranchiseDashboard';
+import StockReceiving from './StockReceiving';
 import {
     LogOut, User, Store, ShoppingCart, ClipboardCheck, Home,
-    Receipt, Globe, Menu, X, ChevronRight, Shield
+    Receipt, Globe, Menu, X, ChevronRight, Shield, Package
 } from 'lucide-react';
 
 export default function StorePortal() {
@@ -18,7 +19,7 @@ export default function StorePortal() {
     const [username, setUsername] = useState<string>('');
     const [role, setRole] = useState<string>('');
     const [franchiseId, setFranchiseId] = useState<string>('');
-    const [activePage, setActivePage] = useState<'home' | 'billing' | 'auditing' | 'history' | 'dashboard'>(() => {
+    const [activePage, setActivePage] = useState<'home' | 'billing' | 'auditing' | 'history' | 'dashboard' | 'receiving'>(() => {
         return (localStorage.getItem('activePage') as any) || 'home';
     });
     const [menuOpen, setMenuOpen] = useState(false);
@@ -37,7 +38,7 @@ export default function StorePortal() {
         if (storedPage) setActivePage(storedPage);
     }, []);
 
-    const handleNavigate = (page: 'home' | 'billing' | 'auditing' | 'history' | 'dashboard') => {
+    const handleNavigate = (page: 'home' | 'billing' | 'auditing' | 'history' | 'dashboard' | 'receiving') => {
         setActivePage(page);
         localStorage.setItem('activePage', page);
         setMenuOpen(false);
@@ -94,8 +95,10 @@ export default function StorePortal() {
     }
 
     const normalizedRole = (role || '').toUpperCase();
-    const canAccessBilling = ['CASHIER', 'STORE_MANAGER', 'SALES_EXECUTIVE', 'FRANCHISE_ADMIN', 'SUPER_ADMIN'].includes(normalizedRole) || !role;
-    const canAccessAuditing = ['AUDITOR', 'INVENTORY_MANAGER', 'STORE_MANAGER', 'FRANCHISE_ADMIN', 'SUPER_ADMIN'].includes(normalizedRole);
+    const isFranchiseAdmin = normalizedRole === 'FRANCHISE_ADMIN';
+    const canAccessBilling = !isFranchiseAdmin && (['CASHIER', 'STORE_MANAGER', 'SALES_EXECUTIVE', 'SUPER_ADMIN'].includes(normalizedRole) || !role);
+    const canAccessAuditing = !isFranchiseAdmin && ['AUDITOR', 'INVENTORY_MANAGER', 'STORE_MANAGER', 'SUPER_ADMIN'].includes(normalizedRole);
+    const canAccessReceiving = !isFranchiseAdmin && (['INVENTORY_MANAGER', 'STORE_MANAGER', 'SUPER_ADMIN', 'RECEIVING_STAFF', 'WAREHOUSE_STAFF'].includes(normalizedRole) || (!role && !isFranchiseAdmin));
     const canAccessHistory = ['CASHIER', 'STORE_MANAGER', 'AUDITOR', 'FRANCHISE_ADMIN', 'SUPER_ADMIN'].includes(normalizedRole);
     const canAccessDashboard = ['FRANCHISE_ADMIN', 'STORE_MANAGER', 'SUPER_ADMIN'].includes(normalizedRole);
 
@@ -239,6 +242,20 @@ export default function StorePortal() {
                                         </button>
                                     )}
 
+                                    {canAccessReceiving && (
+                                        <button
+                                            className={`btn ${activePage === 'receiving' ? 'btn-primary' : 'btn-secondary'}`}
+                                            onClick={() => handleNavigate('receiving')}
+                                            style={{ justifyContent: 'space-between', padding: '0.55rem 0.85rem', fontSize: '0.85rem' }}
+                                        >
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <Package size={15} />
+                                                <span>Inbound Stock Receiving</span>
+                                            </div>
+                                            <ChevronRight size={13} />
+                                        </button>
+                                    )}
+
                                     {canAccessHistory && (
                                         <button
                                             className={`btn ${activePage === 'history' ? 'btn-primary' : 'btn-secondary'}`}
@@ -297,18 +314,21 @@ export default function StorePortal() {
                             <FranchiseDashboard
                                 onNavigateToBilling={() => handleNavigate('billing')}
                                 onNavigateToAudit={() => handleNavigate('auditing')}
+                                onNavigateToReceiving={() => handleNavigate('receiving')}
                             />
                         ) : (
-                            <EmployeeHome onNavigate={(p) => handleNavigate(p)} userRole={role} />
+                            <EmployeeHome onNavigate={(p: any) => handleNavigate(p)} userRole={role} />
                         )
                     )}
                     {activePage === 'billing' && <Billing onBack={() => handleNavigate('home')} />}
                     {activePage === 'auditing' && <Auditing onBack={() => handleNavigate('home')} />}
+                    {activePage === 'receiving' && <StockReceiving onBack={() => handleNavigate('home')} />}
                     {activePage === 'history' && <SalesHistory onBack={() => handleNavigate('home')} />}
                     {activePage === 'dashboard' && (
                         <FranchiseDashboard
                             onNavigateToBilling={() => handleNavigate('billing')}
                             onNavigateToAudit={() => handleNavigate('auditing')}
+                            onNavigateToReceiving={() => handleNavigate('receiving')}
                         />
                     )}
                 </main>

@@ -11,6 +11,8 @@ export const transferService = {
     getTransfers: () => apiClient.get('/transfers/'),
     updateTransferStatus: (id: number, status: string) =>
         apiClient.post(`/transfers/${id}/update-status/`, { status }),
+    scanReceiveItem: (id: number, barcode: string) =>
+        apiClient.post(`/transfers/${id}/scan-receive/`, { barcode }),
 };
 
 export default transferService;

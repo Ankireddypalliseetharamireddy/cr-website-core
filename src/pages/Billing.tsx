@@ -216,18 +216,20 @@ export default function Billing({ onBack }: BillingProps) {
     };
 
     const handleBarcodeScannedSuccess = async (scannedCode: string) => {
-        setScanMessage(`Scanned: ${scannedCode}. Adding item...`);
+        setScanMessage(`Scanned: ${scannedCode}. Looking up item...`);
         try {
             await handleBarcodeLookup(scannedCode);
-            setScanMessage(`Added ${scannedCode} to cart!`);
+            setScanMessage(`✓ Added ${scannedCode} to cart!`);
             setTimeout(() => {
                 if (streamRef.current) requestAnimationFrame(scanVideoFrame);
             }, 1000);
-        } catch (e) {
-            setScanMessage(`Not found: ${scannedCode}`);
+        } catch (e: any) {
+            const errorMsg = e.response?.data?.error || `Product not found for code: ${scannedCode}`;
+            setScanMessage(`⚠️ ${errorMsg}`);
+            alert(`⚠️ Billing Blocked:\n\n${errorMsg}`);
             setTimeout(() => {
                 if (streamRef.current) requestAnimationFrame(scanVideoFrame);
-            }, 1200);
+            }, 1500);
         }
     };
 
@@ -245,7 +247,8 @@ export default function Billing({ onBack }: BillingProps) {
             await handleBarcodeLookup(barcodeScan);
             setBarcodeScan('');
         } catch (err: any) {
-            alert(err.response?.data?.error || `Product not found for code: ${barcodeScan}`);
+            const errorMsg = err.response?.data?.error || `Product not found for code: ${barcodeScan}`;
+            alert(`⚠️ Billing Blocked:\n\n${errorMsg}`);
         }
     };
 

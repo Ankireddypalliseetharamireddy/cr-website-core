@@ -4,6 +4,7 @@ import {
     Camera, X, Bluetooth, Smartphone, Banknote, Share2, Send,
     RotateCcw, Sparkles, Package, ArrowLeft, ArrowRight, User, Tag
 } from 'lucide-react';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { billingService, catalogService, offerService, ActiveOffer } from '../services/api';
 import '../styles/website.css';
 
@@ -71,13 +72,13 @@ export default function Billing({ onBack }: BillingProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [barcodeScan, setBarcodeScan] = useState('');
 
-    // Camera Barcode/QR Scanner State
+    // Camera Barcode/QR Scanner State via Html5Qrcode
     const [cameraOpen, setCameraOpen] = useState(false);
     const [cameraFacing, setCameraFacing] = useState<'environment' | 'user'>('environment');
     const [scanMessage, setScanMessage] = useState('');
-    const videoRef = useRef<HTMLVideoElement | null>(null);
-    const streamRef = useRef<MediaStream | null>(null);
-    const detectorRef = useRef<any>(null);
+    const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
+    const lastScannedTimeRef = useRef<number>(0);
+    const lastScannedCodeRef = useRef<string>('');
 
     // Checkout form states
     const [custName, setCustName] = useState('');
@@ -124,17 +125,6 @@ export default function Billing({ onBack }: BillingProps) {
         loadCatalog();
         loadOffers();
 
-        if ('BarcodeDetector' in window) {
-            try {
-                // @ts-ignore
-                detectorRef.current = new window.BarcodeDetector({
-                    formats: ['qr_code', 'ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a']
-                });
-            } catch (e) {
-                console.warn("BarcodeDetector formats init failed", e);
-            }
-        }
-
         const focusInterval = setInterval(() => {
             if (!cameraOpen && view === 'catalog' && scanInputRef.current && document.activeElement !== scanInputRef.current && document.activeElement?.tagName !== 'INPUT') {
                 scanInputRef.current.focus();
@@ -145,6 +135,19 @@ export default function Billing({ onBack }: BillingProps) {
     }, [cameraOpen, view]);
 
     useEffect(() => {
+        return () => {
+            if (html5QrCodeRef.current) {
+                try {
+                    if (html5QrCodeRef.current.isScanning) {
+                        html5QrCodeRef.current.stop();
+                    }
+                    html5QrCodeRef.current.clear();
+                } catch {}
+            }
+        };
+    }, []);
+
+    useEffect(() => {
         try {
             localStorage.setItem('activeBillingCart', JSON.stringify(cart));
         } catch (e) {
@@ -152,66 +155,88 @@ export default function Billing({ onBack }: BillingProps) {
         }
     }, [cart]);
 
-    // Camera Stream Scanner
+    // Camera Stream Scanner via Html5Qrcode
     const startCameraScanner = async () => {
         setCameraOpen(true);
-        setScanMessage('Point camera at Product Barcode or QR Code...');
+        setScanMessage('Initializing camera scanner...');
 
-        try {
-            const constraints: MediaStreamConstraints = {
-                video: {
-                    facingMode: cameraFacing,
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                },
-                audio: false
-            };
+        setTimeout(async () => {
+            const containerId = "billing-camera-reader-box";
+            const container = document.getElementById(containerId);
+            if (!container) return;
 
-            const stream = await navigator.mediaDevices.getUserMedia(constraints);
-            streamRef.current = stream;
-
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
-                videoRef.current.setAttribute("playsinline", "true");
-                await videoRef.current.play();
-                requestAnimationFrame(scanVideoFrame);
-            }
-        } catch (err: any) {
-            console.error("Camera access error:", err);
-            setScanMessage('Camera permission denied or camera not found.');
-        }
-    };
-
-    const stopCameraScanner = () => {
-        if (streamRef.current) {
-            streamRef.current.getTracks().forEach(track => track.stop());
-            streamRef.current = null;
-        }
-        setCameraOpen(false);
-    };
-
-    const scanVideoFrame = async () => {
-        if (!videoRef.current || !streamRef.current) return;
-
-        if (videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
             try {
-                if (detectorRef.current) {
-                    const barcodes = await detectorRef.current.detect(videoRef.current);
-                    if (barcodes.length > 0) {
-                        const rawVal = barcodes[0].rawValue;
-                        if (rawVal) {
-                            handleBarcodeScannedSuccess(rawVal);
-                            return;
+                if (html5QrCodeRef.current) {
+                    try {
+                        if (html5QrCodeRef.current.isScanning) {
+                            await html5QrCodeRef.current.stop();
                         }
-                    }
+                    } catch {}
+                    html5QrCodeRef.current.clear();
                 }
-            } catch (e) {
-                // Fallthrough on detect loop
-            }
-        }
 
-        if (streamRef.current) {
-            requestAnimationFrame(scanVideoFrame);
+                const qrScanner = new Html5Qrcode(containerId, {
+                    formatsToSupport: [
+                        Html5QrcodeSupportedFormats.CODE_128,
+                        Html5QrcodeSupportedFormats.EAN_13,
+                        Html5QrcodeSupportedFormats.EAN_8,
+                        Html5QrcodeSupportedFormats.UPC_A,
+                        Html5QrcodeSupportedFormats.UPC_E,
+                        Html5QrcodeSupportedFormats.CODE_39,
+                        Html5QrcodeSupportedFormats.QR_CODE,
+                    ],
+                    verbose: false
+                });
+                html5QrCodeRef.current = qrScanner;
+
+                await qrScanner.start(
+                    { facingMode: cameraFacing },
+                    {
+                        fps: 12,
+                        qrbox: { width: 260, height: 180 },
+                        aspectRatio: 1.333333
+                    },
+                    (decodedText) => {
+                        const now = Date.now();
+                        if (
+                            decodedText &&
+                            (decodedText !== lastScannedCodeRef.current || now - lastScannedTimeRef.current > 2000)
+                        ) {
+                            lastScannedCodeRef.current = decodedText;
+                            lastScannedTimeRef.current = now;
+                            handleBarcodeScannedSuccess(decodedText);
+                        }
+                    },
+                    () => {}
+                );
+                setScanMessage('Point camera at Product Barcode or QR Code...');
+            } catch (err: any) {
+                console.error("Camera access error:", err);
+                const msg = err?.message || String(err);
+                if (msg.includes("Permission denied") || msg.includes("NotAllowedError")) {
+                    setScanMessage('Camera permission denied. Please allow camera in browser address bar.');
+                } else if (msg.includes("NotFoundError") || msg.includes("DevicesNotFoundError")) {
+                    setScanMessage('No camera device detected.');
+                } else {
+                    setScanMessage(`Camera error: ${msg}`);
+                }
+            }
+        }, 150);
+    };
+
+    const stopCameraScanner = async () => {
+        try {
+            if (html5QrCodeRef.current) {
+                if (html5QrCodeRef.current.isScanning) {
+                    await html5QrCodeRef.current.stop();
+                }
+                html5QrCodeRef.current.clear();
+            }
+        } catch (e) {
+            console.error("Stop camera error", e);
+        } finally {
+            html5QrCodeRef.current = null;
+            setCameraOpen(false);
         }
     };
 
@@ -220,16 +245,10 @@ export default function Billing({ onBack }: BillingProps) {
         try {
             await handleBarcodeLookup(scannedCode);
             setScanMessage(`✓ Added ${scannedCode} to cart!`);
-            setTimeout(() => {
-                if (streamRef.current) requestAnimationFrame(scanVideoFrame);
-            }, 1000);
         } catch (e: any) {
             const errorMsg = e.response?.data?.error || `Product not found for code: ${scannedCode}`;
             setScanMessage(`⚠️ ${errorMsg}`);
             alert(`⚠️ Billing Blocked:\n\n${errorMsg}`);
-            setTimeout(() => {
-                if (streamRef.current) requestAnimationFrame(scanVideoFrame);
-            }, 1500);
         }
     };
 
@@ -1211,27 +1230,8 @@ export default function Billing({ onBack }: BillingProps) {
                             </button>
                         </div>
 
-                        <div style={{ position: 'relative', width: '100%', height: 'min(50vh, 320px)', background: '#000', borderRadius: '16px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem', border: '1px solid var(--pos-border-gold)' }}>
-                            <video
-                                ref={videoRef}
-                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                playsInline
-                                muted
-                            />
-                            <div style={{
-                                position: 'absolute',
-                                width: 'min(65vw, 220px)',
-                                height: 'min(65vw, 220px)',
-                                border: '2.5px solid var(--pos-gold-primary)',
-                                borderRadius: '18px',
-                                boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.55), 0 0 20px rgba(212, 175, 55, 0.4)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                overflow: 'hidden'
-                            }}>
-                                <div className="laser-line" />
-                            </div>
+                        <div style={{ position: 'relative', width: '100%', minHeight: '260px', background: '#000', borderRadius: '16px', overflow: 'hidden', marginBottom: '1rem', border: '1px solid var(--pos-border-gold)' }}>
+                            <div id="billing-camera-reader-box" style={{ width: '100%' }} />
                         </div>
 
                         <p style={{ fontSize: '0.875rem', color: 'var(--pos-gold-light)', fontWeight: 600, marginBottom: '1rem' }}>

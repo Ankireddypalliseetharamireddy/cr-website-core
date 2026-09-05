@@ -3,6 +3,7 @@ import {
     Package, ArrowLeft, Barcode, CheckCircle, AlertTriangle,
     Camera, RefreshCw, Check, ShieldCheck, Box, Search, VideoOff
 } from 'lucide-react';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { transferService } from '../services/transferService';
 import '../styles/website.css';
 
@@ -39,11 +40,10 @@ export default function StockReceiving({ onBack }: StockReceivingProps) {
     const [submitting, setSubmitting] = useState(false);
     const [activeTab, setActiveTab] = useState<'pending' | 'received'>('pending');
 
-    // Live Camera Scanner State
+    // Live Camera Scanner State via Html5Qrcode
     const [cameraActive, setCameraActive] = useState(false);
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const streamRef = useRef<MediaStream | null>(null);
-    const detectorRef = useRef<any>(null);
+    const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
+    const lastScanRef = useRef<{ code: string; time: number }>({ code: '', time: 0 });
 
     const scanInputRef = useRef<HTMLInputElement>(null);
     const storeName = localStorage.getItem('franchiseId') || 'Branch Store';
@@ -193,70 +193,105 @@ export default function StockReceiving({ onBack }: StockReceivingProps) {
         }
     };
 
-    // Camera Barcode Scanning Loop
+    // Camera Barcode Scanning Loop via Html5Qrcode
     const startCamera = async () => {
-        if (!('BarcodeDetector' in window)) {
-            alert("Camera barcode detector is not supported in this browser. Please use a physical barcode gun or enter the barcode.");
-            return;
-        }
-
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'environment' }
-            });
-            streamRef.current = stream;
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
-                videoRef.current.play();
+        setCameraActive(true);
+        setTimeout(async () => {
+            const containerId = "stock-receiving-camera-box";
+            const container = document.getElementById(containerId);
+            if (!container) {
+                console.error("Camera container element not found");
+                return;
             }
-            setCameraActive(true);
 
-            // Initialize detector
-            const BarcodeDetectorClass = (window as any).BarcodeDetector;
-            detectorRef.current = new BarcodeDetectorClass({
-                formats: ['code_128', 'ean_13', 'ean_8', 'qr_code', 'upc_a']
-            });
-
-            requestAnimationFrame(scanVideoFrame);
-        } catch (err) {
-            console.error("Camera access error", err);
-            alert("Could not access camera. Please allow camera permissions.");
-        }
-    };
-
-    const stopCamera = () => {
-        if (streamRef.current) {
-            streamRef.current.getTracks().forEach(track => track.stop());
-            streamRef.current = null;
-        }
-        setCameraActive(false);
-    };
-
-    const scanVideoFrame = async () => {
-        if (!videoRef.current || !detectorRef.current || !streamRef.current) return;
-
-        if (videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
             try {
-                const barcodes = await detectorRef.current.detect(videoRef.current);
-                if (barcodes.length > 0) {
-                    const rawVal = barcodes[0].rawValue;
-                    if (rawVal) {
-                        handleProcessBarcode(rawVal);
-                        setTimeout(() => {
-                            if (streamRef.current) requestAnimationFrame(scanVideoFrame);
-                        }, 1200);
-                        return;
-                    }
+                if (html5QrCodeRef.current) {
+                    try {
+                        if (html5QrCodeRef.current.isScanning) {
+                            await html5QrCodeRef.current.stop();
+                        }
+                    } catch {}
+                    html5QrCodeRef.current.clear();
                 }
-            } catch {
-                // Ignore detector frame error
-            }
-        }
 
-        if (streamRef.current) {
-            requestAnimationFrame(scanVideoFrame);
+                const qrScanner = new Html5Qrcode(containerId, {
+                    formatsToSupport: [
+                        Html5QrcodeSupportedFormats.CODE_128,
+                        Html5QrcodeSupportedFormats.EAN_13,
+                        Html5QrcodeSupportedFormats.EAN_8,
+                        Html5QrcodeSupportedFormats.UPC_A,
+                        Html5QrcodeSupportedFormats.UPC_E,
+                        Html5QrcodeSupportedFormats.CODE_39,
+                        Html5QrcodeSupportedFormats.QR_CODE,
+                    ],
+                    verbose: false
+                });
+                html5QrCodeRef.current = qrScanner;
+
+                await qrScanner.start(
+                    { facingMode: "environment" },
+                    {
+                        fps: 10,
+                        qrbox: { width: 280, height: 160 },
+                        aspectRatio: 1.333333
+                    },
+                    (decodedText) => {
+                        const now = Date.now();
+                        if (
+                            decodedText &&
+                            (decodedText !== lastScanRef.current.code || now - lastScanRef.current.time > 2000)
+                        ) {
+                            lastScanRef.current = { code: decodedText, time: now };
+                            handleProcessBarcode(decodedText);
+                        }
+                    },
+                    () => {
+                        // ignore non-code frames
+                    }
+                );
+            } catch (err: any) {
+                console.error("Camera start failed:", err);
+                setCameraActive(false);
+                const msg = err?.message || String(err);
+                if (msg.includes("Permission denied") || msg.includes("NotAllowedError")) {
+                    alert("Camera permission was denied. Please click the camera/lock icon in your browser address bar and allow camera access.");
+                } else if (msg.includes("NotFoundError") || msg.includes("DevicesNotFoundError")) {
+                    alert("No camera device was detected on your device.");
+                } else {
+                    alert(`Could not open camera: ${msg}`);
+                }
+            }
+        }, 150);
+    };
+
+    const stopCamera = async () => {
+        try {
+            if (html5QrCodeRef.current) {
+                if (html5QrCodeRef.current.isScanning) {
+                    await html5QrCodeRef.current.stop();
+                }
+                html5QrCodeRef.current.clear();
+            }
+        } catch (e) {
+            console.error("Error stopping camera", e);
+        } finally {
+            html5QrCodeRef.current = null;
+            setCameraActive(false);
         }
     };
+
+    useEffect(() => {
+        return () => {
+            if (html5QrCodeRef.current) {
+                try {
+                    if (html5QrCodeRef.current.isScanning) {
+                        html5QrCodeRef.current.stop();
+                    }
+                    html5QrCodeRef.current.clear();
+                } catch {}
+            }
+        };
+    }, []);
 
     const pendingTransfers = transfers.filter(t => t.status === 'IN_TRANSIT' || t.status === 'APPROVED');
     const completedTransfers = transfers.filter(t => t.status === 'RECEIVED');
@@ -485,11 +520,25 @@ export default function StockReceiving({ onBack }: StockReceivingProps) {
 
                                 {/* Camera Viewfinder Container */}
                                 {cameraActive && (
-                                    <div style={{ marginTop: '1rem', position: 'relative', borderRadius: '10px', overflow: 'hidden', border: '2px solid var(--pos-gold-primary)', background: '#000', textAlign: 'center' }}>
-                                        <video ref={videoRef} style={{ width: '100%', maxHeight: '240px', objectFit: 'cover' }} muted playsInline />
-                                        <div style={{ position: 'absolute', top: '10px', left: '10px', background: 'rgba(0,0,0,0.65)', padding: '4px 8px', borderRadius: '4px', fontSize: '0.75rem', color: '#fff' }}>
-                                            Camera Scanner Active &bull; Center barcode in view
+                                    <div style={{ marginTop: '1rem', position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '2px solid var(--pos-gold-primary)', background: '#0a0d14', padding: '0.75rem', textAlign: 'center' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
+                                            <span style={{ fontSize: '0.825rem', color: 'var(--pos-gold-light)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                                <Camera size={14} /> Live Camera Scanner Active &bull; Center Barcode
+                                            </span>
+                                            <button
+                                                type="button"
+                                                className="btn btn-secondary btn-sm"
+                                                onClick={stopCamera}
+                                                style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                                            >
+                                                <VideoOff size={13} />
+                                                <span>Close Camera</span>
+                                            </button>
                                         </div>
+                                        <div id="stock-receiving-camera-box" style={{ width: '100%', maxWidth: '420px', margin: '0 auto', borderRadius: '8px', overflow: 'hidden' }} />
+                                        <p style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)', marginTop: '0.5rem', marginBottom: 0 }}>
+                                            Supports standard 1D barcodes (Code 128, EAN-13, UPC) and QR codes.
+                                        </p>
                                     </div>
                                 )}
 

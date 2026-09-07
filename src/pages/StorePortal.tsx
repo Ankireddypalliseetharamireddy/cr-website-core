@@ -20,6 +20,10 @@ export default function StorePortal() {
     const [role, setRole] = useState<string>('');
     const [franchiseId, setFranchiseId] = useState<string>('');
     const [activePage, setActivePage] = useState<'home' | 'billing' | 'auditing' | 'history' | 'dashboard' | 'receiving'>(() => {
+        const storedRole = (localStorage.getItem('role') || '').toUpperCase();
+        if (storedRole === 'FRANCHISE_ADMIN') {
+            return 'dashboard';
+        }
         return (localStorage.getItem('activePage') as any) || 'home';
     });
     const [menuOpen, setMenuOpen] = useState(false);
@@ -27,7 +31,7 @@ export default function StorePortal() {
     useEffect(() => {
         const storedToken = localStorage.getItem('token');
         const storedUser = localStorage.getItem('username');
-        const storedRole = localStorage.getItem('role');
+        const storedRole = (localStorage.getItem('role') || '').toUpperCase();
         const storedFranchise = localStorage.getItem('franchiseId');
         const storedPage = localStorage.getItem('activePage') as any;
 
@@ -35,10 +39,23 @@ export default function StorePortal() {
         if (storedUser) setUsername(storedUser);
         if (storedRole) setRole(storedRole);
         if (storedFranchise) setFranchiseId(storedFranchise);
-        if (storedPage) setActivePage(storedPage);
+
+        if (storedRole === 'FRANCHISE_ADMIN') {
+            setActivePage('dashboard');
+            localStorage.setItem('activePage', 'dashboard');
+        } else if (storedPage) {
+            setActivePage(storedPage);
+        }
     }, []);
 
     const handleNavigate = (page: 'home' | 'billing' | 'auditing' | 'history' | 'dashboard' | 'receiving') => {
+        const currentRole = (role || localStorage.getItem('role') || '').toUpperCase();
+        if (currentRole === 'FRANCHISE_ADMIN') {
+            setActivePage('dashboard');
+            localStorage.setItem('activePage', 'dashboard');
+            setMenuOpen(false);
+            return;
+        }
         setActivePage(page);
         localStorage.setItem('activePage', page);
         setMenuOpen(false);
@@ -113,7 +130,7 @@ export default function StorePortal() {
             <div className="app-container">
                 {/* Clean Top Navigation Bar with Cavree Brand on Left & Account Details + Menu on Right */}
                 <header className="navbar">
-                    <div className="brand" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.65rem' }} onClick={() => handleNavigate('home')}>
+                    <div className="brand" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.65rem' }} onClick={() => handleNavigate(isFranchiseAdmin ? 'dashboard' : 'home')}>
                         <img src="/cavree-emblem-gold.png" alt="Cavree Logo" style={{ height: '28px', width: 'auto', objectFit: 'contain' }} />
                         <span style={{ fontWeight: 700, letterSpacing: '0.05em', fontSize: '1.2rem', color: '#D4AF37' }}>CAVREE</span>
                         <span className="badge badge-gold" style={{ fontSize: '0.625rem', padding: '0.15rem 0.45rem' }}>
@@ -203,86 +220,88 @@ export default function StorePortal() {
 
                                 {/* Navigation Menu Items (Compact) */}
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                                    <button
-                                        className={`btn ${activePage === 'home' ? 'btn-primary' : 'btn-secondary'}`}
-                                        onClick={() => handleNavigate('home')}
-                                        style={{ justifyContent: 'space-between', padding: '0.55rem 0.85rem', fontSize: '0.85rem' }}
-                                    >
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            <Home size={15} />
-                                            <span>Store Hub</span>
-                                        </div>
-                                        <ChevronRight size={13} />
-                                    </button>
-
-                                    {canAccessBilling && (
+                                    {isFranchiseAdmin ? (
                                         <button
-                                            className={`btn ${activePage === 'billing' ? 'btn-primary' : 'btn-secondary'}`}
-                                            onClick={() => handleNavigate('billing')}
-                                            style={{ justifyContent: 'space-between', padding: '0.55rem 0.85rem', fontSize: '0.85rem' }}
-                                        >
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                <ShoppingCart size={15} />
-                                                <span>POS Billing Counter</span>
-                                            </div>
-                                            <ChevronRight size={13} />
-                                        </button>
-                                    )}
-
-                                    {canAccessAuditing && (
-                                        <button
-                                            className={`btn ${activePage === 'auditing' ? 'btn-primary' : 'btn-secondary'}`}
-                                            onClick={() => handleNavigate('auditing')}
-                                            style={{ justifyContent: 'space-between', padding: '0.55rem 0.85rem', fontSize: '0.85rem' }}
-                                        >
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                <ClipboardCheck size={15} />
-                                                <span>Store Inventory Audit</span>
-                                            </div>
-                                            <ChevronRight size={13} />
-                                        </button>
-                                    )}
-
-                                    {canAccessReceiving && (
-                                        <button
-                                            className={`btn ${activePage === 'receiving' ? 'btn-primary' : 'btn-secondary'}`}
-                                            onClick={() => handleNavigate('receiving')}
-                                            style={{ justifyContent: 'space-between', padding: '0.55rem 0.85rem', fontSize: '0.85rem' }}
-                                        >
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                <Package size={15} />
-                                                <span>Inbound Stock Receiving</span>
-                                            </div>
-                                            <ChevronRight size={13} />
-                                        </button>
-                                    )}
-
-                                    {canAccessHistory && (
-                                        <button
-                                            className={`btn ${activePage === 'history' ? 'btn-primary' : 'btn-secondary'}`}
-                                            onClick={() => handleNavigate('history')}
-                                            style={{ justifyContent: 'space-between', padding: '0.55rem 0.85rem', fontSize: '0.85rem' }}
-                                        >
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                <Receipt size={15} />
-                                                <span>Sales &amp; Invoices</span>
-                                            </div>
-                                            <ChevronRight size={13} />
-                                        </button>
-                                    )}
-
-                                    {canAccessDashboard && (
-                                        <button
-                                            className={`btn ${activePage === 'dashboard' ? 'btn-primary' : 'btn-secondary'}`}
+                                            className="btn btn-primary"
                                             onClick={() => handleNavigate('dashboard')}
                                             style={{ justifyContent: 'space-between', padding: '0.55rem 0.85rem', fontSize: '0.85rem' }}
                                         >
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                                 <Store size={15} />
-                                                <span>Franchise Operations</span>
+                                                <span>Franchise Executive Hub</span>
                                             </div>
                                             <ChevronRight size={13} />
                                         </button>
+                                    ) : (
+                                        <>
+                                            <button
+                                                className={`btn ${activePage === 'home' ? 'btn-primary' : 'btn-secondary'}`}
+                                                onClick={() => handleNavigate('home')}
+                                                style={{ justifyContent: 'space-between', padding: '0.55rem 0.85rem', fontSize: '0.85rem' }}
+                                            >
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                    <Home size={15} />
+                                                    <span>Store Hub</span>
+                                                </div>
+                                                <ChevronRight size={13} />
+                                            </button>
+
+                                            {canAccessBilling && (
+                                                <button
+                                                    className={`btn ${activePage === 'billing' ? 'btn-primary' : 'btn-secondary'}`}
+                                                    onClick={() => handleNavigate('billing')}
+                                                    style={{ justifyContent: 'space-between', padding: '0.55rem 0.85rem', fontSize: '0.85rem' }}
+                                                >
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                        <ShoppingCart size={15} />
+                                                        <span>POS Billing Counter</span>
+                                                    </div>
+                                                    <ChevronRight size={13} />
+                                                </button>
+                                            )}
+
+                                            {canAccessAuditing && (
+                                                <button
+                                                    className={`btn ${activePage === 'auditing' ? 'btn-primary' : 'btn-secondary'}`}
+                                                    onClick={() => handleNavigate('auditing')}
+                                                    style={{ justifyContent: 'space-between', padding: '0.55rem 0.85rem', fontSize: '0.85rem' }}
+                                                >
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                        <ClipboardCheck size={15} />
+                                                        <span>Store Inventory Audit</span>
+                                                    </div>
+                                                    <ChevronRight size={13} />
+                                                </button>
+                                            )}
+
+                                            {canAccessReceiving && (
+                                                <button
+                                                    className={`btn ${activePage === 'receiving' ? 'btn-primary' : 'btn-secondary'}`}
+                                                    onClick={() => handleNavigate('receiving')}
+                                                    style={{ justifyContent: 'space-between', padding: '0.55rem 0.85rem', fontSize: '0.85rem' }}
+                                                >
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                        <Package size={15} />
+                                                        <span>Inbound Stock Receiving</span>
+                                                    </div>
+                                                    <ChevronRight size={13} />
+                                                </button>
+                                            )}
+
+                                            {canAccessHistory && (
+                                                <button
+                                                    className={`btn ${activePage === 'history' ? 'btn-primary' : 'btn-secondary'}`}
+                                                    onClick={() => handleNavigate('history')}
+                                                    style={{ justifyContent: 'space-between', padding: '0.55rem 0.85rem', fontSize: '0.85rem' }}
+                                                >
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                        <Receipt size={15} />
+                                                        <span>Sales &amp; Invoices</span>
+                                                    </div>
+                                                    <ChevronRight size={13} />
+                                                </button>
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             </div>
@@ -310,37 +329,33 @@ export default function StorePortal() {
 
                 {/* Main Content Layout based on user role and active page */}
                 <main style={{ flexGrow: 1 }}>
-                    {activePage === 'home' && (
-                        normalizedRole === 'FRANCHISE_ADMIN' ? (
-                            <FranchiseDashboard
-                                onNavigateToBilling={() => handleNavigate('billing')}
-                                onNavigateToAudit={() => handleNavigate('auditing')}
-                            />
-                        ) : (
-                            <EmployeeHome onNavigate={(p: any) => handleNavigate(p)} userRole={role} />
-                        )
-                    )}
-                    {activePage === 'billing' && <Billing onBack={() => handleNavigate('home')} />}
-                    {activePage === 'auditing' && <Auditing onBack={() => handleNavigate('home')} />}
-                    {activePage === 'receiving' && (
-                        isFranchiseAdmin ? (
-                            <FranchiseDashboard
-                                onNavigateToBilling={() => handleNavigate('billing')}
-                                onNavigateToAudit={() => handleNavigate('auditing')}
-                            />
-                        ) : (
-                            <StockReceiving
-                                onBack={() => handleNavigate('home')}
-                                onNavigateToBilling={() => handleNavigate('billing')}
-                            />
-                        )
-                    )}
-                    {activePage === 'history' && <SalesHistory onBack={() => handleNavigate('home')} />}
-                    {activePage === 'dashboard' && (
+                    {isFranchiseAdmin ? (
+                        /* Franchise Admin is strictly locked to the Executive Dashboard */
                         <FranchiseDashboard
                             onNavigateToBilling={() => handleNavigate('billing')}
                             onNavigateToAudit={() => handleNavigate('auditing')}
                         />
+                    ) : (
+                        <>
+                            {activePage === 'home' && (
+                                <EmployeeHome onNavigate={(p: any) => handleNavigate(p)} userRole={role} />
+                            )}
+                            {activePage === 'billing' && <Billing onBack={() => handleNavigate('home')} />}
+                            {activePage === 'auditing' && <Auditing onBack={() => handleNavigate('home')} />}
+                            {activePage === 'receiving' && (
+                                <StockReceiving
+                                    onBack={() => handleNavigate('home')}
+                                    onNavigateToBilling={() => handleNavigate('billing')}
+                                />
+                            )}
+                            {activePage === 'history' && <SalesHistory onBack={() => handleNavigate('home')} />}
+                            {activePage === 'dashboard' && (
+                                <FranchiseDashboard
+                                    onNavigateToBilling={() => handleNavigate('billing')}
+                                    onNavigateToAudit={() => handleNavigate('auditing')}
+                                />
+                            )}
+                        </>
                     )}
                 </main>
             </div>

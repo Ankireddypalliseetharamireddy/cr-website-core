@@ -44,6 +44,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
     const [employeeSearch, setEmployeeSearch] = useState('');
     const [invoiceSearch, setInvoiceSearch] = useState('');
     const [walletLedgerType, setWalletLedgerType] = useState<'all' | 'wallet1' | 'wallet2'>('all');
+    const [selectedInvoice, setSelectedInvoice] = useState<any | null>(null);
 
     // Agreement Renewal Modal State
     const [showRenewalModal, setShowRenewalModal] = useState(false);
@@ -144,6 +145,8 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
         (emp.role && emp.role.toLowerCase().includes(employeeSearch.toLowerCase()))
     );
 
+    const commissionPercent = parseFloat(stats?.commission_percentage || '15');
+
     // Filter Invoices (Search by Invoice # or Payment Method, customer phone is hidden for privacy)
     const filteredInvoices = orders.filter(o => {
         const matchesSearch = 
@@ -175,8 +178,6 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
         const netBase = parseFloat(o.net_base_amount || (parseFloat(o.total_price || 0) / 1.18));
         return sum + (netBase * 0.10);
     }, 0);
-
-    const commissionPercent = parseFloat(stats?.commission_percentage || '15');
 
     if (loading) {
         return (
@@ -561,41 +562,48 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                         <thead>
                                             <tr>
                                                 <th>Invoice #</th>
-                                                <th>Customer</th>
+                                                <th>Date &amp; Time</th>
                                                 <th>Total Bill</th>
-                                                <th style={{ textAlign: 'right' }}>Commission ({commissionPercent}%)</th>
-                                                <th style={{ textAlign: 'center' }}>Share</th>
+                                                <th style={{ textAlign: 'right' }}>Wallet 1 Comm.</th>
+                                                <th style={{ textAlign: 'right' }}>Wallet 2 Recoup</th>
+                                                <th style={{ textAlign: 'center' }}>Breakdown</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {orders.slice(0, 5).map((ord) => {
                                                 const gross = parseFloat(ord.total_price) || 0;
-                                                const comm = gross * (commissionPercent / 100);
+                                                const netBase = parseFloat(ord.net_base_amount !== undefined && ord.net_base_amount !== null ? ord.net_base_amount : (gross / 1.18));
+                                                const comm = parseFloat(ord.commission_amount !== undefined && ord.commission_amount !== null ? ord.commission_amount : (netBase * (commissionPercent / 100)));
+                                                const recoup = parseFloat(ord.principal_recovery_amount !== undefined && ord.principal_recovery_amount !== null ? ord.principal_recovery_amount : (netBase * 0.10));
 
                                                 return (
-                                                    <tr key={ord.id}>
+                                                    <tr 
+                                                        key={ord.id}
+                                                        onClick={() => setSelectedInvoice(ord)}
+                                                        style={{ cursor: 'pointer', transition: 'background 0.2s' }}
+                                                        onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(212, 175, 55, 0.08)')}
+                                                        onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                                                        title="Click to view itemized commission & dual-wallet breakdown"
+                                                    >
                                                         <td style={{ fontWeight: 'bold', color: 'var(--pos-gold-light)', fontFamily: 'monospace' }}>
                                                             {ord.invoice_number}
                                                         </td>
-                                                        <td>
-                                                            <div style={{ fontWeight: 600 }}>Verified Buyer</div>
-                                                            <div style={{ fontSize: '0.72rem', color: 'var(--pos-text-secondary)' }}>••••••••••</div>
+                                                        <td style={{ fontSize: '0.8rem', color: 'var(--pos-text-secondary)' }}>
+                                                            {new Date(ord.created_at).toLocaleDateString()}
                                                         </td>
                                                         <td style={{ fontWeight: 'bold' }}>
                                                             ₹{gross.toFixed(2)}
                                                         </td>
                                                         <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#6ee7b7' }}>
-                                                            +₹{comm.toFixed(2)}
+                                                            + ₹{comm.toFixed(2)}
+                                                        </td>
+                                                        <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#93c5fd' }}>
+                                                            + ₹{recoup.toFixed(2)}
                                                         </td>
                                                         <td style={{ textAlign: 'center' }}>
-                                                            <button
-                                                                className="btn btn-secondary btn-sm"
-                                                                onClick={() => handleShareWhatsApp(ord)}
-                                                                style={{ padding: '0.25rem 0.5rem' }}
-                                                                title="Share Invoice on WhatsApp"
-                                                            >
-                                                                <Share2 size={12} style={{ color: '#25D366' }} />
-                                                            </button>
+                                                            <span className="badge badge-gold" style={{ fontSize: '0.68rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.2rem 0.5rem' }}>
+                                                                <Eye size={12} /> View
+                                                            </span>
                                                         </td>
                                                     </tr>
                                                 );
@@ -1049,13 +1057,12 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                         <tr>
                                             <th>Invoice #</th>
                                             <th>Date &amp; Time</th>
-                                            <th>Customer</th>
                                             <th>Gross Total</th>
                                             <th>Net Base (Excl. GST)</th>
                                             <th style={{ textAlign: 'right', color: 'var(--pos-gold-light)' }}>Wallet 1: Commission</th>
                                             <th style={{ textAlign: 'right', color: '#93c5fd' }}>Wallet 2: Recouped (10%)</th>
                                             <th>Payment Method</th>
-                                            <th style={{ textAlign: 'center' }}>Receipt</th>
+                                            <th style={{ textAlign: 'center' }}>Breakdown</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -1066,16 +1073,19 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                             const recoup = parseFloat(ord.principal_recovery_amount !== undefined && ord.principal_recovery_amount !== null ? ord.principal_recovery_amount : (netBase * 0.10));
 
                                             return (
-                                                <tr key={ord.id}>
+                                                <tr 
+                                                    key={ord.id}
+                                                    onClick={() => setSelectedInvoice(ord)}
+                                                    style={{ cursor: 'pointer', transition: 'background 0.2s' }}
+                                                    onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(212, 175, 55, 0.08)')}
+                                                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                                                    title="Click row to inspect product-wise commission & dual-wallet breakdown"
+                                                >
                                                     <td style={{ fontWeight: 'bold', color: 'var(--pos-gold-light)', fontFamily: 'monospace' }}>
                                                         {ord.invoice_number}
                                                     </td>
                                                     <td style={{ fontSize: '0.8125rem', color: 'var(--pos-text-secondary)' }}>
                                                         {new Date(ord.created_at).toLocaleString()}
-                                                    </td>
-                                                    <td>
-                                                        <div style={{ fontWeight: 600 }}>Verified Buyer</div>
-                                                        <div style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>••••••••••</div>
                                                     </td>
                                                     <td style={{ fontWeight: 'bold' }}>
                                                         ₹{gross.toFixed(2)}
@@ -1093,14 +1103,12 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                                         <span className="badge badge-blue">{ord.payment_method}</span>
                                                     </td>
                                                     <td style={{ textAlign: 'center' }}>
-                                                        <button
-                                                            className="btn btn-secondary btn-sm"
-                                                            onClick={() => handleShareWhatsApp(ord)}
-                                                            style={{ padding: '0.25rem 0.5rem' }}
-                                                            title="Share on WhatsApp"
+                                                        <span 
+                                                            className="badge badge-gold" 
+                                                            style={{ fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.25rem 0.6rem' }}
                                                         >
-                                                            <Share2 size={12} style={{ color: '#25D366' }} />
-                                                        </button>
+                                                            <Eye size={12} /> View
+                                                        </span>
                                                     </td>
                                                 </tr>
                                             );
@@ -1275,6 +1283,250 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                 </div>
                             </form>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* ========================================================================== */}
+            {/* MODAL: ITEMIZED PRODUCT COMMISSION & DUAL-WALLET BREAKDOWN               */}
+            {/* ========================================================================== */}
+            {selectedInvoice && (
+                <div className="modal-overlay" onClick={() => setSelectedInvoice(null)}>
+                    <div 
+                        className="modal-content" 
+                        style={{ maxWidth: '880px', width: '95%', maxHeight: '90vh', overflowY: 'auto' }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Header */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid var(--pos-border-gold)', paddingBottom: '1rem', marginBottom: '1.25rem' }}>
+                            <div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.35rem' }}>
+                                    <Sparkles size={22} style={{ color: 'var(--pos-gold-primary)' }} />
+                                    <h3 className="panel-title" style={{ margin: 0, border: 'none', padding: 0, fontSize: '1.25rem' }}>
+                                        Invoice Financial &amp; Commission Audit
+                                    </h3>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', fontSize: '0.85rem' }}>
+                                    <span style={{ fontFamily: 'monospace', fontWeight: 'bold', color: 'var(--pos-gold-light)', background: 'rgba(212, 175, 55, 0.12)', padding: '0.2rem 0.6rem', borderRadius: '6px', border: '1px solid var(--pos-border-gold)' }}>
+                                        {selectedInvoice.invoice_number}
+                                    </span>
+                                    <span style={{ color: 'var(--pos-text-secondary)', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                                        <Clock size={13} />
+                                        {new Date(selectedInvoice.created_at).toLocaleString()}
+                                    </span>
+                                    <span className="badge badge-blue">{selectedInvoice.payment_method}</span>
+                                    {selectedInvoice.franchise_name && (
+                                        <span className="badge badge-gold">{selectedInvoice.franchise_name}</span>
+                                    )}
+                                </div>
+                            </div>
+                            <button 
+                                className="btn btn-secondary btn-sm" 
+                                onClick={() => setSelectedInvoice(null)}
+                                style={{ padding: '0.35rem 0.65rem', fontSize: '1.2rem', lineHeight: '1' }}
+                                title="Close"
+                            >
+                                &times;
+                            </button>
+                        </div>
+
+                        {/* Top Financial Stat Chips */}
+                        {(() => {
+                            const grossTotal = parseFloat(selectedInvoice.total_price) || 0;
+                            const netBaseTotal = parseFloat(selectedInvoice.net_base_amount !== undefined && selectedInvoice.net_base_amount !== null ? selectedInvoice.net_base_amount : (grossTotal / 1.18));
+                            const commTotal = parseFloat(selectedInvoice.commission_amount !== undefined && selectedInvoice.commission_amount !== null ? selectedInvoice.commission_amount : (netBaseTotal * (commissionPercent / 100)));
+                            const recoupTotal = parseFloat(selectedInvoice.principal_recovery_amount !== undefined && selectedInvoice.principal_recovery_amount !== null ? selectedInvoice.principal_recovery_amount : (netBaseTotal * 0.10));
+
+                            const rawItems = Array.isArray(selectedInvoice.items) && selectedInvoice.items.length > 0 
+                                ? selectedInvoice.items 
+                                : [{
+                                    id: 'fallback',
+                                    product_name: 'Counter Sale Merchandise',
+                                    product_sku: 'GEN-SALE',
+                                    quantity: 1,
+                                    unit_price: grossTotal,
+                                    gst_percentage: 18,
+                                    commission_percentage: commissionPercent,
+                                    net_base_amount: netBaseTotal,
+                                    wallet1_commission: commTotal,
+                                    wallet2_recoup: recoupTotal
+                                }];
+
+                            return (
+                                <>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                                        <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '0.75rem 1rem', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                                            <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--pos-text-secondary)', fontWeight: 600 }}>Bill Gross Total</span>
+                                            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--pos-text-primary)' }}>
+                                                ₹{grossTotal.toFixed(2)}
+                                            </div>
+                                        </div>
+                                        <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '0.75rem 1rem', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                                            <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--pos-text-secondary)', fontWeight: 600 }}>Net Base (Excl. GST)</span>
+                                            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--pos-text-primary)' }}>
+                                                ₹{netBaseTotal.toFixed(2)}
+                                            </div>
+                                        </div>
+                                        <div style={{ background: 'rgba(16, 185, 129, 0.08)', padding: '0.75rem 1rem', borderRadius: '10px', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
+                                            <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: '#6ee7b7', fontWeight: 600 }}>Wallet 1: Commission</span>
+                                            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#6ee7b7' }}>
+                                                + ₹{commTotal.toFixed(2)}
+                                            </div>
+                                            <span style={{ fontSize: '0.7rem', color: '#6ee7b7' }}>Direct Store Commission Profit</span>
+                                        </div>
+                                        <div style={{ background: 'rgba(59, 130, 246, 0.08)', padding: '0.75rem 1rem', borderRadius: '10px', border: '1px solid rgba(59, 130, 246, 0.25)' }}>
+                                            <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: '#93c5fd', fontWeight: 600 }}>Wallet 2: Recouped (10%)</span>
+                                            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#93c5fd' }}>
+                                                + ₹{recoupTotal.toFixed(2)}
+                                            </div>
+                                            <span style={{ fontSize: '0.7rem', color: '#93c5fd' }}>Principal Capital Recovery</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Itemized Table */}
+                                    <div style={{ marginBottom: '1.25rem' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                            <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--pos-gold-champagne)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                                <Package size={16} /> Itemized Product Commission Breakdown ({rawItems.length} {rawItems.length === 1 ? 'item' : 'items'})
+                                            </h4>
+                                            <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>
+                                                Each product calculated on Net Base amount
+                                            </span>
+                                        </div>
+
+                                        <div className="table-responsive" style={{ border: '1px solid var(--pos-border-gold)', borderRadius: '8px', overflow: 'hidden' }}>
+                                            <table className="glass-table" style={{ margin: 0 }}>
+                                                <thead style={{ background: 'rgba(212, 175, 55, 0.06)' }}>
+                                                    <tr>
+                                                        <th>Product / SKU</th>
+                                                        <th style={{ textAlign: 'center' }}>Qty</th>
+                                                        <th style={{ textAlign: 'right' }}>MRP (Inc. GST)</th>
+                                                        <th style={{ textAlign: 'right' }}>Net Base</th>
+                                                        <th style={{ textAlign: 'center', color: '#6ee7b7' }}>Comm. %</th>
+                                                        <th style={{ textAlign: 'right', color: '#6ee7b7' }}>Wallet 1</th>
+                                                        <th style={{ textAlign: 'center', color: '#93c5fd' }}>Recoup %</th>
+                                                        <th style={{ textAlign: 'right', color: '#93c5fd' }}>Wallet 2</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {rawItems.map((it: any, idx: number) => {
+                                                        const qty = safeNum(it.quantity, 1);
+                                                        const unitPrice = parseFloat(it.unit_price || 0);
+                                                        const itemGross = unitPrice * qty;
+                                                        const itemGst = parseFloat(it.gst_percentage !== undefined && it.gst_percentage !== null ? it.gst_percentage : 18);
+                                                        const itemNetBase = parseFloat(it.net_base_amount !== undefined && it.net_base_amount !== null ? it.net_base_amount : (itemGross / (1 + itemGst / 100)));
+                                                        const itemCommRate = parseFloat(it.commission_percentage !== undefined && it.commission_percentage !== null ? it.commission_percentage : commissionPercent);
+                                                        const itemWallet1 = parseFloat(it.wallet1_commission !== undefined && it.wallet1_commission !== null ? it.wallet1_commission : (itemNetBase * (itemCommRate / 100)));
+                                                        const itemWallet2 = parseFloat(it.wallet2_recoup !== undefined && it.wallet2_recoup !== null ? it.wallet2_recoup : (itemNetBase * 0.10));
+
+                                                        return (
+                                                            <tr key={it.id || idx}>
+                                                                <td>
+                                                                    <div style={{ fontWeight: 600, color: 'var(--pos-text-primary)' }}>
+                                                                        {it.product_name || it.product_title || `Product #${idx + 1}`}
+                                                                    </div>
+                                                                    <div style={{ fontSize: '0.72rem', color: 'var(--pos-text-secondary)', fontFamily: 'monospace' }}>
+                                                                        SKU: {it.product_sku || it.sku || 'N/A'} • GST: {itemGst}%
+                                                                    </div>
+                                                                </td>
+                                                                <td style={{ textAlign: 'center', fontWeight: 'bold' }}>
+                                                                    {qty}
+                                                                </td>
+                                                                <td style={{ textAlign: 'right' }}>
+                                                                    <div>₹{itemGross.toFixed(2)}</div>
+                                                                    <div style={{ fontSize: '0.7rem', color: 'var(--pos-text-secondary)' }}>
+                                                                        (@ ₹{unitPrice.toFixed(2)})
+                                                                    </div>
+                                                                </td>
+                                                                <td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--pos-text-secondary)' }}>
+                                                                    ₹{itemNetBase.toFixed(2)}
+                                                                </td>
+                                                                <td style={{ textAlign: 'center' }}>
+                                                                    <span className="badge badge-gold" style={{ fontSize: '0.72rem', padding: '0.15rem 0.45rem' }}>
+                                                                        {itemCommRate}%
+                                                                    </span>
+                                                                </td>
+                                                                <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#6ee7b7' }}>
+                                                                    + ₹{itemWallet1.toFixed(2)}
+                                                                </td>
+                                                                <td style={{ textAlign: 'center' }}>
+                                                                    <span className="badge badge-blue" style={{ fontSize: '0.72rem', padding: '0.15rem 0.45rem' }}>
+                                                                        10%
+                                                                    </span>
+                                                                </td>
+                                                                <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#93c5fd' }}>
+                                                                    + ₹{itemWallet2.toFixed(2)}
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                                <tfoot style={{ background: 'rgba(255, 255, 255, 0.02)', fontWeight: 'bold' }}>
+                                                    <tr>
+                                                        <td colSpan={3} style={{ textAlign: 'right', color: 'var(--pos-text-secondary)', fontSize: '0.85rem' }}>
+                                                            Total Net &amp; Dual-Wallet Credits:
+                                                        </td>
+                                                        <td style={{ textAlign: 'right', color: 'var(--pos-text-primary)' }}>
+                                                            ₹{netBaseTotal.toFixed(2)}
+                                                        </td>
+                                                        <td></td>
+                                                        <td style={{ textAlign: 'right', color: '#6ee7b7', fontSize: '0.95rem' }}>
+                                                            + ₹{commTotal.toFixed(2)}
+                                                        </td>
+                                                        <td></td>
+                                                        <td style={{ textAlign: 'right', color: '#93c5fd', fontSize: '0.95rem' }}>
+                                                            + ₹{recoupTotal.toFixed(2)}
+                                                        </td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    {/* Dual-Wallet Architecture Guidance Card */}
+                                    <div style={{ background: 'rgba(212, 175, 55, 0.05)', border: '1px solid var(--pos-border-gold)', borderRadius: '8px', padding: '0.85rem 1rem', marginBottom: '1.25rem', fontSize: '0.8125rem', lineHeight: '1.5' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--pos-gold-champagne)', fontWeight: 'bold', marginBottom: '0.35rem' }}>
+                                            <Shield size={15} />
+                                            <span>Cavree Dual-Wallet Architecture:</span>
+                                        </div>
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '0.75rem', marginTop: '0.4rem' }}>
+                                            <div style={{ borderLeft: '2px solid #10b981', paddingLeft: '0.6rem' }}>
+                                                <strong style={{ color: '#6ee7b7' }}>Wallet 1 (Commission Earning):</strong>
+                                                <p style={{ margin: '0.2rem 0 0 0', color: 'var(--pos-text-secondary)', fontSize: '0.78rem' }}>
+                                                    Product sales commission calculated on Net Base price. This balance belongs directly to your franchise and can be requested for payout anytime.
+                                                </p>
+                                            </div>
+                                            <div style={{ borderLeft: '2px solid #3b82f6', paddingLeft: '0.6rem' }}>
+                                                <strong style={{ color: '#93c5fd' }}>Wallet 2 (10% Principal Recoup):</strong>
+                                                <p style={{ margin: '0.2rem 0 0 0', color: 'var(--pos-text-secondary)', fontSize: '0.78rem' }}>
+                                                    A dedicated 10% from every sale automatically pays back your invested franchise principal capital towards ₹0 with Cavree buyout safety.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Modal Footer Actions */}
+                                    <div className="modal-actions" style={{ marginTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <button
+                                            type="button"
+                                            className="btn btn-secondary btn-sm"
+                                            onClick={() => handleShareWhatsApp(selectedInvoice)}
+                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: '#25D366', borderColor: '#25D366' }}
+                                        >
+                                            <Share2 size={14} />
+                                            <span>Share Receipt on WhatsApp</span>
+                                        </button>
+                                        <button 
+                                            type="button" 
+                                            className="btn btn-primary" 
+                                            onClick={() => setSelectedInvoice(null)}
+                                        >
+                                            Close Audit
+                                        </button>
+                                    </div>
+                                </>
+                            );
+                        })()}
                     </div>
                 </div>
             )}

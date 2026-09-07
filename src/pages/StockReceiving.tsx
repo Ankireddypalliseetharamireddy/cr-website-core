@@ -1343,26 +1343,28 @@ export default function StockReceiving({ onBack, onNavigateToBilling }: StockRec
                                         All {selectedTransfer.quantity} units of <strong>{selectedTransfer.product_name}</strong> have been accepted into {storeName} shelf inventory. They are now unlocked and ready for checkout at the POS Billing Terminal.
                                     </p>
 
-                                    <div style={{ display: 'flex', justifyContent: 'center', gap: '0.85rem' }}>
-                                        {onNavigateToBilling && (
+                                    {!isFranchiseAdmin && (
+                                        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.85rem' }}>
+                                            {onNavigateToBilling && (
+                                                <button
+                                                    className="btn btn-primary"
+                                                    onClick={onNavigateToBilling}
+                                                    style={{ padding: '0.65rem 1.4rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                                                >
+                                                    <ShoppingCart size={16} />
+                                                    <span>Proceed to POS Billing</span>
+                                                </button>
+                                            )}
                                             <button
-                                                className="btn btn-primary"
-                                                onClick={onNavigateToBilling}
-                                                style={{ padding: '0.65rem 1.4rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                                                className="btn btn-secondary"
+                                                onClick={() => loadTransfers(false)}
+                                                style={{ padding: '0.65rem 1.25rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.45rem' }}
                                             >
-                                                <ShoppingCart size={16} />
-                                                <span>Proceed to POS Billing</span>
+                                                <Package size={16} />
+                                                <span>Receive Next Shipment</span>
                                             </button>
-                                        )}
-                                        <button
-                                            className="btn btn-secondary"
-                                            onClick={() => loadTransfers(false)}
-                                            style={{ padding: '0.65rem 1.25rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.45rem' }}
-                                        >
-                                            <Package size={16} />
-                                            <span>Receive Next Shipment</span>
-                                        </button>
-                                    </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 

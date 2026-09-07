@@ -51,14 +51,6 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
     const [renewalSubmitted, setRenewalSubmitted] = useState(false);
     const [renewalNotes, setRenewalNotes] = useState('');
 
-    // Add Employee Form States
-    const [showAddForm, setShowAddForm] = useState(false);
-    const [empName, setEmpName] = useState('');
-    const [empEmail, setEmpEmail] = useState('');
-    const [empRole, setEmpRole] = useState('CASHIER');
-    const [empPassword, setEmpPassword] = useState('');
-    const [empSubmitting, setEmpSubmitting] = useState(false);
-
     // Payout Request Modal
     const [showPayoutModal, setShowPayoutModal] = useState(false);
     const [payoutAmount, setPayoutAmount] = useState('');
@@ -113,54 +105,6 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
     useEffect(() => {
         loadDashboardData();
     }, []);
-
-    const handleReceiveTransfer = async (transferId: number) => {
-        try {
-            await transferService.updateTransferStatus(transferId, 'RECEIVED');
-            alert("Consignment marked as RECEIVED! Store shelf stock has been updated.");
-            loadDashboardData();
-        } catch (err: any) {
-            console.error("Receive transfer error", err);
-            alert(err.response?.data?.error || "Failed to receive consignment.");
-        }
-    };
-
-    const handleAddEmployeeSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!empName || !empEmail || !empPassword) return;
-        setEmpSubmitting(true);
-
-        try {
-            const res = await employeeService.createEmployee({
-                name: empName,
-                email: empEmail,
-                role: empRole,
-                password: empPassword
-            });
-
-            alert(`Employee registered successfully! Generated Employee ID is: ${res.data.employee_id}. Awaiting Super Admin approval.`);
-            setEmpName('');
-            setEmpEmail('');
-            setEmpPassword('');
-            setEmpRole('CASHIER');
-            setShowAddForm(false);
-            loadDashboardData();
-        } catch (err: any) {
-            console.error(err);
-            alert(err.response?.data?.error || "Registration failed. Verify inputs.");
-        } finally {
-            setEmpSubmitting(false);
-        }
-    };
-
-    const handleToggleEmployeeActive = async (empId: number) => {
-        try {
-            await employeeService.toggleEmployeeActive(empId);
-            loadDashboardData();
-        } catch (err) {
-            console.error("Toggle employee active failed", err);
-        }
-    };
 
     const handlePayoutSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -285,7 +229,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                         Welcome, <span style={{ background: 'var(--pos-gold-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{adminName}</span>
                     </h1>
                     <p style={{ color: 'var(--pos-text-secondary)', fontSize: '0.875rem', margin: '0.35rem 0 0 0', maxWidth: '650px', lineHeight: '1.5' }}>
-                        Franchise Executive Dashboard &bull; Manage live store employees, monitor high-level inventory valuation, track central consignments, and audit two-wallet earnings.
+                        Franchise Executive Dashboard &bull; View on-duty store staff directory, monitor high-level inventory valuation, track central consignments, and audit two-wallet earnings.
                     </p>
                 </div>
 
@@ -532,10 +476,10 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                 </div>
                             </div>
                             <p style={{ fontSize: '0.8125rem', color: 'var(--pos-text-secondary)', margin: '0 0 1rem 0', lineHeight: '1.4' }}>
-                                Assign roles (Cashiers, Managers, Auditors), toggle active access, and register staff.
+                                View on-duty staff members (Cashiers, Managers, Auditors) and operational directory.
                             </p>
                             <div style={{ display: 'flex', alignItems: 'center', color: 'var(--pos-gold-champagne)', fontWeight: 'bold', fontSize: '0.8125rem', gap: '0.35rem' }}>
-                                <span>Manage Employees</span>
+                                <span>View Staff Directory</span>
                                 <ArrowRight size={14} />
                             </div>
                         </div>
@@ -753,7 +697,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                 Store Employees Directory ({filteredEmployees.length})
                             </h2>
                             <p style={{ color: 'var(--pos-text-secondary)', fontSize: '0.8125rem', margin: '0.25rem 0 0 0' }}>
-                                Active staff assigned to {stats?.name || storeName}. Add new staff members or manage roles.
+                                Active personnel on duty at {stats?.name || storeName}. Staff accounts and assignments are managed by Super Admin.
                             </p>
                         </div>
 
@@ -769,87 +713,10 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                 />
                                 <Search size={15} style={{ position: 'absolute', left: '0.85rem', top: '0.95rem', color: 'var(--pos-text-secondary)' }} />
                             </div>
-
-                            <button className="btn btn-primary" onClick={() => setShowAddForm(true)}>
-                                <Plus size={15} /> Add New Employee
-                            </button>
                         </div>
                     </div>
 
-                    {/* Add Employee Form Drawer/Panel */}
-                    {showAddForm && (
-                        <form onSubmit={handleAddEmployeeSubmit} className="glass-panel" style={{ background: 'rgba(0,0,0,0.4)', padding: '1.5rem', marginBottom: '1.75rem', border: '1px solid var(--pos-gold-primary)' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                                <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--pos-gold-light)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <Shield size={18} /> Register New Store Employee
-                                </h4>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>Will be submitted for Super Admin Approval</span>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
-                                <div>
-                                    <label className="form-label">Full Name *</label>
-                                    <input 
-                                        type="text" 
-                                        className="form-input" 
-                                        placeholder="e.g. Rahul Sharma" 
-                                        value={empName}
-                                        onChange={(e) => setEmpName(e.target.value)}
-                                        required 
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="form-label">Email Address *</label>
-                                    <input 
-                                        type="email" 
-                                        className="form-input" 
-                                        placeholder="e.g. rahul@cavree.com" 
-                                        value={empEmail}
-                                        onChange={(e) => setEmpEmail(e.target.value)}
-                                        required 
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="form-label">Assigned Role</label>
-                                    <select 
-                                        className="form-input form-select"
-                                        value={empRole}
-                                        onChange={(e) => setEmpRole(e.target.value)}
-                                    >
-                                        <option value="CASHIER">Store Cashier</option>
-                                        <option value="STORE_MANAGER">Store Manager</option>
-                                        <option value="INVENTORY_MANAGER">Inventory Auditor</option>
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="form-label">Login Password *</label>
-                                    <input 
-                                        type="password" 
-                                        className="form-input" 
-                                        placeholder="Min. 6 characters" 
-                                        value={empPassword}
-                                        onChange={(e) => setEmpPassword(e.target.value)}
-                                        required 
-                                    />
-                                </div>
-                            </div>
-
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-                                <button type="button" className="btn btn-secondary" onClick={() => setShowAddForm(false)}>
-                                    Cancel
-                                </button>
-                                <button type="submit" className="btn btn-primary" disabled={empSubmitting}>
-                                    <Check size={16} />
-                                    <span>{empSubmitting ? 'Registering...' : 'Save & Submit Employee'}</span>
-                                </button>
-                            </div>
-                        </form>
-                    )}
-
-                    {/* Employee Table */}
+                    {/* Employee Table (View-Only for Franchise Admin) */}
                     <div className="table-responsive">
                         <table className="glass-table">
                             <thead>
@@ -858,8 +725,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                     <th>Staff Member</th>
                                     <th>Assigned Role</th>
                                     <th>Approval Status</th>
-                                    <th style={{ textAlign: 'center' }}>Account Status</th>
-                                    <th style={{ textAlign: 'center' }}>Action</th>
+                                    <th style={{ textAlign: 'center' }}>Duty Status</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -883,23 +749,14 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                             </td>
                                             <td style={{ textAlign: 'center' }}>
                                                 <span className={`badge ${emp.is_active_employee ? 'badge-success' : 'badge-danger'}`}>
-                                                    {emp.is_active_employee ? 'Active' : 'Deactivated'}
+                                                    {emp.is_active_employee ? 'Active / On Duty' : 'Inactive'}
                                                 </span>
-                                            </td>
-                                            <td style={{ textAlign: 'center' }}>
-                                                <button 
-                                                    className={`btn btn-sm ${emp.is_active_employee ? 'btn-secondary' : 'btn-danger'}`}
-                                                    onClick={() => handleToggleEmployeeActive(emp.id)}
-                                                    style={{ padding: '0.35rem 0.75rem' }}
-                                                >
-                                                    <Power size={12} /> {emp.is_active_employee ? 'Deactivate' : 'Activate'}
-                                                </button>
                                             </td>
                                         </tr>
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={6} style={{ textAlign: 'center', padding: '3rem', color: 'var(--pos-text-secondary)' }}>
+                                        <td colSpan={5} style={{ textAlign: 'center', padding: '3rem', color: 'var(--pos-text-secondary)' }}>
                                             No employees found matching your search.
                                         </td>
                                     </tr>

@@ -4,7 +4,7 @@ import {
     Plus, Shield, Send, Search, CheckCircle, AlertTriangle,
     TrendingUp, ArrowUpRight, Wallet, Percent, Clock, Sparkles, Filter,
     ShoppingCart, ArrowRight, Share2, Printer, Check, RefreshCw, X, Calendar, FileText,
-    Eye
+    Eye, ClipboardCheck, Copy, Key
 } from 'lucide-react';
 import { dashboardService, catalogService, transferService, employeeService, orderService } from '../services/api';
 import '../styles/website.css';
@@ -56,6 +56,15 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
     const [payoutAmount, setPayoutAmount] = useState('');
     const [payoutUpi, setPayoutUpi] = useState('');
     const [payoutSuccess, setPayoutSuccess] = useState(false);
+
+    // Add Staff Modal State & Role Classification
+    const [showAddStaffModal, setShowAddStaffModal] = useState(false);
+    const [newStaffName, setNewStaffName] = useState('');
+    const [newStaffEmail, setNewStaffEmail] = useState('');
+    const [newStaffPassword, setNewStaffPassword] = useState('');
+    const [newStaffRole, setNewStaffRole] = useState<'CASHIER' | 'AUDITOR' | 'STORE_MANAGER'>('CASHIER');
+    const [creatingStaff, setCreatingStaff] = useState(false);
+    const [createdStaffCreds, setCreatedStaffCreds] = useState<any | null>(null);
 
     const adminName = localStorage.getItem('username') || 'Franchise Admin';
     const storeName = localStorage.getItem('franchiseId') || 'Cavree Store';
@@ -133,6 +142,85 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
         const itemsSummary = order.items?.map((it: any) => `• ${it.product_name} x ${it.quantity} = ₹${(parseFloat(it.unit_price) * it.quantity).toFixed(2)}`).join('%0A') || '';
         const text = `🛍️ *CAVREE INVOICE RECEIPT*%0AStore: ${stats?.name || storeName}%0AInvoice No: *${order.invoice_number}*%0ADate: ${new Date(order.created_at).toLocaleDateString()}%0A%0A*Items:*%0A${itemsSummary}%0A%0A*Total Paid: ₹${parseFloat(order.total_price).toFixed(2)}*%0A%0AThank you for shopping at Cavree!`;
         window.open(`https://wa.me/?text=${text}`, '_blank');
+    };
+
+    const getRoleClassificationBadge = (roleCode: string) => {
+        const code = (roleCode || '').toUpperCase();
+        if (code === 'CASHIER') {
+            return (
+                <span className="badge badge-blue" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.3rem 0.65rem' }}>
+                    <ShoppingCart size={13} />
+                    <span>Billing Only (Cashier)</span>
+                </span>
+            );
+        }
+        if (code === 'AUDITOR') {
+            return (
+                <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.3rem 0.65rem' }}>
+                    <ClipboardCheck size={13} />
+                    <span>Auditing Only (Auditor)</span>
+                </span>
+            );
+        }
+        if (code === 'STORE_MANAGER') {
+            return (
+                <span className="badge badge-gold" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.3rem 0.65rem' }}>
+                    <Shield size={13} />
+                    <span>Both: Billing &amp; Auditing (Manager)</span>
+                </span>
+            );
+        }
+        return (
+            <span className="badge badge-gold">
+                {code.replace(/_/g, ' ')}
+            </span>
+        );
+    };
+
+    const handleAddStaffSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setCreatingStaff(true);
+        try {
+            const payload = {
+                name: newStaffName.trim(),
+                email: newStaffEmail.trim(),
+                role: newStaffRole,
+                password: newStaffPassword.trim() || undefined,
+            };
+            const res = await employeeService.createEmployee(payload);
+            const data = res.data;
+            setCreatedStaffCreds({
+                employee_id: data.employee_id,
+                name: newStaffName,
+                username: data.raw_username || data.username || newStaffEmail.split('@')[0],
+                password: data.generated_password || newStaffPassword || 'Assigned Password',
+                role: newStaffRole,
+                roleLabel: newStaffRole === 'CASHIER' 
+                    ? 'Billing Only (Cashier)' 
+                    : (newStaffRole === 'AUDITOR' ? 'Auditing Only (Store Auditor)' : 'Both Billing & Auditing (Store Manager)')
+            });
+            setShowAddStaffModal(false);
+            setNewStaffName('');
+            setNewStaffEmail('');
+            setNewStaffPassword('');
+            setNewStaffRole('CASHIER');
+            loadDashboardData();
+        } catch (err: any) {
+            alert(err.response?.data?.error || "Failed to register store employee. Please check inputs.");
+        } finally {
+            setCreatingStaff(false);
+        }
+    };
+
+    const handleShareStaffCredentials = (creds: any) => {
+        const text = `🎉 *CAVREE STORE EMPLOYEE LOGIN CREDENTIALS*%0AStore: ${stats?.name || storeName}%0AEmployee ID: *${creds.employee_id}*%0AName: ${creds.name}%0AAssigned Role: *${creds.roleLabel}*%0A%0A*Login Username:* ${creds.username}%0A*Password:* ${creds.password}%0A%0APortal URL: https://cavree.com/login%0A%0APlease keep your credentials confidential.`;
+        window.open(`https://wa.me/?text=${text}`, '_blank');
+    };
+
+    const handleCopyStaffCredentials = (creds: any) => {
+        const text = `Cavree Store Staff Credentials:\nStore: ${stats?.name || storeName}\nEmployee ID: ${creds.employee_id}\nName: ${creds.name}\nRole: ${creds.roleLabel}\nUsername: ${creds.username}\nPassword: ${creds.password}\nPortal: https://cavree.com/login`;
+        navigator.clipboard.writeText(text);
+        alert("Staff credentials copied to clipboard!");
     };
 
     // Filter Employees
@@ -681,7 +769,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                 Store Employees Directory ({filteredEmployees.length})
                             </h2>
                             <p style={{ color: 'var(--pos-text-secondary)', fontSize: '0.8125rem', margin: '0.25rem 0 0 0' }}>
-                                Active personnel on duty at {stats?.name || storeName}. Staff accounts and assignments are managed by Super Admin.
+                                Personnel on duty at {stats?.name || storeName}. Classified by operational authority: Billing Only, Auditing Only, or Both.
                             </p>
                         </div>
 
@@ -697,17 +785,66 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                 />
                                 <Search size={15} style={{ position: 'absolute', left: '0.85rem', top: '0.95rem', color: 'var(--pos-text-secondary)' }} />
                             </div>
+                            <button
+                                className="btn btn-primary"
+                                onClick={() => setShowAddStaffModal(true)}
+                                style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', padding: '0.55rem 1rem', fontSize: '0.85rem' }}
+                            >
+                                <Plus size={16} />
+                                <span>Add Store Staff</span>
+                            </button>
                         </div>
                     </div>
 
-                    {/* Employee Table (View-Only for Franchise Admin) */}
+                    {/* Role Classification Legend Strip */}
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                        gap: '0.75rem',
+                        background: 'rgba(0, 0, 0, 0.3)',
+                        borderRadius: '12px',
+                        padding: '0.85rem 1rem',
+                        border: '1px solid var(--pos-border-subtle)',
+                        marginBottom: '1.5rem',
+                        fontSize: '0.8rem'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
+                            <div style={{ padding: '0.4rem', borderRadius: '8px', background: 'rgba(59, 130, 246, 0.15)', color: '#93c5fd', marginTop: '2px' }}>
+                                <ShoppingCart size={15} />
+                            </div>
+                            <div>
+                                <strong style={{ color: '#93c5fd', display: 'block', marginBottom: '0.15rem' }}>1. Billing Only (Cashier)</strong>
+                                <span style={{ color: 'var(--pos-text-secondary)', fontSize: '0.75rem' }}>Only POS checkout, ringing sales &amp; issuing receipts. Cannot audit.</span>
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
+                            <div style={{ padding: '0.4rem', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.15)', color: '#6ee7b7', marginTop: '2px' }}>
+                                <ClipboardCheck size={15} />
+                            </div>
+                            <div>
+                                <strong style={{ color: '#6ee7b7', display: 'block', marginBottom: '0.15rem' }}>2. Auditing Only (Store Auditor)</strong>
+                                <span style={{ color: 'var(--pos-text-secondary)', fontSize: '0.75rem' }}>Only barcode stock auditing &amp; inventory counts. Cannot bill.</span>
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
+                            <div style={{ padding: '0.4rem', borderRadius: '8px', background: 'rgba(212, 175, 55, 0.15)', color: 'var(--pos-gold-light)', marginTop: '2px' }}>
+                                <Shield size={15} />
+                            </div>
+                            <div>
+                                <strong style={{ color: 'var(--pos-gold-light)', display: 'block', marginBottom: '0.15rem' }}>3. Both: Billing &amp; Auditing (Manager)</strong>
+                                <span style={{ color: 'var(--pos-text-secondary)', fontSize: '0.75rem' }}>Dual operational authority: Full access to POS billing AND store auditing.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Employee Table */}
                     <div className="table-responsive">
                         <table className="glass-table">
                             <thead>
                                 <tr>
                                     <th>Employee ID</th>
                                     <th>Staff Member</th>
-                                    <th>Assigned Role</th>
+                                    <th>Role Classification</th>
                                     <th>Approval Status</th>
                                     <th style={{ textAlign: 'center' }}>Duty Status</th>
                                 </tr>
@@ -724,7 +861,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                                 <div style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>{emp.user?.email}</div>
                                             </td>
                                             <td>
-                                                <span className="badge badge-gold">{emp.role.replace(/_/g, ' ')}</span>
+                                                {getRoleClassificationBadge(emp.role)}
                                             </td>
                                             <td>
                                                 <span className={`badge ${emp.approval_status === 'APPROVED' ? 'badge-success' : (emp.approval_status === 'REJECTED' ? 'badge-danger' : 'badge-warning')}`}>
@@ -1283,6 +1420,258 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                 </div>
                             </form>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* ========================================================================== */}
+            {/* MODAL: ADD STORE STAFF WITH ROLE CLASSIFICATION                           */}
+            {/* ========================================================================== */}
+            {showAddStaffModal && (
+                <div className="modal-overlay" onClick={() => setShowAddStaffModal(false)}>
+                    <div 
+                        className="modal-content" 
+                        style={{ maxWidth: '620px', width: '95%', maxHeight: '90vh', overflowY: 'auto' }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                            <div>
+                                <h3 className="panel-title" style={{ margin: 0, border: 'none', padding: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <Users size={20} style={{ color: 'var(--pos-gold-primary)' }} />
+                                    Register Store Staff
+                                </h3>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>
+                                    Assign operational roles for {stats?.name || storeName}
+                                </span>
+                            </div>
+                            <button className="btn btn-secondary btn-sm" onClick={() => setShowAddStaffModal(false)}>
+                                &times;
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleAddStaffSubmit}>
+                            <div className="form-group" style={{ marginBottom: '1rem' }}>
+                                <label className="form-label">Staff Member Full Name *</label>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    placeholder="e.g. Ramesh Reddy"
+                                    value={newStaffName}
+                                    onChange={(e) => setNewStaffName(e.target.value)}
+                                    required
+                                />
+                            </div>
+
+                            <div className="form-group" style={{ marginBottom: '1rem' }}>
+                                <label className="form-label">Email Address (For Account Login) *</label>
+                                <input
+                                    type="email"
+                                    className="form-input"
+                                    placeholder="e.g. ramesh@store.cavree.com"
+                                    value={newStaffEmail}
+                                    onChange={(e) => setNewStaffEmail(e.target.value)}
+                                    required
+                                />
+                            </div>
+
+                            <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+                                <label className="form-label">Initial Password (Optional)</label>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    placeholder="Leave blank to auto-generate a secure password..."
+                                    value={newStaffPassword}
+                                    onChange={(e) => setNewStaffPassword(e.target.value)}
+                                />
+                                <span style={{ fontSize: '0.72rem', color: 'var(--pos-text-secondary)' }}>
+                                    If left blank, a secure random password will be created automatically.
+                                </span>
+                            </div>
+
+                            {/* 3 Role Classification Selection Cards */}
+                            <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                                <label className="form-label" style={{ marginBottom: '0.65rem' }}>
+                                    Select Operational Role Classification *
+                                </label>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                    
+                                    {/* Role 1: Billing Only */}
+                                    <div
+                                        onClick={() => setNewStaffRole('CASHIER')}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'flex-start',
+                                            gap: '0.85rem',
+                                            padding: '0.85rem 1rem',
+                                            borderRadius: '10px',
+                                            cursor: 'pointer',
+                                            border: newStaffRole === 'CASHIER' ? '2px solid #3b82f6' : '1px solid var(--pos-border-subtle)',
+                                            background: newStaffRole === 'CASHIER' ? 'rgba(59, 130, 246, 0.12)' : 'rgba(255, 255, 255, 0.02)',
+                                            transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        <div style={{ padding: '0.5rem', borderRadius: '8px', background: 'rgba(59, 130, 246, 0.2)', color: '#93c5fd', marginTop: '2px' }}>
+                                            <ShoppingCart size={18} />
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <strong style={{ color: '#93c5fd', fontSize: '0.9rem' }}>1. Billing Only (Cashier)</strong>
+                                                <span className="badge badge-blue" style={{ fontSize: '0.65rem' }}>POS Billing Only</span>
+                                            </div>
+                                            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.78rem', color: 'var(--pos-text-secondary)', lineHeight: '1.4' }}>
+                                                Authorized to ring up customer sales, scan barcodes, accept UPI/cash, and print/share receipts. <strong>Blocked from Store Auditing.</strong>
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Role 2: Auditing Only */}
+                                    <div
+                                        onClick={() => setNewStaffRole('AUDITOR')}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'flex-start',
+                                            gap: '0.85rem',
+                                            padding: '0.85rem 1rem',
+                                            borderRadius: '10px',
+                                            cursor: 'pointer',
+                                            border: newStaffRole === 'AUDITOR' ? '2px solid #10b981' : '1px solid var(--pos-border-subtle)',
+                                            background: newStaffRole === 'AUDITOR' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(255, 255, 255, 0.02)',
+                                            transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        <div style={{ padding: '0.5rem', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.2)', color: '#6ee7b7', marginTop: '2px' }}>
+                                            <ClipboardCheck size={18} />
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <strong style={{ color: '#6ee7b7', fontSize: '0.9rem' }}>2. Auditing Only (Store Auditor)</strong>
+                                                <span className="badge badge-success" style={{ fontSize: '0.65rem' }}>Stock Auditing Only</span>
+                                            </div>
+                                            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.78rem', color: 'var(--pos-text-secondary)', lineHeight: '1.4' }}>
+                                                Authorized to scan shelf stock, conduct physical inventory counts, and submit discrepancy variance logs. <strong>Blocked from POS Billing.</strong>
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Role 3: Both Billing & Auditing */}
+                                    <div
+                                        onClick={() => setNewStaffRole('STORE_MANAGER')}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'flex-start',
+                                            gap: '0.85rem',
+                                            padding: '0.85rem 1rem',
+                                            borderRadius: '10px',
+                                            cursor: 'pointer',
+                                            border: newStaffRole === 'STORE_MANAGER' ? '2px solid var(--pos-gold-primary)' : '1px solid var(--pos-border-subtle)',
+                                            background: newStaffRole === 'STORE_MANAGER' ? 'rgba(212, 175, 55, 0.14)' : 'rgba(255, 255, 255, 0.02)',
+                                            transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        <div style={{ padding: '0.5rem', borderRadius: '8px', background: 'rgba(212, 175, 55, 0.2)', color: 'var(--pos-gold-light)', marginTop: '2px' }}>
+                                            <Shield size={18} />
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <strong style={{ color: 'var(--pos-gold-light)', fontSize: '0.9rem' }}>3. Both: Billing &amp; Auditing (Store Manager)</strong>
+                                                <span className="badge badge-gold" style={{ fontSize: '0.65rem' }}>Dual Operational Access</span>
+                                            </div>
+                                            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.78rem', color: 'var(--pos-text-secondary)', lineHeight: '1.4' }}>
+                                                Dual operational supervisor with full access to both POS billing checkout counter AND physical store inventory audits.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowAddStaffModal(false)}>
+                                    Cancel
+                                </button>
+                                <button type="submit" className="btn btn-primary" disabled={creatingStaff}>
+                                    {creatingStaff ? 'Provisioning Staff...' : 'Provision Staff Account'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* ========================================================================== */}
+            {/* MODAL: STAFF CREDENTIALS SHARING                                          */}
+            {/* ========================================================================== */}
+            {createdStaffCreds && (
+                <div className="modal-overlay" onClick={() => setCreatedStaffCreds(null)}>
+                    <div 
+                        className="modal-content" 
+                        style={{ maxWidth: '480px', width: '95%' }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
+                            <CheckCircle size={44} style={{ color: 'var(--pos-accent-green)', marginBottom: '0.5rem' }} />
+                            <h3 style={{ margin: '0 0 0.35rem 0', color: 'var(--pos-gold-light)', fontSize: '1.25rem' }}>
+                                Staff Account Active!
+                            </h3>
+                            <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--pos-text-secondary)' }}>
+                                Employee profile has been created and assigned to this store.
+                            </p>
+                        </div>
+
+                        <div style={{
+                            background: 'rgba(0, 0, 0, 0.4)',
+                            borderRadius: '10px',
+                            border: '1px solid var(--pos-border-gold)',
+                            padding: '1rem',
+                            marginBottom: '1.25rem',
+                            fontSize: '0.85rem'
+                        }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.35rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                <span style={{ color: 'var(--pos-text-secondary)' }}>Employee ID:</span>
+                                <strong style={{ color: 'var(--pos-gold-light)', fontFamily: 'monospace' }}>{createdStaffCreds.employee_id}</strong>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.35rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                <span style={{ color: 'var(--pos-text-secondary)' }}>Staff Name:</span>
+                                <strong>{createdStaffCreds.name}</strong>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.35rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                <span style={{ color: 'var(--pos-text-secondary)' }}>Assigned Role:</span>
+                                <span className="badge badge-gold">{createdStaffCreds.roleLabel}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.35rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                <span style={{ color: 'var(--pos-text-secondary)' }}>Login Username:</span>
+                                <strong style={{ color: '#93c5fd', fontFamily: 'monospace' }}>{createdStaffCreds.username}</strong>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.35rem 0' }}>
+                                <span style={{ color: 'var(--pos-text-secondary)' }}>Password:</span>
+                                <strong style={{ color: '#6ee7b7', fontFamily: 'monospace' }}>{createdStaffCreds.password}</strong>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                            <button
+                                className="btn btn-secondary btn-sm"
+                                onClick={() => handleShareStaffCredentials(createdStaffCreds)}
+                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.45rem', color: '#25D366', borderColor: '#25D366' }}
+                            >
+                                <Share2 size={14} />
+                                <span>Share Login via WhatsApp</span>
+                            </button>
+                            <button
+                                className="btn btn-secondary btn-sm"
+                                onClick={() => handleCopyStaffCredentials(createdStaffCreds)}
+                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.45rem' }}
+                            >
+                                <Copy size={14} />
+                                <span>Copy Credentials to Clipboard</span>
+                            </button>
+                            <button
+                                className="btn btn-primary"
+                                onClick={() => setCreatedStaffCreds(null)}
+                                style={{ marginTop: '0.25rem' }}
+                            >
+                                Done
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

@@ -124,6 +124,10 @@ export default function EmployeeHome({ onNavigate, userRole }: EmployeeHomeProps
         return r.replace(/_/g, ' ');
     };
 
+    const normalizedRole = (userRole || localStorage.getItem('role') || '').toUpperCase();
+    const canAccessBilling = ['CASHIER', 'STORE_MANAGER', 'SALES_EXECUTIVE', 'SUPER_ADMIN'].includes(normalizedRole) || !userRole;
+    const canAccessAuditing = ['AUDITOR', 'INVENTORY_MANAGER', 'STORE_MANAGER', 'SUPER_ADMIN'].includes(normalizedRole);
+
     return (
         <div className="main-content">
             
@@ -157,72 +161,89 @@ export default function EmployeeHome({ onNavigate, userRole }: EmployeeHomeProps
                 </div>
 
                 <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap' }}>
-                    <button
-                        className="btn btn-primary"
-                        onClick={() => onNavigate('billing')}
-                        style={{ padding: '0.95rem 1.65rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}
-                    >
-                        <ShoppingCart size={20} />
-                        <span>Launch POS Checkout</span>
-                        <ArrowRight size={16} />
-                    </button>
+                    {canAccessBilling && (
+                        <button
+                            className="btn btn-primary"
+                            onClick={() => onNavigate('billing')}
+                            style={{ padding: '0.95rem 1.65rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}
+                        >
+                            <ShoppingCart size={20} />
+                            <span>Launch POS Checkout</span>
+                            <ArrowRight size={16} />
+                        </button>
+                    )}
+                    {canAccessAuditing && !canAccessBilling && (
+                        <button
+                            className="btn btn-primary"
+                            onClick={() => onNavigate('auditing')}
+                            style={{ padding: '0.95rem 1.65rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.6rem', background: '#10b981', borderColor: '#10b981' }}
+                        >
+                            <ClipboardCheck size={20} />
+                            <span>Launch Store Audit</span>
+                            <ArrowRight size={16} />
+                        </button>
+                    )}
                 </div>
             </div>
 
             {/* Main Action Hub Modules (3 Luxury Glass Cards) */}
             <div className="action-grid">
                 
-                {/* Module 1: Billing & POS */}
-                <div
-                    className="action-card glass-panel"
-                    style={{ borderTop: '4px solid var(--pos-gold-primary)' }}
-                    onClick={() => onNavigate('billing')}
-                >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.65rem' }}>
-                        <div style={{ padding: '0.65rem', borderRadius: '12px', background: 'var(--pos-gold-gradient-subtle)', color: 'var(--pos-gold-primary)', border: '1px solid var(--pos-border-gold)', display: 'flex' }}>
-                            <ShoppingCart size={22} />
+                {/* Module 1: Billing & POS (Billing Only or Both) */}
+                {canAccessBilling && (
+                    <div
+                        className="action-card glass-panel"
+                        style={{ borderTop: '4px solid var(--pos-gold-primary)' }}
+                        onClick={() => onNavigate('billing')}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.65rem' }}>
+                            <div style={{ padding: '0.65rem', borderRadius: '12px', background: 'var(--pos-gold-gradient-subtle)', color: 'var(--pos-gold-primary)', border: '1px solid var(--pos-border-gold)', display: 'flex' }}>
+                                <ShoppingCart size={22} />
+                            </div>
+                            <div>
+                                <h3 style={{ fontSize: '1.15rem', fontWeight: 'bold', margin: 0, color: 'var(--pos-gold-light)' }}>
+                                    Counter Billing &amp; POS
+                                </h3>
+                                <span style={{ fontSize: '0.72rem', color: 'var(--pos-text-secondary)' }}>Laser Gun &bull; Camera QR &bull; mPOS</span>
+                            </div>
                         </div>
-                        <div>
-                            <h3 style={{ fontSize: '1.15rem', fontWeight: 'bold', margin: 0, color: 'var(--pos-gold-light)' }}>
-                                Counter Billing &amp; POS
-                            </h3>
-                            <span style={{ fontSize: '0.72rem', color: 'var(--pos-text-secondary)' }}>Laser Gun &bull; Camera QR &bull; mPOS</span>
+                        <p style={{ fontSize: '0.8125rem', color: 'var(--pos-text-secondary)', marginBottom: '0.75rem', lineHeight: '1.4' }}>
+                            Instant barcode and QR lookup, live tax calculation, cash change calculator, and multi-channel receipt sharing.
+                        </p>
+                        <div style={{ display: 'flex', alignItems: 'center', color: 'var(--pos-gold-light)', fontWeight: 'bold', fontSize: '0.8125rem', gap: '0.35rem' }}>
+                            <span>Open Billing Terminal</span>
+                            <ArrowRight size={14} />
                         </div>
                     </div>
-                    <p style={{ fontSize: '0.8125rem', color: 'var(--pos-text-secondary)', marginBottom: '0.75rem', lineHeight: '1.4' }}>
-                        Instant barcode and QR lookup, live tax calculation, cash change calculator, and multi-channel receipt sharing.
-                    </p>
-                    <div style={{ display: 'flex', alignItems: 'center', color: 'var(--pos-gold-light)', fontWeight: 'bold', fontSize: '0.8125rem', gap: '0.35rem' }}>
-                        <span>Open Billing Terminal</span>
-                        <ArrowRight size={14} />
-                    </div>
-                </div>
+                )}
 
-                {/* Module 2: Store Inventory Auditing */}
-                <div
-                    className="action-card glass-panel"
-                    style={{ borderTop: '4px solid var(--pos-accent-green)' }}
-                    onClick={() => onNavigate('auditing')}
-                >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.65rem' }}>
-                        <div style={{ padding: '0.65rem', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.12)', color: 'var(--pos-accent-green)', border: '1px solid rgba(16, 185, 129, 0.25)', display: 'flex' }}>
-                            <ClipboardCheck size={22} />
+                {/* Module 2: Store Inventory Auditing (Auditing Only or Both) */}
+                {canAccessAuditing && (
+                    <div
+                        className="action-card glass-panel"
+                        style={{ borderTop: '4px solid var(--pos-accent-green)' }}
+                        onClick={() => onNavigate('auditing')}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.65rem' }}>
+                            <div style={{ padding: '0.65rem', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.12)', color: 'var(--pos-accent-green)', border: '1px solid rgba(16, 185, 129, 0.25)', display: 'flex' }}>
+                                <ClipboardCheck size={22} />
+                            </div>
+                            <div>
+                                <h3 style={{ fontSize: '1.15rem', fontWeight: 'bold', margin: 0, color: '#6ee7b7' }}>
+                                    Store Auditing
+                                </h3>
+                                <span style={{ fontSize: '0.72rem', color: 'var(--pos-text-secondary)' }}>Physical Count &bull; Discrepancy Log</span>
+                            </div>
                         </div>
-                        <div>
-                            <h3 style={{ fontSize: '1.15rem', fontWeight: 'bold', margin: 0, color: '#6ee7b7' }}>
-                                Store Auditing
-                            </h3>
-                            <span style={{ fontSize: '0.72rem', color: 'var(--pos-text-secondary)' }}>Physical Count &bull; Discrepancy Log</span>
+                        <p style={{ fontSize: '0.8125rem', color: 'var(--pos-text-secondary)', marginBottom: '0.75rem', lineHeight: '1.4' }}>
+                            Verify shelf stock against central ERP numbers, scan barcodes, and submit real-time variance audit logs.
+                        </p>
+                        <div style={{ display: 'flex', alignItems: 'center', color: 'var(--pos-accent-green)', fontWeight: 'bold', fontSize: '0.8125rem', gap: '0.35rem' }}>
+                            <span>Launch Stock Audit</span>
+                            <ArrowRight size={14} />
                         </div>
                     </div>
-                    <p style={{ fontSize: '0.8125rem', color: 'var(--pos-text-secondary)', marginBottom: '0.75rem', lineHeight: '1.4' }}>
-                        Verify shelf stock against central ERP numbers, scan barcodes, and submit real-time variance audit logs.
-                    </p>
-                    <div style={{ display: 'flex', alignItems: 'center', color: 'var(--pos-accent-green)', fontWeight: 'bold', fontSize: '0.8125rem', gap: '0.35rem' }}>
-                        <span>Launch Stock Audit</span>
-                        <ArrowRight size={14} />
-                    </div>
-                </div>
+                )}
 
                 {/* Module 3: Invoices & History */}
                 <div

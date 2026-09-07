@@ -56,6 +56,17 @@ export default function StorePortal() {
             setMenuOpen(false);
             return;
         }
+
+        // Role-based navigation guard
+        if (page === 'billing' && currentRole === 'AUDITOR') {
+            alert('Access Denied: Your account is designated for Store Auditing only. You cannot access the Billing Counter.');
+            return;
+        }
+        if (page === 'auditing' && currentRole === 'CASHIER') {
+            alert('Access Denied: Your account is designated for POS Billing only. You cannot access Store Auditing.');
+            return;
+        }
+
         setActivePage(page);
         localStorage.setItem('activePage', page);
         setMenuOpen(false);
@@ -67,11 +78,17 @@ export default function StorePortal() {
         setRole(userRole);
         setFranchiseId(userFranchise);
         
-        if (userRole === 'CASHIER') {
+        const normalized = (userRole || '').toUpperCase();
+        if (normalized === 'CASHIER') {
+            // Billing Only role -> go directly to Billing Counter
             handleNavigate('billing');
-        } else if (userRole === 'FRANCHISE_ADMIN') {
+        } else if (normalized === 'AUDITOR') {
+            // Auditing Only role -> go directly to Store Auditing
+            handleNavigate('auditing');
+        } else if (normalized === 'FRANCHISE_ADMIN') {
             handleNavigate('dashboard');
         } else {
+            // Both (Store Manager / Supervisor) -> Store Hub
             handleNavigate('home');
         }
     };
@@ -340,8 +357,38 @@ export default function StorePortal() {
                             {activePage === 'home' && (
                                 <EmployeeHome onNavigate={(p: any) => handleNavigate(p)} userRole={role} />
                             )}
-                            {activePage === 'billing' && <Billing onBack={() => handleNavigate('home')} />}
-                            {activePage === 'auditing' && <Auditing onBack={() => handleNavigate('home')} />}
+                            {activePage === 'billing' && (
+                                canAccessBilling ? (
+                                    <Billing onBack={() => handleNavigate('home')} />
+                                ) : (
+                                    <div className="glass-panel" style={{ margin: '2rem auto', maxWidth: '500px', padding: '3rem 2rem', textAlign: 'center' }}>
+                                        <Shield size={48} style={{ color: '#ef4444', marginBottom: '1rem' }} />
+                                        <h3 style={{ color: 'var(--pos-text-primary)' }}>Access Restricted</h3>
+                                        <p style={{ color: 'var(--pos-text-secondary)', fontSize: '0.9rem' }}>
+                                            Your employee account ({formatRoleLabel(role)}) is designated for <strong>Store Auditing only</strong>. You do not have permission to access the POS Billing Counter.
+                                        </p>
+                                        <button className="btn btn-primary" onClick={() => handleNavigate('auditing')}>
+                                            Open Store Inventory Audit
+                                        </button>
+                                    </div>
+                                )
+                            )}
+                            {activePage === 'auditing' && (
+                                canAccessAuditing ? (
+                                    <Auditing onBack={() => handleNavigate('home')} />
+                                ) : (
+                                    <div className="glass-panel" style={{ margin: '2rem auto', maxWidth: '500px', padding: '3rem 2rem', textAlign: 'center' }}>
+                                        <Shield size={48} style={{ color: '#ef4444', marginBottom: '1rem' }} />
+                                        <h3 style={{ color: 'var(--pos-text-primary)' }}>Access Restricted</h3>
+                                        <p style={{ color: 'var(--pos-text-secondary)', fontSize: '0.9rem' }}>
+                                            Your employee account ({formatRoleLabel(role)}) is designated for <strong>POS Billing only</strong>. You do not have permission to access the Store Inventory Audit terminal.
+                                        </p>
+                                        <button className="btn btn-primary" onClick={() => handleNavigate('billing')}>
+                                            Open POS Billing Counter
+                                        </button>
+                                    </div>
+                                )
+                            )}
                             {activePage === 'receiving' && (
                                 <StockReceiving
                                     onBack={() => handleNavigate('home')}

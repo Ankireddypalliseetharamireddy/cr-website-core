@@ -12,7 +12,6 @@ import '../styles/website.css';
 interface FranchiseDashboardProps {
     onNavigateToBilling?: () => void;
     onNavigateToAudit?: () => void;
-    onNavigateToReceiving?: () => void;
 }
 
 const formatIndianCurrency = (val: number | string | undefined | null) => {
@@ -32,7 +31,7 @@ const safeNum = (val: any, fallback: number = 0): number => {
     return isNaN(num) ? fallback : num;
 };
 
-export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAudit, onNavigateToReceiving }: FranchiseDashboardProps) {
+export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAudit }: FranchiseDashboardProps) {
     const [activeTab, setActiveTab] = useState<'overview' | 'employees' | 'products' | 'wallet'>('overview');
     const [stats, setStats] = useState<any>(null);
     const [products, setProducts] = useState<any[]>([]);
@@ -618,16 +617,9 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                     <ArrowRightLeft size={18} style={{ color: 'var(--pos-gold-primary)' }} />
                                     Incoming Consignment Shipments
                                 </h3>
-                                {onNavigateToReceiving && (
-                                    <button
-                                        className="btn btn-secondary btn-sm"
-                                        onClick={onNavigateToReceiving}
-                                        style={{ padding: '0.35rem 0.85rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem', borderRadius: '8px' }}
-                                    >
-                                        <Eye size={14} style={{ color: 'var(--pos-gold-primary)' }} />
-                                        <span>Track Shipments</span>
-                                    </button>
-                                )}
+                                <span className="badge badge-gold" style={{ fontSize: '0.72rem', padding: '0.25rem 0.6rem' }}>
+                                    Central Dispatch Feed
+                                </span>
                             </div>
 
                             {transfers.length > 0 ? (
@@ -639,7 +631,6 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                                 <th>Product</th>
                                                 <th>Delivered Qty</th>
                                                 <th style={{ textAlign: 'center' }}>Consignment Status</th>
-                                                <th style={{ textAlign: 'right' }}>Tracking</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -654,21 +645,6 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                                         <span className={`badge ${t.status === 'RECEIVED' ? 'badge-success' : (t.status === 'IN_TRANSIT' ? 'badge-primary' : 'badge-warning')}`} style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}>
                                                             {t.status === 'RECEIVED' ? '✓ Received into Branch Stock' : (t.status === 'IN_TRANSIT' ? '🚚 In Transit from Warehouse' : t.status.replace(/_/g, ' '))}
                                                         </span>
-                                                    </td>
-                                                    <td style={{ textAlign: 'right' }}>
-                                                        {onNavigateToReceiving ? (
-                                                            <button
-                                                                className="btn btn-secondary btn-sm"
-                                                                onClick={onNavigateToReceiving}
-                                                                style={{ padding: '0.25rem 0.65rem', fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', borderRadius: '6px' }}
-                                                                title="View consignment transit progress & details"
-                                                            >
-                                                                <Eye size={12} style={{ color: 'var(--pos-gold-primary)' }} />
-                                                                <span>View Tracking</span>
-                                                            </button>
-                                                        ) : (
-                                                            <span style={{ color: 'var(--pos-text-secondary)', fontSize: '0.75rem' }}>-</span>
-                                                        )}
                                                     </td>
                                                 </tr>
                                             ))}

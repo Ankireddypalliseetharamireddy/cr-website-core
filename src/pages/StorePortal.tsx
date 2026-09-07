@@ -99,7 +99,7 @@ export default function StorePortal() {
     const isFranchiseAdmin = normalizedRole === 'FRANCHISE_ADMIN';
     const canAccessBilling = !isFranchiseAdmin && (['CASHIER', 'STORE_MANAGER', 'SALES_EXECUTIVE', 'SUPER_ADMIN'].includes(normalizedRole) || !role);
     const canAccessAuditing = !isFranchiseAdmin && ['AUDITOR', 'INVENTORY_MANAGER', 'STORE_MANAGER', 'SUPER_ADMIN'].includes(normalizedRole);
-    const canAccessReceiving = ['INVENTORY_MANAGER', 'STORE_MANAGER', 'SUPER_ADMIN', 'RECEIVING_STAFF', 'WAREHOUSE_STAFF', 'FRANCHISE_ADMIN'].includes(normalizedRole) || !role;
+    const canAccessReceiving = !isFranchiseAdmin && (['INVENTORY_MANAGER', 'STORE_MANAGER', 'SUPER_ADMIN', 'RECEIVING_STAFF', 'WAREHOUSE_STAFF'].includes(normalizedRole) || !role);
     const canAccessHistory = ['CASHIER', 'STORE_MANAGER', 'AUDITOR', 'FRANCHISE_ADMIN', 'SUPER_ADMIN'].includes(normalizedRole);
     const canAccessDashboard = ['FRANCHISE_ADMIN', 'STORE_MANAGER', 'SUPER_ADMIN'].includes(normalizedRole);
 
@@ -250,8 +250,8 @@ export default function StorePortal() {
                                             style={{ justifyContent: 'space-between', padding: '0.55rem 0.85rem', fontSize: '0.85rem' }}
                                         >
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                {isFranchiseAdmin ? <Truck size={15} style={{ color: 'var(--pos-gold-primary)' }} /> : <Package size={15} />}
-                                                <span>{isFranchiseAdmin ? 'Consignment Tracking' : 'Inbound Stock Receiving'}</span>
+                                                <Package size={15} />
+                                                <span>Inbound Stock Receiving</span>
                                             </div>
                                             <ChevronRight size={13} />
                                         </button>
@@ -315,7 +315,6 @@ export default function StorePortal() {
                             <FranchiseDashboard
                                 onNavigateToBilling={() => handleNavigate('billing')}
                                 onNavigateToAudit={() => handleNavigate('auditing')}
-                                onNavigateToReceiving={() => handleNavigate('receiving')}
                             />
                         ) : (
                             <EmployeeHome onNavigate={(p: any) => handleNavigate(p)} userRole={role} />
@@ -324,17 +323,23 @@ export default function StorePortal() {
                     {activePage === 'billing' && <Billing onBack={() => handleNavigate('home')} />}
                     {activePage === 'auditing' && <Auditing onBack={() => handleNavigate('home')} />}
                     {activePage === 'receiving' && (
-                        <StockReceiving
-                            onBack={() => handleNavigate('home')}
-                            onNavigateToBilling={() => handleNavigate('billing')}
-                        />
+                        isFranchiseAdmin ? (
+                            <FranchiseDashboard
+                                onNavigateToBilling={() => handleNavigate('billing')}
+                                onNavigateToAudit={() => handleNavigate('auditing')}
+                            />
+                        ) : (
+                            <StockReceiving
+                                onBack={() => handleNavigate('home')}
+                                onNavigateToBilling={() => handleNavigate('billing')}
+                            />
+                        )
                     )}
                     {activePage === 'history' && <SalesHistory onBack={() => handleNavigate('home')} />}
                     {activePage === 'dashboard' && (
                         <FranchiseDashboard
                             onNavigateToBilling={() => handleNavigate('billing')}
                             onNavigateToAudit={() => handleNavigate('auditing')}
-                            onNavigateToReceiving={() => handleNavigate('receiving')}
                         />
                     )}
                 </main>

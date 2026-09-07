@@ -772,3 +772,197 @@
         font-size: 0.875rem;
     }
 }
+
+/* ========================================================================== */
+/* LUXURY GLASS TABLE & INVENTORY RECEIVING SYSTEM STYLES                     */
+/* ========================================================================== */
+
+.glass-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--pos-text-primary);
+}
+
+.glass-table thead th {
+    background: rgba(18, 22, 33, 0.95);
+    color: var(--pos-gold-light);
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--pos-border-gold);
+    text-align: left;
+    white-space: nowrap;
+}
+
+.glass-table tbody tr {
+    transition: all 0.2s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.glass-table tbody tr:hover {
+    background: rgba(212, 175, 55, 0.06);
+}
+
+.glass-table tbody td {
+    padding: 0.75rem 1rem;
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* Unified Badges */
+.badge-primary,
+.store-portal-root .badge-primary {
+    background: var(--pos-gold-gradient-subtle);
+    color: var(--pos-gold-light);
+    border: 1px solid var(--pos-border-gold-bright);
+}
+
+.badge-gold,
+.store-portal-root .badge-gold {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(243, 229, 171, 0.08));
+    color: #FFF3B3;
+    border: 1px solid var(--pos-gold-primary);
+}
+
+.badge-blue,
+.store-portal-root .badge-blue {
+    background: rgba(59, 130, 246, 0.15);
+    color: #93c5fd;
+    border: 1px solid rgba(59, 130, 246, 0.35);
+}
+
+.badge-success,
+.store-portal-root .badge-success {
+    background: rgba(16, 185, 129, 0.15);
+    color: #6ee7b7;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.badge-warning,
+.store-portal-root .badge-warning {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fde047;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.badge-danger,
+.store-portal-root .badge-danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.badge-secondary,
+.store-portal-root .badge-secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--pos-text-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Animations */
+@keyframes laserScan {
+    0% { top: 6%; opacity: 0.85; }
+    50% { top: 90%; opacity: 1; }
+    100% { top: 6%; opacity: 0.85; }
+}
+
+@keyframes radarPulse {
+    0% { transform: scale(0.95); opacity: 0.6; }
+    50% { transform: scale(1.18); opacity: 1; }
+    100% { transform: scale(0.95); opacity: 0.6; }
+}
+
+@keyframes hudPopIn {
+    0% { transform: scale(0.96) translateY(8px); opacity: 0; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes emeraldGlow {
+    0% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.2); }
+    50% { box-shadow: 0 0 25px rgba(16, 185, 129, 0.5); }
+    100% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.2); }
+}
+
+@keyframes goldGlow {
+    0% { box-shadow: 0 0 15px rgba(212, 175, 55, 0.25); }
+    50% { box-shadow: 0 0 30px rgba(212, 175, 55, 0.55); }
+    100% { box-shadow: 0 0 15px rgba(212, 175, 55, 0.25); }
+}
+
+.laser-beam {
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #ef4444, #ff6b6b, #ef4444, transparent);
+    box-shadow: 0 0 14px #ef4444, 0 0 24px rgba(239, 68, 68, 0.8);
+    pointer-events: none;
+    z-index: 10;
+    animation: laserScan 2.2s ease-in-out infinite;
+}
+
+.viewfinder-reticle {
+    position: absolute;
+    inset: 14px;
+    pointer-events: none;
+    z-index: 8;
+}
+
+.reticle-corner {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border-color: var(--pos-gold-primary);
+    border-style: solid;
+}
+
+.reticle-tl { top: 0; left: 0; border-width: 3px 0 0 3px; border-top-left-radius: 6px; }
+.reticle-tr { top: 0; right: 0; border-width: 3px 3px 0 0; border-top-right-radius: 6px; }
+.reticle-bl { bottom: 0; left: 0; border-width: 0 0 3px 3px; border-bottom-left-radius: 6px; }
+.reticle-br { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-bottom-right-radius: 6px; }
+
+.scanned-hud-card {
+    animation: hudPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 1px solid rgba(16, 185, 129, 0.5);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(13, 15, 21, 0.95) 100%);
+    box-shadow: 0 12px 35px -8px rgba(16, 185, 129, 0.3);
+}
+
+.scanned-hud-card.already-received {
+    border: 1px solid rgba(245, 158, 11, 0.5);
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(13, 15, 21, 0.95) 100%);
+    box-shadow: 0 12px 35px -8px rgba(245, 158, 11, 0.3);
+}
+
+.scanned-hud-card.error {
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(13, 15, 21, 0.95) 100%);
+    box-shadow: 0 12px 35px -8px rgba(239, 68, 68, 0.3);
+}
+
+.piece-manifest-card {
+    transition: all 0.22s ease;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.piece-manifest-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--pos-gold-primary);
+}
+
+.piece-manifest-card.received {
+    border-color: rgba(16, 185, 129, 0.4);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(255, 255, 255, 0.01));
+}
+
+.celebration-banner {
+    animation: goldGlow 3s infinite ease-in-out, hudPopIn 0.4s ease-out;
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.18) 0%, rgba(18, 22, 33, 0.96) 100%);
+    border: 2px solid var(--pos-gold-primary);
+}

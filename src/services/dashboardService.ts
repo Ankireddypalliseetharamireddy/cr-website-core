@@ -1,7 +1,8 @@
 import apiClient from './apiClient';
 
 export const dashboardService = {
-    getFranchiseStats: () => apiClient.get('/dashboards/franchise/'),
+    getFranchiseStats: (params?: { franchise_id?: number | string; franchise?: number | string }) => 
+        apiClient.get('/dashboards/franchise/', { params }),
 };
 
 export default dashboardService;

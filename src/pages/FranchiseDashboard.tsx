@@ -3,7 +3,8 @@ import {
     Store, DollarSign, Package, Users, ArrowRightLeft, Power,
     Plus, Shield, Send, Search, CheckCircle, AlertTriangle,
     TrendingUp, ArrowUpRight, Wallet, Percent, Clock, Sparkles, Filter,
-    ShoppingCart, ArrowRight, Share2, Printer, Check, RefreshCw, X, Calendar, FileText
+    ShoppingCart, ArrowRight, Share2, Printer, Check, RefreshCw, X, Calendar, FileText,
+    Eye
 } from 'lucide-react';
 import { dashboardService, catalogService, transferService, employeeService, orderService } from '../services/api';
 import '../styles/website.css';
@@ -25,6 +26,12 @@ const formatIndianCurrency = (val: number | string | undefined | null) => {
     return `₹${num.toLocaleString('en-IN')}`;
 };
 
+const safeNum = (val: any, fallback: number = 0): number => {
+    if (val === null || val === undefined || val === '') return fallback;
+    const num = Number(val);
+    return isNaN(num) ? fallback : num;
+};
+
 export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAudit, onNavigateToReceiving }: FranchiseDashboardProps) {
     const [activeTab, setActiveTab] = useState<'overview' | 'employees' | 'products' | 'wallet'>('overview');
     const [stats, setStats] = useState<any>(null);
@@ -37,6 +44,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
     // Filter & Search States
     const [employeeSearch, setEmployeeSearch] = useState('');
     const [invoiceSearch, setInvoiceSearch] = useState('');
+    const [walletLedgerType, setWalletLedgerType] = useState<'all' | 'wallet1' | 'wallet2'>('all');
 
     // Agreement Renewal Modal State
     const [showRenewalModal, setShowRenewalModal] = useState(false);
@@ -63,15 +71,34 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
     const loadDashboardData = async () => {
         try {
             setLoading(true);
-            const [statsRes, prodRes, transRes, empRes, ordRes] = await Promise.all([
-                dashboardService.getFranchiseStats(),
-                catalogService.getProducts(),
-                transferService.getTransfers(),
-                employeeService.getEmployees(),
-                orderService.getOrders().catch(() => ({ data: [] }))
+            const savedFranchiseId = localStorage.getItem('franchiseDbId');
+            const statsParams = savedFranchiseId ? { franchise_id: savedFranchiseId } : undefined;
+
+            let fetchedStats: any = null;
+            try {
+                const statsRes = await dashboardService.getFranchiseStats(statsParams);
+                fetchedStats = statsRes.data;
+                setStats(fetchedStats);
+                if (fetchedStats?.id) {
+                    localStorage.setItem('franchiseDbId', String(fetchedStats.id));
+                }
+                if (fetchedStats?.name) {
+                    localStorage.setItem('franchiseId', fetchedStats.name);
+                }
+            } catch (err) {
+                console.error("Failed to load franchise stats", err);
+            }
+
+            const activeFranchiseId = fetchedStats?.id || savedFranchiseId;
+            const orderParams = activeFranchiseId ? { franchise: activeFranchiseId } : undefined;
+
+            const [prodRes, transRes, empRes, ordRes] = await Promise.all([
+                catalogService.getProducts().catch(() => ({ data: [] })),
+                transferService.getTransfers().catch(() => ({ data: [] })),
+                employeeService.getEmployees().catch(() => ({ data: [] })),
+                orderService.getOrders(orderParams).catch(() => ({ data: [] }))
             ]);
 
-            setStats(statsRes.data);
             setProducts(prodRes.data || []);
             setTransfers(transRes.data || []);
             setEmployees(empRes.data || []);
@@ -175,10 +202,36 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
     );
 
     // Filter Invoices (Search by Invoice # or Payment Method, customer phone is hidden for privacy)
-    const filteredInvoices = orders.filter(o => 
-        (o.invoice_number && o.invoice_number.toLowerCase().includes(invoiceSearch.toLowerCase())) ||
-        (o.payment_method && o.payment_method.toLowerCase().includes(invoiceSearch.toLowerCase()))
-    );
+    const filteredInvoices = orders.filter(o => {
+        const matchesSearch = 
+            (o.invoice_number && o.invoice_number.toLowerCase().includes(invoiceSearch.toLowerCase())) ||
+            (o.payment_method && o.payment_method.toLowerCase().includes(invoiceSearch.toLowerCase()));
+        if (!matchesSearch) return false;
+
+        const commVal = parseFloat(o.commission_amount !== undefined && o.commission_amount !== null ? o.commission_amount : (parseFloat(o.total_price || 0) * (commissionPercent / 100)));
+        const recoupVal = parseFloat(o.principal_recovery_amount !== undefined && o.principal_recovery_amount !== null ? o.principal_recovery_amount : (parseFloat(o.net_base_amount || (o.total_price / 1.18)) * 0.10));
+
+        if (walletLedgerType === 'wallet1') return commVal > 0;
+        if (walletLedgerType === 'wallet2') return recoupVal > 0;
+        return true;
+    });
+
+    const totalGrossRevenue = orders.reduce((sum, o) => sum + (parseFloat(o.total_price) || 0), 0);
+    const totalNetBaseRevenue = orders.reduce((sum, o) => sum + (parseFloat(o.net_base_amount) || (parseFloat(o.total_price || 0) / 1.18)), 0);
+    const totalCommissionCredited = orders.reduce((sum, o) => {
+        if (o.commission_amount !== undefined && o.commission_amount !== null) {
+            return sum + parseFloat(o.commission_amount);
+        }
+        const netBase = parseFloat(o.net_base_amount || (parseFloat(o.total_price || 0) / 1.18));
+        return sum + (netBase * (commissionPercent / 100));
+    }, 0);
+    const totalPrincipalRecoupedCalc = orders.reduce((sum, o) => {
+        if (o.principal_recovery_amount !== undefined && o.principal_recovery_amount !== null) {
+            return sum + parseFloat(o.principal_recovery_amount);
+        }
+        const netBase = parseFloat(o.net_base_amount || (parseFloat(o.total_price || 0) / 1.18));
+        return sum + (netBase * 0.10);
+    }, 0);
 
     const commissionPercent = parseFloat(stats?.commission_percentage || '15');
 
@@ -272,7 +325,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                             </span>
                         </div>
                         <h2 style={{ fontSize: '1.35rem', fontWeight: 'bold', margin: '0 0 0.45rem 0', color: 'var(--pos-gold-light)' }}>
-                            Agreement Minimum Guarantee Target: ₹{parseFloat(stats?.minimum_guarantee_target || 0).toLocaleString('en-IN')} {stats?.minimum_guarantee_target ? `(${formatIndianCurrency(stats?.minimum_guarantee_target)})` : ''}
+                            Agreement Minimum Guarantee Target: ₹{safeNum(stats?.minimum_guarantee_target).toLocaleString('en-IN')} {stats?.minimum_guarantee_target ? `(${formatIndianCurrency(stats?.minimum_guarantee_target)})` : ''}
                         </h2>
                         <p style={{ fontSize: '0.8125rem', color: 'var(--pos-text-secondary)', margin: 0, lineHeight: '1.5' }}>
                             ★ <strong>Cavree Buyout Guarantee:</strong> If your invested principal is not recouped to ₹0 within {stats?.agreement_years || 6} years, Cavree contractually pays the remaining balance. If completed earlier, commission payouts continue through the full agreement tenure.
@@ -282,13 +335,13 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.4rem', minWidth: '240px' }}>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
                             <span style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#6ee7b7' }}>
-                                ₹{parseFloat(stats?.cumulative_net_sales || stats?.total_sold_all_time || 0).toLocaleString('en-IN')}
+                                ₹{safeNum(stats?.cumulative_net_sales || stats?.total_sold_all_time).toLocaleString('en-IN')}
                             </span>
                             <span style={{ fontSize: '0.75rem', color: 'var(--pos-text-secondary)' }}>net sales accrued</span>
                         </div>
                         <div style={{ width: '100%', background: 'rgba(255,255,255,0.08)', borderRadius: '999px', height: '8px', overflow: 'hidden', minWidth: '220px' }}>
                             <div style={{
-                                width: `${Math.min(100, stats?.guarantee_target_progress || 0)}%`,
+                                width: `${Math.min(100, safeNum(stats?.guarantee_target_progress))}%`,
                                 height: '100%',
                                 background: 'linear-gradient(90deg, #10b981, #d4af37)',
                                 borderRadius: '999px',
@@ -296,7 +349,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                             }} />
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', fontSize: '0.72rem', color: 'var(--pos-text-secondary)' }}>
-                            <span>{stats?.guarantee_target_progress || 0}% of Target Met</span>
+                            <span>{safeNum(stats?.guarantee_target_progress)}% of Target Met</span>
                             <span>Target: {formatIndianCurrency(stats?.minimum_guarantee_target || 0)}</span>
                         </div>
                         <button 
@@ -325,7 +378,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                         <Wallet size={18} style={{ color: 'var(--pos-gold-primary)' }} />
                     </div>
                     <div className="kpi-val" style={{ color: 'var(--pos-gold-light)' }}>
-                        ₹{parseFloat(stats?.commission_wallet_balance || stats?.wallet_balance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        ₹{safeNum(stats?.commission_wallet_balance || stats?.wallet_balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.35rem', paddingTop: '0.35rem', borderTop: '1px solid var(--pos-border-subtle)' }}>
                         <span className="kpi-sub" style={{ color: 'var(--pos-text-secondary)' }}>Product sales earnings</span>
@@ -342,11 +395,11 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                         <TrendingUp size={18} style={{ color: '#60a5fa' }} />
                     </div>
                     <div className="kpi-val" style={{ color: '#93c5fd' }}>
-                        ₹{parseFloat(stats?.invested_wallet_balance !== undefined && stats?.invested_wallet_balance !== null ? stats?.invested_wallet_balance : stats?.investment_amount).toLocaleString('en-IN')}
+                        ₹{safeNum(stats?.invested_wallet_balance !== undefined && stats?.invested_wallet_balance !== null ? stats?.invested_wallet_balance : stats?.investment_amount).toLocaleString('en-IN')}
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.35rem', paddingTop: '0.35rem', borderTop: '1px solid var(--pos-border-subtle)' }}>
                         <span className="kpi-sub" style={{ color: 'var(--pos-text-secondary)' }}>10% Net Billings</span>
-                        <span style={{ fontSize: '0.65rem', color: '#6ee7b7', fontWeight: 'bold' }}>₹{parseFloat(stats?.recovered_investment || 0).toLocaleString('en-IN')} recouped</span>
+                        <span style={{ fontSize: '0.65rem', color: '#6ee7b7', fontWeight: 'bold' }}>₹{safeNum(stats?.recovered_investment).toLocaleString('en-IN')} recouped</span>
                     </div>
                 </div>
 
@@ -359,11 +412,11 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                         <Package size={18} style={{ color: 'var(--pos-gold-metallic)' }} />
                     </div>
                     <div className="kpi-val" style={{ color: 'var(--pos-text-primary)' }}>
-                        ₹{parseFloat(stats?.current_shelf_inventory_value || 0).toLocaleString('en-IN')}
+                        ₹{safeNum(stats?.current_shelf_inventory_value).toLocaleString('en-IN')}
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.35rem', paddingTop: '0.35rem', borderTop: '1px solid var(--pos-border-subtle)' }}>
                         <span className="kpi-sub" style={{ color: 'var(--pos-text-secondary)' }}>Consigned Worth</span>
-                        <span style={{ fontSize: '0.65rem', color: 'var(--pos-gold-light)', fontWeight: 'bold' }}>₹{parseFloat(stats?.total_consignment_received_value || 0).toLocaleString('en-IN')}</span>
+                        <span style={{ fontSize: '0.65rem', color: 'var(--pos-gold-light)', fontWeight: 'bold' }}>₹{safeNum(stats?.total_consignment_received_value).toLocaleString('en-IN')}</span>
                     </div>
                 </div>
 
@@ -451,7 +504,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                 </div>
                             </div>
                             <p style={{ fontSize: '0.8125rem', color: 'var(--pos-text-secondary)', margin: '0 0 1rem 0', lineHeight: '1.4' }}>
-                                Target: ₹{parseFloat(stats?.minimum_guarantee_target || 0).toLocaleString('en-IN')} &bull; {stats?.guarantee_target_progress || 0}% realized via net sales.
+                                Target: ₹{safeNum(stats?.minimum_guarantee_target).toLocaleString('en-IN')} &bull; {safeNum(stats?.guarantee_target_progress)}% realized via net sales.
                             </p>
                             <div style={{ display: 'flex', alignItems: 'center', color: 'var(--pos-gold-light)', fontWeight: 'bold', fontSize: '0.8125rem', gap: '0.35rem' }}>
                                 <span>View Agreement Details</span>
@@ -623,12 +676,12 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                 </h3>
                                 {onNavigateToReceiving && (
                                     <button
-                                        className="btn btn-primary btn-sm"
+                                        className="btn btn-secondary btn-sm"
                                         onClick={onNavigateToReceiving}
                                         style={{ padding: '0.35rem 0.85rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem', borderRadius: '8px' }}
                                     >
-                                        <Package size={14} />
-                                        <span>Scan &amp; Receive Stock</span>
+                                        <Eye size={14} style={{ color: 'var(--pos-gold-primary)' }} />
+                                        <span>Track Shipments</span>
                                     </button>
                                 )}
                             </div>
@@ -642,7 +695,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                                 <th>Product</th>
                                                 <th>Delivered Qty</th>
                                                 <th style={{ textAlign: 'center' }}>Consignment Status</th>
-                                                <th style={{ textAlign: 'right' }}>Action</th>
+                                                <th style={{ textAlign: 'right' }}>Tracking</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -659,14 +712,15 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                                         </span>
                                                     </td>
                                                     <td style={{ textAlign: 'right' }}>
-                                                        {t.status === 'IN_TRANSIT' && onNavigateToReceiving ? (
+                                                        {onNavigateToReceiving ? (
                                                             <button
-                                                                className="btn btn-primary btn-sm"
+                                                                className="btn btn-secondary btn-sm"
                                                                 onClick={onNavigateToReceiving}
                                                                 style={{ padding: '0.25rem 0.65rem', fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', borderRadius: '6px' }}
+                                                                title="View consignment transit progress & details"
                                                             >
-                                                                <Package size={13} />
-                                                                <span>Scan Barcodes</span>
+                                                                <Eye size={12} style={{ color: 'var(--pos-gold-primary)' }} />
+                                                                <span>View Tracking</span>
                                                             </button>
                                                         ) : (
                                                             <span style={{ color: 'var(--pos-text-secondary)', fontSize: '0.75rem' }}>-</span>
@@ -1012,7 +1066,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                         Wallet 2: Invested Balance (Towards ₹0)
                                     </span>
                                     <h2 style={{ fontSize: '2rem', fontWeight: 'bold', margin: '0.35rem 0 0 0', color: '#93c5fd' }}>
-                                        ₹{parseFloat(stats?.invested_wallet_balance !== undefined && stats?.invested_wallet_balance !== null ? stats?.invested_wallet_balance : stats?.investment_amount).toLocaleString('en-IN')}
+                                        ₹{safeNum(stats?.invested_wallet_balance !== undefined && stats?.invested_wallet_balance !== null ? stats?.invested_wallet_balance : stats?.investment_amount).toLocaleString('en-IN')}
                                     </h2>
                                 </div>
                                 <TrendingUp size={28} style={{ color: '#60a5fa' }} />
@@ -1020,11 +1074,11 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                             <div style={{ marginTop: '0.5rem' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '0.25rem' }}>
                                     <span style={{ color: 'var(--pos-text-secondary)' }}>Recouped via 10% Billings:</span>
-                                    <span style={{ color: '#6ee7b7', fontWeight: 'bold' }}>₹{parseFloat(stats?.recovered_investment || 0).toLocaleString('en-IN')} ({stats?.recovery_percent || 0}%)</span>
+                                    <span style={{ color: '#6ee7b7', fontWeight: 'bold' }}>₹{safeNum(stats?.recovered_investment).toLocaleString('en-IN')} ({safeNum(stats?.recovery_percent)}%)</span>
                                 </div>
                                 <div style={{ width: '100%', background: 'rgba(255,255,255,0.08)', borderRadius: '999px', height: '6px', overflow: 'hidden' }}>
                                     <div style={{
-                                        width: `${Math.min(100, stats?.recovery_percent || 0)}%`,
+                                        width: `${Math.min(100, safeNum(stats?.recovery_percent))}%`,
                                         height: '100%',
                                         background: 'linear-gradient(90deg, #60a5fa, #10b981)',
                                         borderRadius: '999px'
@@ -1032,7 +1086,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                 </div>
                             </div>
                             <p style={{ fontSize: '0.72rem', color: 'var(--pos-text-secondary)', margin: '0.5rem 0 0 0', lineHeight: '1.4' }}>
-                                Initial: ₹{parseFloat(stats?.investment_amount || 0).toLocaleString('en-IN')} &bull; Cavree contractually guarantees buyout of remaining balance if &gt; ₹0 at 6 years.
+                                Initial: ₹{safeNum(stats?.investment_amount).toLocaleString('en-IN')} &bull; Cavree contractually guarantees buyout of remaining balance if &gt; ₹0 at 6 years.
                             </p>
                         </div>
 
@@ -1052,11 +1106,11 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                             <div style={{ marginTop: '0.5rem' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '0.25rem' }}>
                                     <span style={{ color: 'var(--pos-text-secondary)' }}>Net Sales Accrued:</span>
-                                    <span style={{ color: 'var(--pos-gold-light)', fontWeight: 'bold' }}>₹{parseFloat(stats?.cumulative_net_sales || stats?.total_sold_all_time || 0).toLocaleString('en-IN')}</span>
+                                    <span style={{ color: 'var(--pos-gold-light)', fontWeight: 'bold' }}>₹{safeNum(stats?.cumulative_net_sales || stats?.total_sold_all_time).toLocaleString('en-IN')}</span>
                                 </div>
                                 <div style={{ width: '100%', background: 'rgba(255,255,255,0.08)', borderRadius: '999px', height: '6px', overflow: 'hidden' }}>
                                     <div style={{
-                                        width: `${Math.min(100, stats?.guarantee_target_progress || 0)}%`,
+                                        width: `${Math.min(100, safeNum(stats?.guarantee_target_progress))}%`,
                                         height: '100%',
                                         background: 'linear-gradient(90deg, #10b981, #d4af37)',
                                         borderRadius: '999px'
@@ -1069,29 +1123,89 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                         </div>
                     </div>
 
-                    {/* Sales & Commission Breakdown Ledger */}
+                    {/* Sales & Dual-Wallet Commission Breakdown Ledger */}
                     <div className="glass-panel">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
                             <div>
-                                <h3 className="panel-title" style={{ margin: 0, border: 'none', padding: 0 }}>
-                                    <TrendingUp size={18} style={{ color: 'var(--pos-gold-primary)' }} />
-                                    Transaction Commission Ledger ({filteredInvoices.length} Invoices)
+                                <h3 className="panel-title" style={{ margin: 0, border: 'none', padding: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <TrendingUp size={20} style={{ color: 'var(--pos-gold-primary)' }} />
+                                    Dual-Wallet Transaction Ledger &amp; Commission History
                                 </h3>
-                                <p style={{ color: 'var(--pos-text-secondary)', fontSize: '0.8125rem', margin: '0.2rem 0 0 0' }}>
-                                    Per-invoice ledger displaying gross billings, net base revenue, and investor commission allocations.
+                                <p style={{ color: 'var(--pos-text-secondary)', fontSize: '0.8125rem', margin: '0.25rem 0 0 0' }}>
+                                    Real-time audit log of gross billings, net base amounts (excl. GST), Wallet 1 product commissions, and Wallet 2 principal recovery deductions.
                                 </p>
                             </div>
 
-                            <div style={{ position: 'relative', minWidth: '280px' }}>
-                                <input
-                                    type="text"
-                                    className="form-input"
-                                    placeholder="Search by Invoice # or Payment Method..."
-                                    value={invoiceSearch}
-                                    onChange={(e) => setInvoiceSearch(e.target.value)}
-                                    style={{ paddingLeft: '2.4rem', fontSize: '0.85rem' }}
-                                />
-                                <Search size={15} style={{ position: 'absolute', left: '0.85rem', top: '0.95rem', color: 'var(--pos-text-secondary)' }} />
+                            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                                {/* Ledger View Filter Toggles */}
+                                <div style={{ display: 'inline-flex', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '0.2rem', border: '1px solid var(--pos-border-subtle)' }}>
+                                    <button
+                                        className={`btn btn-sm ${walletLedgerType === 'all' ? 'btn-primary' : 'btn-secondary'}`}
+                                        onClick={() => setWalletLedgerType('all')}
+                                        style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}
+                                    >
+                                        All Wallets ({orders.length})
+                                    </button>
+                                    <button
+                                        className={`btn btn-sm ${walletLedgerType === 'wallet1' ? 'btn-primary' : 'btn-secondary'}`}
+                                        onClick={() => setWalletLedgerType('wallet1')}
+                                        style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}
+                                    >
+                                        💰 Wallet 1 (Commissions)
+                                    </button>
+                                    <button
+                                        className={`btn btn-sm ${walletLedgerType === 'wallet2' ? 'btn-primary' : 'btn-secondary'}`}
+                                        onClick={() => setWalletLedgerType('wallet2')}
+                                        style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}
+                                    >
+                                        📈 Wallet 2 (Principal Recoup)
+                                    </button>
+                                </div>
+
+                                <div style={{ position: 'relative', minWidth: '240px' }}>
+                                    <input
+                                        type="text"
+                                        className="form-input"
+                                        placeholder="Search by Invoice # or Payment..."
+                                        value={invoiceSearch}
+                                        onChange={(e) => setInvoiceSearch(e.target.value)}
+                                        style={{ paddingLeft: '2.4rem', fontSize: '0.85rem' }}
+                                    />
+                                    <Search size={15} style={{ position: 'absolute', left: '0.85rem', top: '0.95rem', color: 'var(--pos-text-secondary)' }} />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Dual-Wallet Ledger Metric Strip */}
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                            gap: '0.75rem',
+                            padding: '0.85rem 1rem',
+                            background: 'rgba(0, 0, 0, 0.35)',
+                            borderRadius: '12px',
+                            border: '1px solid var(--pos-border-subtle)',
+                            marginBottom: '1.25rem'
+                        }}>
+                            <div>
+                                <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--pos-text-secondary)', fontWeight: 600 }}>Total Invoices</span>
+                                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--pos-text-primary)' }}>{orders.length}</div>
+                            </div>
+                            <div>
+                                <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--pos-text-secondary)', fontWeight: 600 }}>Gross Store Sales</span>
+                                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--pos-gold-light)' }}>₹{totalGrossRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                            </div>
+                            <div>
+                                <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--pos-text-secondary)', fontWeight: 600 }}>Net Base (Excl. GST)</span>
+                                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--pos-text-primary)' }}>₹{totalNetBaseRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                            </div>
+                            <div>
+                                <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: '#6ee7b7', fontWeight: 600 }}>Wallet 1 Comm. Earned</span>
+                                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#6ee7b7' }}>+ ₹{totalCommissionCredited.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                            </div>
+                            <div>
+                                <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: '#93c5fd', fontWeight: 600 }}>Wallet 2 Capital Recouped</span>
+                                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#93c5fd' }}>+ ₹{totalPrincipalRecoupedCalc.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                             </div>
                         </div>
 
@@ -1103,16 +1217,20 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                             <th>Invoice #</th>
                                             <th>Date &amp; Time</th>
                                             <th>Customer</th>
-                                            <th>Total Bill Amount</th>
+                                            <th>Gross Total</th>
+                                            <th>Net Base (Excl. GST)</th>
+                                            <th style={{ textAlign: 'right', color: 'var(--pos-gold-light)' }}>Wallet 1: Commission</th>
+                                            <th style={{ textAlign: 'right', color: '#93c5fd' }}>Wallet 2: Recouped (10%)</th>
                                             <th>Payment Method</th>
-                                            <th style={{ textAlign: 'right' }}>Calculated Commission ({commissionPercent}%)</th>
                                             <th style={{ textAlign: 'center' }}>Receipt</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {filteredInvoices.map((ord) => {
                                             const gross = parseFloat(ord.total_price) || 0;
-                                            const comm = (gross * (commissionPercent / 100));
+                                            const netBase = parseFloat(ord.net_base_amount !== undefined && ord.net_base_amount !== null ? ord.net_base_amount : (gross / 1.18));
+                                            const comm = parseFloat(ord.commission_amount !== undefined && ord.commission_amount !== null ? ord.commission_amount : (netBase * (commissionPercent / 100)));
+                                            const recoup = parseFloat(ord.principal_recovery_amount !== undefined && ord.principal_recovery_amount !== null ? ord.principal_recovery_amount : (netBase * 0.10));
 
                                             return (
                                                 <tr key={ord.id}>
@@ -1129,11 +1247,17 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                                                     <td style={{ fontWeight: 'bold' }}>
                                                         ₹{gross.toFixed(2)}
                                                     </td>
-                                                    <td>
-                                                        <span className="badge badge-blue">{ord.payment_method}</span>
+                                                    <td style={{ color: 'var(--pos-text-secondary)', fontSize: '0.85rem' }}>
+                                                        ₹{netBase.toFixed(2)}
                                                     </td>
                                                     <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#6ee7b7', fontSize: '0.9375rem' }}>
                                                         + ₹{comm.toFixed(2)}
+                                                    </td>
+                                                    <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#93c5fd', fontSize: '0.9375rem' }}>
+                                                        + ₹{recoup.toFixed(2)}
+                                                    </td>
+                                                    <td>
+                                                        <span className="badge badge-blue">{ord.payment_method}</span>
                                                     </td>
                                                     <td style={{ textAlign: 'center' }}>
                                                         <button
@@ -1153,7 +1277,7 @@ export default function FranchiseDashboard({ onNavigateToBilling, onNavigateToAu
                             </div>
                         ) : (
                             <p style={{ padding: '3rem', textAlign: 'center', color: 'var(--pos-text-secondary)' }}>
-                                No sales transactions found matching your filter.
+                                No transactions found matching your current filter.
                             </p>
                         )}
                     </div>

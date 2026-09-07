@@ -10,7 +10,7 @@ import FranchiseDashboard from './FranchiseDashboard';
 import StockReceiving from './StockReceiving';
 import {
     LogOut, User, Store, ShoppingCart, ClipboardCheck, Home,
-    Receipt, Globe, Menu, X, ChevronRight, Shield, Package
+    Receipt, Globe, Menu, X, ChevronRight, Shield, Package, Truck
 } from 'lucide-react';
 
 export default function StorePortal() {
@@ -64,6 +64,7 @@ export default function StorePortal() {
         localStorage.removeItem('username');
         localStorage.removeItem('role');
         localStorage.removeItem('franchiseId');
+        localStorage.removeItem('franchiseDbId');
         localStorage.removeItem('activePage');
         setToken(null);
         setUsername('');
@@ -249,8 +250,8 @@ export default function StorePortal() {
                                             style={{ justifyContent: 'space-between', padding: '0.55rem 0.85rem', fontSize: '0.85rem' }}
                                         >
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                <Package size={15} />
-                                                <span>Inbound Stock Receiving</span>
+                                                {isFranchiseAdmin ? <Truck size={15} style={{ color: 'var(--pos-gold-primary)' }} /> : <Package size={15} />}
+                                                <span>{isFranchiseAdmin ? 'Consignment Tracking' : 'Inbound Stock Receiving'}</span>
                                             </div>
                                             <ChevronRight size={13} />
                                         </button>
@@ -322,7 +323,12 @@ export default function StorePortal() {
                     )}
                     {activePage === 'billing' && <Billing onBack={() => handleNavigate('home')} />}
                     {activePage === 'auditing' && <Auditing onBack={() => handleNavigate('home')} />}
-                    {activePage === 'receiving' && <StockReceiving onBack={() => handleNavigate('home')} />}
+                    {activePage === 'receiving' && (
+                        <StockReceiving
+                            onBack={() => handleNavigate('home')}
+                            onNavigateToBilling={() => handleNavigate('billing')}
+                        />
+                    )}
                     {activePage === 'history' && <SalesHistory onBack={() => handleNavigate('home')} />}
                     {activePage === 'dashboard' && (
                         <FranchiseDashboard

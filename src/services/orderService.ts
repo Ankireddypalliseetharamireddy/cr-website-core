@@ -7,7 +7,7 @@ export interface AuditPayload {
 }
 
 export const orderService = {
-    getOrders: (params?: { timeframe?: string; search?: string; franchise?: string }) => 
+    getOrders: (params?: { timeframe?: string; search?: string; franchise?: string | number; franchise_id?: string | number }) => 
         apiClient.get('/orders/', { params }),
     getSalesSummary: (timeframe: string = 'today') => 
         apiClient.get('/orders/sales_summary/', { params: { timeframe } }),

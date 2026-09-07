@@ -135,7 +135,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                 password: password.trim()
             });
 
-            const { token, username, role } = res.data;
+            const { token, username, role, franchise_id, franchise_name } = res.data;
 
             // Security context verification based on selected tab role
             if (loginType === 'admin' && role !== 'FRANCHISE_ADMIN' && role !== 'SUPER_ADMIN') {
@@ -151,13 +151,20 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                 throw new Error("Access denied. Selected account does not belong to a store staff role.");
             }
 
-            const storeIdentifier = selectedFranchiseName || selectedFranchiseId || 'Store';
+            const storeIdentifier = franchise_name || selectedFranchiseName || selectedFranchiseId || 'Store';
+            const resolvedDbId = franchise_id ? String(franchise_id) : selectedFranchiseId;
+
+            // Clear any previous session leftovers
+            localStorage.removeItem('franchiseDbId');
 
             // Save session credentials
             localStorage.setItem('token', token);
             localStorage.setItem('username', username);
             localStorage.setItem('role', role);
             localStorage.setItem('franchiseId', storeIdentifier);
+            if (resolvedDbId) {
+                localStorage.setItem('franchiseDbId', resolvedDbId);
+            }
 
             onLoginSuccess(token, username, role, storeIdentifier);
         } catch (err: any) {
